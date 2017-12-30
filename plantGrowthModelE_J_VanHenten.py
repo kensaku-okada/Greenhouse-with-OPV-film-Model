@@ -5,9 +5,16 @@
 # last edit date: 15 Jun 2017
 #######################################################
 
+# ####################################################################################################
+# # Stop execution here...
+# sys.exit()
+# # Move the above line to different parts of the assignment as you implement more of the functionality.
+# ####################################################################################################
+
 ##########import package files##########
 import os as os
 import numpy as np
+import sys
 import matplotlib.pyplot as plt
 import math
 import CropElectricityYeildSimulatorConstant as constant
@@ -15,13 +22,36 @@ import Util as util
 import datetime
 
 
-
-def calcUnitDailyFreshWeightE_J_VanHenten1994(U_T, U_par, U_CO2, cropElectricityYieldSimulator1 = None):
+def calcUnitDailyFreshWeightE_J_VanHenten1994(hourlyInnerPPFDToPlants, simulatorClass):
     '''
 
     :param U_T: canopy temperature [`C]
+    :param U_par:
+    :param U_CO2:
+    :param cropElectricityYieldSimulator1:
     :return:
     '''
+
+    # According to Van Henten (1994), 'With data logging system connected to the greenhouse climate computer, half-hour mean values of the indoor climate data were recorded.'
+
+    # TODO it is temporarily assumed that the canopy temperature is same as the imported temperature, but it has to be our experiement data later
+    U_T = simulatorClass.getImportedHourlyAirTemperature()
+    print("U_T:[]".format(U_T))
+    print("U_T.shape:[]".format(U_T.shape))
+
+    # unit: W/m^2
+    # U_par =
+
+    # unit: ppm - pers per million (1/1000000)
+    # TODO it is temporarily assumed that all hourly CO2 concentration is 400 ppm
+    # U_CO2 =
+
+    ####################################################################################################
+    # Stop execution here...
+    sys.exit()
+    # Move the above line to different parts of the assignment as you implement more of the functionality.
+    ####################################################################################################
+
 
     structuralDryWeight = 0.0
     nonStructuralDryWeight = 0.0
@@ -68,7 +98,7 @@ def calcUnitDailyFreshWeightE_J_VanHenten1994(U_T, U_par, U_CO2, cropElectricity
             # light use efficiency
             epsilon = {'g J-1': constant.c_epsilon['g J-1'] * (U_CO2[i] - upperCaseGamma) / ( U_CO2[i]  + 2.0 * upperCaseGamma)}
 
-            f_photo_max = ['g m-2 s-2': epsilon['g J-1'] * U_par[i] * g_CO2 * c_omega * (U_CO2[i] - upperCaseGamma) ]
+            # f_photo_max = ['g m-2 s-2': epsilon['g J-1'] * U_par[i] * g_CO2 * c_omega * (U_CO2[i] - upperCaseGamma) ]
             # the gross canopy photosynthesis
             f_photo = (1 - np.exp( - constant.c_K * constant.c_lar['m2 g-2'] * (1- constant.c_tau) * Xsdw[i])) * f_photo_max['g m-2 s-2']
 

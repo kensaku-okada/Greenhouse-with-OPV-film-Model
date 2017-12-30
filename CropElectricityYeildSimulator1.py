@@ -11,6 +11,11 @@
 # np.set_printoptions(threshold=1000)
 #############
 
+# ####################################################################################################
+# # Stop execution here...
+# sys.exit()
+# # Move the above line to different parts of the assignment as you implement more of the functionality.
+# ####################################################################################################
 
 ##########import package files##########
 from scipy import stats
@@ -96,6 +101,7 @@ def simulateCropElectricityYieldProfit1():
     util.plotMultipleData(np.linspace(0, simulationDaysInt * constant.hourperDay, simulationDaysInt * constant.hourperDay), plotDataSet, labelList, Title, xAxisLabel, yAxisLabel)
     util.saveFigure(Title + " " + constant.SimulationStartDate + "-" + constant.SimulationEndDate)
     ##################plot the various real light intensity to OPV film end######################
+
     # data export
     util.exportCSVFile(np.array([simulatorClass.getDirectSolarRadiationToOPVEastDirection(), simulatorClass.getDirectSolarRadiationToOPVWestDirection(), \
                             simulatorClass.getDiffuseSolarRadiationToOPV(), simulatorClass.getAlbedoSolarRadiationToOPV()]).T,
@@ -369,11 +375,12 @@ def simulateCropElectricityYieldProfit1():
     ################## calculate the daily plant yield start#####################
     # substitute the plant growth name [String]
     plantGrowthModel = constant.plantGrowthModel
-    # set the plant growth name
+    # set the plant growth model name
     simulatorClass.setPlantGrowthModel(plantGrowthModel)
 
     # cultivation days per harvest [days/harvest]
     cultivationDaysperHarvest = constant.cultivationDaysperHarvest
+    simulatorClass.setCultivationDaysperHarvest(cultivationDaysperHarvest)
 
     # OPV coverage ratio [-]
     OPVCoverage = constant.OPVAreaCoverageRatio
@@ -385,26 +392,31 @@ def simulateCropElectricityYieldProfit1():
 
     # boolean
     hasShadingCurtain = constant.hasShadingCurtain
+    simulatorClass.setIfHasShadingCurtain(hasShadingCurtain)
+
     # PPFD [umol m^-2 s^-1]
-    ShadingCurtainDeployPPFD = constant.ShadingCurtainDeployPPFD
+    shadingCurtainDeployPPFD = constant.shadingCurtainDeployPPFD
+    # this variable is substituted to the object at the declaration
+    # simulatorClass.setShadingCurtainDeployPPFD(shadingCurtainDeployPPFD)
 
     # get imported data to calculate the plant yield given an OPV coverage and model
-    # Since the plants are not tilted, do not use the light intensity to the tilted surface, just use the inmported data or estimated data with 0 degree surface.
+    # Since the plants are not tilted, do not use the light intensity to the tilted surface, just use the imported data or estimated data with 0 degree surface.
+    # However, since the ground reflectance solar radiation is not directly imported, it is given by the calculated radiation
     # unit change of the imported outer solar radiation: [W m^-2] -> [umol m^-2 s^-1] == PPFD
     importedDirectPPFDToOPV = util.convertFromWattperSecSquareMeterToPPFD(simulatorClass.getImportedHourlyHorizontalDirectSolarRadiation())
     importedDiffusePPFDToOPV = util.convertFromWattperSecSquareMeterToPPFD(simulatorClass.getImportedHourlyHorizontalDiffuseSolarRadiation())
-    importedGroundReflectedPPFDToOPV = util.convertFromWattperSecSquareMeterToPPFD(simulatorClass.getImportedHourlyAirTemperature())
-    # importedGroundReflectedPPFDToOPV = util.convertFromWattperSecSquareMeterToPPFD(simulatorClass.getGroundReflectedPPFDToOPV())
-
-
+    importedGroundReflectedPPFDToOPV = util.convertFromWattperSecSquareMeterToPPFD(simulatorClass.getGroundReflectedPPFDToOPV())
 
     #calculate plant yield given an OPV coverage and model :daily [g/unit]
-    shootFreshMassList, unitDailyFreshWeightIncrease, accumulatedUnitDailyFreshWeightIncrease, unitDailyHarvestedFreshWeight = \
-        simulatorDetail.calcPlantYieldSimulation(plantGrowthModel, cultivationDaysperHarvest, OPVCoverage, \
-                                                 importedDirectPPFDToOPV, importedDiffusePPFDToOPV, importedGroundReflectedPPFDToOPV,
-                                                 hasShadingCurtain, ShadingCurtainDeployPPFD, simulatorClass)
+    shootFreshMassList, \
+    unitDailyFreshWeightIncrease, \
+    accumulatedUnitDailyFreshWeightIncrease, \
+    unitDailyHarvestedFreshWeight = simulatorDetail.calcPlantYieldSimulation(importedDirectPPFDToOPV, importedDiffusePPFDToOPV, importedGroundReflectedPPFDToOPV, simulatorClass)
     # print ("shootFreshMassList:{}".format(shootFreshMassList))
     # print ("unitDailyFreshWeightIncrease:{}".format(unitDailyFreshWeightIncrease))
+
+
+
 
     # get the penalized plant fresh weight with  too strong sunlight : :daily [g/unit]
     if constant.IfConsiderPhotoInhibition is True:
@@ -422,7 +434,7 @@ def simulateCropElectricityYieldProfit1():
 
     # the DLI to plants [mol/m^2/day]
     totalDLItoPlants = simulatorDetail.getTotalDLIToPlants(OPVCoverage, importedDirectPPFDToOPV, importedDiffusePPFDToOPV, importedGroundReflectedPPFDToOPV,\
-                                           hasShadingCurtain, ShadingCurtainDeployPPFD, simulatorClass)
+                                           hasShadingCurtain, shadingCurtainDeployPPFD, simulatorClass)
     # print "totalDLItoPlants:{}".format(totalDLItoPlants)
     # print "totalDLItoPlants.shape:{}".format(totalDLItoPlants.shape)
 
@@ -508,7 +520,7 @@ def simulateCropElectricityYieldProfit1():
         # boolean
         hasShadingCurtain = constant.hasShadingCurtain
         # PPFD [umol m^-2 s^-1]
-        ShadingCurtainDeployPPFD = constant.ShadingCurtainDeployPPFD
+        shadingCurtainDeployPPFD = constant.shadingCurtainDeployPPFD
         #plant growth model type
         # plantGrowthModel = constant.TaylorExpantionWithFluctuatingDLI
         plantGrowthModel = constant.plantGrowthModel
@@ -633,10 +645,10 @@ def simulateCropElectricityYieldProfit1():
             # daily [g/unit]
             # shootFreshMassList, unitDailyFreshWeightIncrease, accumulatedUnitDailyFreshWeightIncrease, unitDailyHarvestedFreshWeight = \
             #     simulatorDetail.calcPlantYieldSimulation(plantGrowthModel, cultivationDaysperHarvest,OPVCoverageList[i], \
-            #     (directPPFDToOPVEastDirection + directPPFDToOPVWestDirection)/2.0, diffusePPFDToOPV, groundReflectedPPFDToOPV, hasShadingCurtain, ShadingCurtainDeployPPFD, simulatorClass)
+            #     (directPPFDToOPVEastDirection + directPPFDToOPVWestDirection)/2.0, diffusePPFDToOPV, groundReflectedPPFDToOPV, hasShadingCurtain, shadingCurtainDeployPPFD, simulatorClass)
             shootFreshMassList, unitDailyFreshWeightIncrease, accumulatedUnitDailyFreshWeightIncrease, unitDailyHarvestedFreshWeight = \
                 simulatorDetail.calcPlantYieldSimulation(plantGrowthModel, cultivationDaysperHarvest,OPVCoverageList[i], \
-                importedDirectPPFDToOPV, importedDiffusePPFDToOPV, importedGroundReflectedPPFDToOPV, hasShadingCurtain, ShadingCurtainDeployPPFD, simulatorClass)
+                importedDirectPPFDToOPV, importedDiffusePPFDToOPV, importedGroundReflectedPPFDToOPV, hasShadingCurtain, shadingCurtainDeployPPFD, simulatorClass)
 
             # sum the daily increase and get the total increase for a given period with a certain OPV coverage ratio
             unitDailyFreshWeightList[i] =  sum(unitDailyFreshWeightIncrease)

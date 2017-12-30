@@ -578,7 +578,7 @@ def calcCostofElectricityProduction(OPVArea):
 
 
 def calcHourlyInnerLightIntensityPPFD(HourlyOuterLightIntensityPPFD, OPVAreaCoverageRatio, OPVPARTransmissionRatio, hasShadingCurtain=False, \
-                                      shadingCurtainDeployPPFD=constant.ShadingCurtainDeployPPFD, cropElectricityYieldSimulator1 = None):
+                                      shadingCurtainDeployPPFD=constant.shadingCurtainDeployPPFD, cropElectricityYieldSimulator1 = None):
     '''
     calculate the light intensity inside the greenhouse (inner light intensity) each hour
 

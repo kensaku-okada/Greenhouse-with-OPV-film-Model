@@ -17,6 +17,7 @@ import CropElectricityYeildSimulatorConstant as constant
 import Util as util
 import OPVFilm
 import Lettuce
+import PlantGrowthModelE_J_VanHenten
 import QlearningAgentShadingCurtain as QRLshadingCurtain
 from dateutil.relativedelta import *
 #######################################################
@@ -258,8 +259,7 @@ def getPenalizedUnitFreshWeight(lightIntensityDLI):
     c = 54.26
     return a * lightIntensityDLI**2 + b * lightIntensityDLI + c
 
-def calcPlantYieldSimulation(plantGrowthModel, cultivationDaysperHarvest,OPVAreaCoverageRatio, \
-                             directPPFDToOPV, diffusePPFDToOPV, groundReflectedPPFDToOPV,hasShadingCurtain,ShadingCurtainDeployPPFD, cropElectricityYieldSimulator1 = None):
+def calcPlantYieldSimulation(directPPFDToOPV, diffusePPFDToOPV, groundReflectedPPFDToOPV,cropElectricityYieldSimulator1 = None):
     '''
     calculate the daily plant yield
 
@@ -274,6 +274,13 @@ def calcPlantYieldSimulation(plantGrowthModel, cultivationDaysperHarvest,OPVArea
     :param cropElectricityYieldSimulator1: object
     :return:
     '''
+
+    plantGrowthModel = cropElectricityYieldSimulator1.getPlantGrowthModel()
+    cultivationDaysperHarvest = cropElectricityYieldSimulator1.getCultivationDaysperHarvest()
+    OPVAreaCoverageRatio = cropElectricityYieldSimulator1.getOPVAreaCoverageRatio()
+    hasShadingCurtain = cropElectricityYieldSimulator1.getIfhasShadingCurtain()
+    ShadingCurtainDeployPPFD = cropElectricityYieldSimulator1.getShadingCurtainDeployPPFD()
+
     # calculate the light intensity to plants
     # hourly average PPFD [umol m^-2 s^-1]
     hourlyInnerPPFDToPlants = OPVFilm.calcHourlyInnerLightIntensityPPFD(directPPFDToOPV+diffusePPFDToOPV+groundReflectedPPFDToOPV, \
@@ -291,6 +298,14 @@ def calcPlantYieldSimulation(plantGrowthModel, cultivationDaysperHarvest,OPVArea
         # print "shootFreshMassList.shape:{}".format(shootFreshMassList.shape)
 
         return shootFreshMassList, unitDailyFreshWeightIncrease,accumulatedUnitDailyFreshWeightIncrease,unitHarvestedFreshWeight
+
+    elif plantGrowthModel == constant.E_J_VanHenten:
+        # [g]
+        shootFreshMassList, unitDailyFreshWeightIncrease, accumulatedUnitDailyFreshWeightIncrease, unitHarvestedFreshWeight = \
+            PlantGrowthModelE_J_VanHenten.py.calcUnitDailyFreshWeightE_J_VanHenten1994(hourlyInnerPPFDToPlants, cropElectricityYieldSimulator1)
+
+        return shootFreshMassList, unitDailyFreshWeightIncrease,accumulatedUnitDailyFreshWeightIncrease,unitHarvestedFreshWeight
+
 
     else:
       print ("no valid model name is assigned. Return error. stop the simulation")

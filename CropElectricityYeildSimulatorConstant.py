@@ -81,7 +81,8 @@ SimulationPeriodDays = 365.0
 # do not include 1/19/2014 as start date because 1/19/2014 partially misses its hourly data
 # do not include after 8/18/2016 because the dates after 8/18/2016 do not correctly log the body temperature.
 SimulationStartDate="20150101"
-SimulationEndDate = "20151231"
+# SimulationEndDate = "20151231"
+SimulationEndDate = "20150204"
 
 sunnyDaysList = ["20150115", "20150217", "20150316", "20150413", "20150517", "20150615", "20150711", "20150815", "20150918", "20151013", "20151117", "20151215"]
 
@@ -177,8 +178,8 @@ print "OptimumPPFDForButterHeadLettuceWithNoTipburn:{}".format(OptimumPPFDForBut
 
 # 1.5 is an arbitrary number
 # the limitation of PPFD to deploy shading curtain
-ShadingCurtainDeployPPFD = OptimumPPFDForButterHeadLettuceWithNoTipburn * 1.5
-print "ShadingCurtainDeployPPFD:{}".format(ShadingCurtainDeployPPFD)
+shadingCurtainDeployPPFD = OptimumPPFDForButterHeadLettuceWithNoTipburn * 1.5
+print "shadingCurtainDeployPPFD:{}".format(shadingCurtainDeployPPFD)
 ##########Specification of the greenhouse end##########
 
 
@@ -350,9 +351,10 @@ cultivationDaysperHarvest = 35
 
 # the constant of each plant growth model
 TaylorExpantionWithFluctuatingDLI = "TaylorExpantionWithFluctuatingDLI"
-plantGrowthModel = "TaylorExpantionWithFluctuatingDLI"
+E_J_VanHenten = "E_J_VanHenten"
+# plantGrowthModel = "TaylorExpantionWithFluctuatingDLI"
 # plantGrowthModel = "AccumulatedDLI"
-# plantGrowthModel = "E_J_VanHenten"
+plantGrowthModel = E_J_VanHenten
 
 
 DryMassToFreshMass = 1.0/0.045

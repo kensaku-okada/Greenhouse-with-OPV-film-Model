@@ -8,10 +8,10 @@ class SimulatorClass:
 
     self._OPVAreaCoverageRatio = constant.OPVAreaCoverageRatio
     self._OPVCoverageFallowPeriod = constant.OPVAreaCoverageRatioFallowPeriod
-    self._plantGrowthModel = constant.TaylorExpantionWithFluctuatingDLI
+    self._plantGrowthModel = constant.E_J_VanHenten
     self._cultivationDaysperHarvest = constant.cultivationDaysperHarvest
     self._hasShadingCurtain = constant.hasShadingCurtain
-    self._ShadingCurtainDeployPPFD = constant.ShadingCurtainDeployPPFD
+    self._shadingCurtainDeployPPFD = constant.plantGrowthModel
     self._profitVSOPVCoverageData = None
     self._monthlyElectricitySalesperArea = None
     self._monthlyElectricitySalesperAreaEastRoof = None
@@ -50,9 +50,11 @@ class SimulatorClass:
     self._estimatedDiffuseSolarRadiationToOPV = None
     self._estimatedAlbedoSolarRadiationToOPV = None
 
+    ############## boolean variables ##############
     self._ifGrowForFallowPeriod = False
     # if you want to calaculate the estimated data which does not require the measured data, true.
     self._estimateSolarRadiationMode = False
+    self._ifHasShadingCurtain = None
 
   def setOPVAreaCoverageRatio(self, OPVAreaCoverageRatio):
     self._OPVAreaCoverageRatio = OPVAreaCoverageRatio
@@ -76,31 +78,26 @@ class SimulatorClass:
 
   def setHasShadingCurtain(self, hasShadingCurtain):
     self._hasShadingCurtain = hasShadingCurtain
-
   def getHasShadingCurtain(self):
     return self.hasShadingCurtain
 
   def setShadingCurtainDeployPPFD(self, shadingCurtainDeployPPFD):
     self._ShadingCurtainDeployPPFD = shadingCurtainDeployPPFD
-
   def getShadingCurtainDeployPPFD(self):
     return self._ShadingCurtainDeployPPFD
 
   def setProfitVSOPVCoverageData(self,profitVSOPVCoverageData):
     self._profitVSOPVCoverageData = profitVSOPVCoverageData
-
   def getProfitVSOPVCoverageData(self):
     return self._profitVSOPVCoverageData
 
   def setMonthlyElectricitySalesperArea(self, monthlyElectricitySalesperArea):
     self._monthlyElectricitySalesperArea = monthlyElectricitySalesperArea
-
   def getMonthlyElectricitySalesperArea(self):
     return self._monthlyElectricitySalesperArea
 
   def setMonthlyElectricitySalesperAreaEastRoof(self, monthlyElectricitySalesperAreaEastRoof):
     self._monthlyElectricitySalesperAreaEastRoof = monthlyElectricitySalesperAreaEastRoof
-
   def getMonthlyElectricitySalesperAreaEastRoof(self):
     return self._monthlyElectricitySalesperAreaEastRoof
 
@@ -306,4 +303,8 @@ class SimulatorClass:
   def getEstimateSolarRadiationMode(self):
     return self._estimateSolarRadiationMode
 
+  def setIfHasShadingCurtain(self, ifHasShadingCurtain):
+    self._ifHasShadingCurtain = ifHasShadingCurtain
 
+  def getIfHasShadingCurtain(self):
+    return self._ifHasShadingCurtain
