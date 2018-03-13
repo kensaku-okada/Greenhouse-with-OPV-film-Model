@@ -42,11 +42,14 @@ def simulateCropElectricityYieldProfit1():
 
     print ("start modeling: datetime.datetime.now():{}".format(datetime.datetime.now()))
 
+    # get the num of simulation days
+    simulationDaysInt = util.getSimulationDaysInt()
+
     # declare the class and instance
     simulatorClass = SimulatorClass.SimulatorClass()
 
-    # get the num of simulation days
-    simulationDaysInt = util.getSimulationDaysInt()
+    # set spececific numbers to the instance
+    # simulatorDetail.setSimulationSpecifications(simulatorClass)
 
     ##########file import (TucsonHourlyOuterEinvironmentData) start##########
     fileName = "20130101-20170101" + ".csv"
@@ -61,117 +64,133 @@ def simulateCropElectricityYieldProfit1():
     hourlyAirTemperature = util.getArraysFromData(fileName, simulatorClass)
     ##########file import (TucsonHourlyOuterEinvironmentData) end##########
 
-    ################## plot the imported direct and diffuse solar radiation start######################
-    Title = "imported (measured horizontal) direct and diffuse solar radiation"
-    xAxisLabel = "time [hour]: " + constant.SimulationStartDate + "-" + constant.SimulationEndDate
-    yAxisLabel = "total Solar irradiance [W m^-2]"
-    util.plotTwoData(np.linspace(0, simulationDaysInt * constant.hourperDay, simulationDaysInt * constant.hourperDay), \
-                     simulatorClass.getImportedHourlyHorizontalDirectSolarRadiation(), simulatorClass.getImportedHourlyHorizontalDiffuseSolarRadiation() ,Title, xAxisLabel, yAxisLabel, \
-                     "hourlyHorizontalDirectOuterSolarIrradiance", "hourlyHorizontalDiffuseOuterSolarIrradiance")
-    util.saveFigure(Title + " " + constant.SimulationStartDate + "-" + constant.SimulationEndDate)
-    ################## plot the imported direct and diffuse solar radiation end######################
+    # ################## plot the imported direct and diffuse solar radiation start######################
+    # Title = "imported (measured horizontal) direct and diffuse solar radiation"
+    # xAxisLabel = "time [hour]: " + constant.SimulationStartDate + "-" + constant.SimulationEndDate
+    # yAxisLabel = "total Solar irradiance [W m^-2]"
+    # util.plotTwoData(np.linspace(0, simulationDaysInt * constant.hourperDay, simulationDaysInt * constant.hourperDay), \
+    #                  simulatorClass.getImportedHourlyHorizontalDirectSolarRadiation(), simulatorClass.getImportedHourlyHorizontalDiffuseSolarRadiation() ,Title, xAxisLabel, yAxisLabel, \
+    #                  "hourlyHorizontalDirectOuterSolarIrradiance", "hourlyHorizontalDiffuseOuterSolarIrradiance")
+    # util.saveFigure(Title + " " + constant.SimulationStartDate + "-" + constant.SimulationEndDate)
+    # ################## plot the imported direct and diffuse solar radiation end######################
 
     print ("max(simulatorClass.getImportedHourlyHorizontalDirectSolarRadiation()):{}".format(max(simulatorClass.getImportedHourlyHorizontalDirectSolarRadiation())))
 
-    ##########solar irradiance to OPV calculation start##########
-    # calculate with real data
-    # hourly average [W m^-2]
-    directSolarRadiationToOPVEastDirection, \
-    directSolarRadiationToOPVWestDirection, \
-    diffuseSolarRadiationToOPV, \
-    albedoSolarRadiationToOPV = simulatorDetail.calcOPVmoduleSolarIrradianceGHRoof(simulatorClass, "EastWestDirectionRoof")
+    ################################################################################
+    ##########solar irradiance to OPV calculation with imported data start##########
+    ################################################################################
 
-    # set the calculated data
-    simulatorClass.setDirectSolarRadiationToOPVEastDirection(directSolarRadiationToOPVEastDirection)
-    simulatorClass.setDirectSolarRadiationToOPVWestDirection(directSolarRadiationToOPVWestDirection)
-    simulatorClass.setDiffuseSolarRadiationToOPV(diffuseSolarRadiationToOPV)
-    simulatorClass.setAlbedoSolarRadiationToOPV(albedoSolarRadiationToOPV)
+    if constant.ifUseOnlyRealData == True:
 
-    # [W m^-2] per hour
-    totalSolarRadiationToOPV = (simulatorClass.getDirectSolarRadiationToOPVEastDirection() + simulatorClass.getDirectSolarRadiationToOPVWestDirection() ) / 2.0 \
-                               + simulatorClass.getDiffuseSolarRadiationToOPV() + simulatorClass.getAlbedoSolarRadiationToOPV()
+        # calculate with real data
+        # hourly average [W m^-2]
+        directSolarRadiationToOPVEastDirection, \
+        directSolarRadiationToOPVWestDirection, \
+        diffuseSolarRadiationToOPV, \
+        albedoSolarRadiationToOPV = simulatorDetail.calcOPVmoduleSolarIrradianceGHRoof(simulatorClass)
 
-    ##################plot the various real light intensity to OPV film start######################
-    Title = "various real light intensity to OPV film"
-    plotDataSet = np.array([simulatorClass.getDirectSolarRadiationToOPVEastDirection(), simulatorClass.getDirectSolarRadiationToOPVWestDirection(), \
-                            simulatorClass.getDiffuseSolarRadiationToOPV(), simulatorClass.getAlbedoSolarRadiationToOPV()])
-    labelList = np.array(["direct To East Direction", "direct To West Direction", "diffuse", "albedo"])
-    xAxisLabel = "time [day]: " + constant.SimulationStartDate + "-" + constant.SimulationEndDate
-    yAxisLabel = "[W m^-2]"
-    util.plotMultipleData(np.linspace(0, simulationDaysInt * constant.hourperDay, simulationDaysInt * constant.hourperDay), plotDataSet, labelList, Title, xAxisLabel, yAxisLabel)
-    util.saveFigure(Title + " " + constant.SimulationStartDate + "-" + constant.SimulationEndDate)
-    ##################plot the various real light intensity to OPV film end######################
+        # set the calculated data
+        simulatorClass.setDirectSolarRadiationToOPVEastDirection(directSolarRadiationToOPVEastDirection)
+        simulatorClass.setDirectSolarRadiationToOPVWestDirection(directSolarRadiationToOPVWestDirection)
+        simulatorClass.setDiffuseSolarRadiationToOPV(diffuseSolarRadiationToOPV)
+        simulatorClass.setAlbedoSolarRadiationToOPV(albedoSolarRadiationToOPV)
 
-    # data export
-    util.exportCSVFile(np.array([simulatorClass.getDirectSolarRadiationToOPVEastDirection(), simulatorClass.getDirectSolarRadiationToOPVWestDirection(), \
-                            simulatorClass.getDiffuseSolarRadiationToOPV(), simulatorClass.getAlbedoSolarRadiationToOPV()]).T,
-                       "hourlyMeasuredSolarRadiations")
-    # util.exportCSVFile(hourlyEstimatedTotalSolarRadiationToOPVOnly15th, "hourlyEstimatedTotalSolarRadiationToOPVOnly15th")
+        # [W m^-2] per hour
+        totalSolarRadiationToOPV = (simulatorClass.getDirectSolarRadiationToOPVEastDirection() + simulatorClass.getDirectSolarRadiationToOPVWestDirection() ) / 2.0 \
+                                   + simulatorClass.getDiffuseSolarRadiationToOPV() + simulatorClass.getAlbedoSolarRadiationToOPV()
 
-    ##################plot the difference of total solar radiation with imported data (radiation to horizontal surface) and simulated data (radiation to tilted surface start######################
-    hourlyHorizontalTotalOuterSolarIrradiance = simulatorClass.getImportedHourlyHorizontalDirectSolarRadiation() + simulatorClass.getImportedHourlyHorizontalDiffuseSolarRadiation()
-    Title = "total solar radiation to OPV with measured data"
-    xAxisLabel = "time [hour]: " + constant.SimulationStartDate + "-" + constant.SimulationEndDate
-    yAxisLabel = "total Solar irradiance [W m^-2]"
-    util.plotTwoData(np.linspace(0, simulationDaysInt * constant.hourperDay, simulationDaysInt * constant.hourperDay), \
-                     hourlyHorizontalTotalOuterSolarIrradiance, totalSolarRadiationToOPV, Title, xAxisLabel, yAxisLabel, "measured horizontal", "tilted with measured")
-    util.saveFigure(Title + " " + constant.SimulationStartDate + "-" + constant.SimulationEndDate)
-    ##################plot the difference of total solar radiation with imported data (radiation to horizontal surface) and simulated data (radiation to tilted surface end######################
-    # data export
-    util.exportCSVFile(np.array([hourlyHorizontalTotalOuterSolarIrradiance, totalSolarRadiationToOPV]).T,
-                       "hourlyMeasuredSolarRadiationToHorizontalAndTilted")
-    # util.exportCSVFile(hourlyEstimatedTotalSolarRadiationToOPVOnly15th, "hourlyEstimatedTotalSolarRadiationToOPVOnly15th")
+        # ##################plot the various real light intensity to OPV film start######################
+        # Title = "various real light intensity to OPV film"
+        # plotDataSet = np.array([simulatorClass.getDirectSolarRadiationToOPVEastDirection(), simulatorClass.getDirectSolarRadiationToOPVWestDirection(), \
+        #                         simulatorClass.getDiffuseSolarRadiationToOPV(), simulatorClass.getAlbedoSolarRadiationToOPV()])
+        # labelList = np.array(["direct To East Direction", "direct To West Direction", "diffuse", "albedo"])
+        # xAxisLabel = "time [day]: " + constant.SimulationStartDate + "-" + constant.SimulationEndDate
+        # yAxisLabel = "[W m^-2]"
+        # util.plotMultipleData(np.linspace(0, simulationDaysInt * constant.hourperDay, simulationDaysInt * constant.hourperDay), plotDataSet, labelList, Title, xAxisLabel, yAxisLabel)
+        # util.saveFigure(Title + " " + constant.SimulationStartDate + "-" + constant.SimulationEndDate)
+        # ##################plot the various real light intensity to OPV film end######################
 
-    # unit change: [W m^-2] -> [umol m^-2 s^-1] == PPFD
-    directPPFDToOPVEastDirection = util.convertFromWattperSecSquareMeterToPPFD(directSolarRadiationToOPVEastDirection)
-    directPPFDToOPVWestDirection = util.convertFromWattperSecSquareMeterToPPFD(directSolarRadiationToOPVWestDirection)
-    diffusePPFDToOPV = util.convertFromWattperSecSquareMeterToPPFD(diffuseSolarRadiationToOPV)
-    groundReflectedPPFDToOPV = util.convertFromWattperSecSquareMeterToPPFD(albedoSolarRadiationToOPV)
-    # print"diffusePPFDToOPV.shape:{}".format(diffusePPFDToOPV.shape)
+        ###################data export start##################
+        util.exportCSVFile(np.array([simulatorClass.getDirectSolarRadiationToOPVEastDirection(), simulatorClass.getDirectSolarRadiationToOPVWestDirection(), \
+                                simulatorClass.getDiffuseSolarRadiationToOPV(), simulatorClass.getAlbedoSolarRadiationToOPV()]).T,
+                           "hourlyMeasuredSolarRadiations")
+        # util.exportCSVFile(hourlyEstimatedTotalSolarRadiationToOPVOnly15th, "hourlyEstimatedTotalSolarRadiationToOPVOnly15th")
+        ###################data export end##################
 
-    # set the matrix to the object
-    simulatorClass.setDirectPPFDToOPVEastDirection(directPPFDToOPVEastDirection)
-    simulatorClass.setDirectPPFDToOPVWestDirection(directPPFDToOPVWestDirection)
-    simulatorClass.setDiffusePPFDToOPV(diffusePPFDToOPV)
-    simulatorClass.setGroundReflectedPPFDToOPV(groundReflectedPPFDToOPV)
+        # ##################plot the difference of total solar radiation with imported data (radiation to horizontal surface) and simulated data (radiation to tilted surface start######################
+        # hourlyHorizontalTotalOuterSolarIrradiance = simulatorClass.getImportedHourlyHorizontalDirectSolarRadiation() + simulatorClass.getImportedHourlyHorizontalDiffuseSolarRadiation()
+        # Title = "total solar radiation to OPV with measured data"
+        # xAxisLabel = "time [hour]: " + constant.SimulationStartDate + "-" + constant.SimulationEndDate
+        # yAxisLabel = "total Solar irradiance [W m^-2]"
+        # util.plotTwoData(np.linspace(0, simulationDaysInt * constant.hourperDay, simulationDaysInt * constant.hourperDay), \
+        #                  hourlyHorizontalTotalOuterSolarIrradiance, totalSolarRadiationToOPV, Title, xAxisLabel, yAxisLabel, "measured horizontal", "tilted with measured")
+        # util.saveFigure(Title + " " + constant.SimulationStartDate + "-" + constant.SimulationEndDate)
+        # ##################plot the difference of total solar radiation with imported data (radiation to horizontal surface) and simulated data (radiation to tilted surface end######################
 
-    # unit change: hourly [umol m^-2 s^-1] -> [mol m^-2 day^-1] == DLI :number of photons received in a square meter per day
-    directDLIToOPVEastDirection = util.convertFromHourlyPPFDWholeDayToDLI(directPPFDToOPVEastDirection)
-    directDLIToOPVWestDirection = util.convertFromHourlyPPFDWholeDayToDLI(directPPFDToOPVWestDirection)
-    diffuseDLIToOPV = util.convertFromHourlyPPFDWholeDayToDLI(diffusePPFDToOPV)
-    groundReflectedDLIToOPV = util.convertFromHourlyPPFDWholeDayToDLI(groundReflectedPPFDToOPV)
-    totalDLIToOPV = (directDLIToOPVEastDirection+directDLIToOPVWestDirection) / 2.0 + diffuseDLIToOPV + groundReflectedDLIToOPV
-    # print "directDLIToOPVEastDirection:{}".format(directDLIToOPVEastDirection)
-    # print "diffuseDLIToOPV.shape:{}".format(diffuseDLIToOPV.shape)
-    # print "groundReflectedDLIToOPV:{}".format(groundReflectedDLIToOPV)
+        ###################data export start##################
+        util.exportCSVFile(np.array([hourlyHorizontalTotalOuterSolarIrradiance, totalSolarRadiationToOPV]).T,
+                           "hourlyMeasuredSolarRadiationToHorizontalAndTilted")
+        # util.exportCSVFile(hourlyEstimatedTotalSolarRadiationToOPVOnly15th, "hourlyEstimatedTotalSolarRadiationToOPVOnly15th")
+        ###################data export end##################
 
-    # set the matrix to the object
-    simulatorClass.setDirectDLIToOPVEastDirection(directDLIToOPVEastDirection)
-    simulatorClass.setDirectDLIToOPVWestDirection(directDLIToOPVWestDirection)
-    simulatorClass.setDiffuseDLIToOPV(diffuseDLIToOPV)
-    simulatorClass.setGroundReflectedDLIToOPV(groundReflectedDLIToOPV)
+        # unit change: [W m^-2] -> [umol m^-2 s^-1] == PPFD
+        directPPFDToOPVEastDirection = util.convertFromWattperSecSquareMeterToPPFD(directSolarRadiationToOPVEastDirection)
+        directPPFDToOPVWestDirection = util.convertFromWattperSecSquareMeterToPPFD(directSolarRadiationToOPVWestDirection)
+        diffusePPFDToOPV = util.convertFromWattperSecSquareMeterToPPFD(diffuseSolarRadiationToOPV)
+        groundReflectedPPFDToOPV = util.convertFromWattperSecSquareMeterToPPFD(albedoSolarRadiationToOPV)
+        # print"diffusePPFDToOPV.shape:{}".format(diffusePPFDToOPV.shape)
+
+        # set the matrix to the object
+        simulatorClass.setDirectPPFDToOPVEastDirection(directPPFDToOPVEastDirection)
+        simulatorClass.setDirectPPFDToOPVWestDirection(directPPFDToOPVWestDirection)
+        simulatorClass.setDiffusePPFDToOPV(diffusePPFDToOPV)
+        simulatorClass.setGroundReflectedPPFDToOPV(groundReflectedPPFDToOPV)
+
+        # unit change: hourly [umol m^-2 s^-1] -> [mol m^-2 day^-1] == daily light integral (DLI) :number of photons received in a square meter per day
+        directDLIToOPVEastDirection = util.convertFromHourlyPPFDWholeDayToDLI(directPPFDToOPVEastDirection)
+        directDLIToOPVWestDirection = util.convertFromHourlyPPFDWholeDayToDLI(directPPFDToOPVWestDirection)
+        diffuseDLIToOPV = util.convertFromHourlyPPFDWholeDayToDLI(diffusePPFDToOPV)
+        groundReflectedDLIToOPV = util.convertFromHourlyPPFDWholeDayToDLI(groundReflectedPPFDToOPV)
+        totalDLIToOPV = (directDLIToOPVEastDirection+directDLIToOPVWestDirection) / 2.0 + diffuseDLIToOPV + groundReflectedDLIToOPV
+        # print "directDLIToOPVEastDirection:{}".format(directDLIToOPVEastDirection)
+        # print "diffuseDLIToOPV.shape:{}".format(diffuseDLIToOPV.shape)
+        # print "groundReflectedDLIToOPV:{}".format(groundReflectedDLIToOPV)
+
+        # set the array to the object
+        simulatorClass.setDirectDLIToOPVEastDirection(directDLIToOPVEastDirection)
+        simulatorClass.setDirectDLIToOPVWestDirection(directDLIToOPVWestDirection)
+        simulatorClass.setDiffuseDLIToOPV(diffuseDLIToOPV)
+        simulatorClass.setGroundReflectedDLIToOPV(groundReflectedDLIToOPV)
 
 
-    ################# calculate solar irradiance without real data (estimate the data) start #######################
-    if constant.ifUseOnlyRealData == False:
+    ########################################################################################################################
+    ################# calculate solar irradiance without real data (estimate solar irradiance) start #######################
+    ########################################################################################################################
+    elif constant.ifUseOnlyRealData == False:
 
-        # activate the mode to use the formulas for estimation
+        # activate the mode to use the formulas for estimation. This is used for branching the solar irradiance to PV module. See OPVFilm.py
         simulatorClass.setEstimateSolarRadiationMode(True)
 
-        # calculate the rolar radiation to the OPV film
+        # calculate the solar radiation to the OPV film
         # [W m^-2] per hour
         estimatedDirectSolarRadiationToOPVEastDirection, \
         estimatedDirectSolarRadiationToOPVWestDirection, \
         estimatedDiffuseSolarRadiationToOPV, \
         estimatedAlbedoSolarRadiationToOPV = simulatorDetail.calcOPVmoduleSolarIrradianceGHRoof(simulatorClass)
 
-        # set the calc results
-        simulatorClass.setEstimatedDirectSolarRadiationToOPVEastDirection(estimatedDirectSolarRadiationToOPVEastDirection)
-        simulatorClass.setEstimatedDirectSolarRadiationToOPVWestDirection(estimatedDirectSolarRadiationToOPVWestDirection)
-        simulatorClass.setEstimatedDiffuseSolarRadiationToOPV(estimatedDiffuseSolarRadiationToOPV)
-        simulatorClass.setEstimatedAlbedoSolarRadiationToOPV(estimatedAlbedoSolarRadiationToOPV)
-
         estimatedTotalSolarRadiationToOPV = (estimatedDirectSolarRadiationToOPVEastDirection + estimatedDirectSolarRadiationToOPVWestDirection) / 2.0 + estimatedDiffuseSolarRadiationToOPV + estimatedAlbedoSolarRadiationToOPV
+
+        # set the calc results
+        simulatorClass.setDirectSolarRadiationToOPVEastDirection(estimatedDirectSolarRadiationToOPVEastDirection)
+        simulatorClass.setDirectSolarRadiationToOPVWestDirection(estimatedDirectSolarRadiationToOPVWestDirection)
+        simulatorClass.setDiffuseSolarRadiationToOPV(estimatedDiffuseSolarRadiationToOPV)
+        simulatorClass.setAlbedoSolarRadiationToOPV(estimatedAlbedoSolarRadiationToOPV)
+        # # modified not to use the following variables
+        # simulatorClass.setEstimatedDirectSolarRadiationToOPVEastDirection(estimatedDirectSolarRadiationToOPVEastDirection)
+        # simulatorClass.setEstimatedDirectSolarRadiationToOPVWestDirection(estimatedDirectSolarRadiationToOPVWestDirection)
+        # simulatorClass.setEstimatedDiffuseSolarRadiationToOPV(estimatedDiffuseSolarRadiationToOPV)
+        # simulatorClass.setEstimatedAlbedoSolarRadiationToOPV(estimatedAlbedoSolarRadiationToOPV)
+
         # print "estimatedDirectSolarRadiationToOPVEastDirection:{}".format(estimatedDirectSolarRadiationToOPVEastDirection)
         # np.set_printoptions(threshold=np.inf)
         # print "estimatedDirectSolarRadiationToOPVWestDirection:{}".format(estimatedDirectSolarRadiationToOPVWestDirection)
@@ -195,9 +214,7 @@ def simulateCropElectricityYieldProfit1():
         yAxisLabel = "hourly estimated horizontal Total outer solar radiation [W m^-2]"
         util.plotData(hourlyHorizontalTotalOuterSolarIrradiance, estimatedTotalSolarRadiationToOPV, title, xAxisLabel, yAxisLabel, None, True, 0.0, 1.0)
         util.saveFigure(title + " " + constant.SimulationStartDate + "-" + constant.SimulationEndDate)
-        ################### plot the electricity yield per area with given OPV film end
-
-        ################# calculate solar irradiance without real data (estimate the data) end #######################
+        ################### plot the electricity yield per area with given OPV film end######################
 
         # [estimated data] unit change:
         estimatedDirectPPFDToOPVEastDirection = util.convertFromWattperSecSquareMeterToPPFD(estimatedDirectSolarRadiationToOPVEastDirection)
@@ -205,25 +222,36 @@ def simulateCropElectricityYieldProfit1():
         estimatedDiffusePPFDToOPV = util.convertFromWattperSecSquareMeterToPPFD(estimatedDiffuseSolarRadiationToOPV)
         estimatedGroundReflectedPPFDToOPV = util.convertFromWattperSecSquareMeterToPPFD(estimatedAlbedoSolarRadiationToOPV)
 
+        # set the variables
+        simulatorClass.setDirectPPFDToOPVEastDirection(estimatedDirectPPFDToOPVEastDirection)
+        simulatorClass.setDirectPPFDToOPVWestDirection(estimatedDirectPPFDToOPVWestDirection)
+        simulatorClass.setDiffusePPFDToOPV(estimatedDiffusePPFDToOPV)
+        simulatorClass.setGroundReflectedPPFDToOPV(estimatedGroundReflectedPPFDToOPV)
+        # # modified not to use the following variables
+        # simulatorClass.setEstimatedDirectPPFDToOPVEastDirection(estimatedDirectPPFDToOPVEastDirection)
+        # simulatorClass.setEstimatedDirectPPFDToOPVWestDirection(estimatedDirectPPFDToOPVWestDirection)
+        # simulatorClass.setEstimatedDiffusePPFDToOPV(estimatedDiffusePPFDToOPV)
+        # simulatorClass.setEstimatedGroundReflectedPPFDToOPV(estimatedGroundReflectedPPFDToOPV)
+
+
         # [estimated data] unit change:
         estimatedDirectDLIToOPVEastDirection = util.convertFromHourlyPPFDWholeDayToDLI(estimatedDirectPPFDToOPVEastDirection)
         estimatedDirectDLIToOPVWestDirection = util.convertFromHourlyPPFDWholeDayToDLI(estimatedDirectPPFDToOPVWestDirection)
         estimatedDiffuseDLIToOPV = util.convertFromHourlyPPFDWholeDayToDLI(estimatedDiffusePPFDToOPV)
         estimatedGroundReflectedDLIToOPV = util.convertFromHourlyPPFDWholeDayToDLI(estimatedGroundReflectedPPFDToOPV)
         # estimatedTotalDLIToOPV = (estimatedDirectDLIToOPVEastDirection + estimatedDirectDLIToOPVWestDirection) / 2.0 + estimatedDiffuseDLIToOPV + estimatedGroundReflectedDLIToOPV
-
         # set the variables
-        simulatorClass.setEstimatedDirectPPFDToOPVEastDirection(estimatedDirectPPFDToOPVEastDirection)
-        simulatorClass.setEstimatedDirectPPFDToOPVWestDirection(estimatedDirectPPFDToOPVEastDirection)
-        simulatorClass.setEstimatedDiffusePPFDToOPV(estimatedDiffusePPFDToOPV)
-        simulatorClass.setEstimatedGroundReflectedPPFDToOPV(estimatedGroundReflectedPPFDToOPV)
+        # # modified not to use the following variables
+        # simulatorClass.setEstimatedDirectDLIToOPVEastDirection(estimatedDirectDLIToOPVEastDirection)
+        # simulatorClass.setEstimatedDirectDLIToOPVWestDirection(estimatedDirectDLIToOPVWestDirection)
+        # simulatorClass.setEstimatedDiffuseDLIToOPV(estimatedDiffuseDLIToOPV)
+        # simulatorClass.setEestimatedGroundReflectedDLIToOPV(estimatedGroundReflectedDLIToOPV)
+        simulatorClass.setDirectDLIToOPVEastDirection(estimatedDirectDLIToOPVEastDirection)
+        simulatorClass.setDirectDLIToOPVWestDirection(estimatedDirectDLIToOPVWestDirection)
+        simulatorClass.setDiffuseDLIToOPV(estimatedDiffuseDLIToOPV)
+        simulatorClass.setGroundReflectedDLIToOPV(estimatedGroundReflectedDLIToOPV)
 
-        simulatorClass.setEstimatedDirectDLIToOPVEastDirection(estimatedDirectDLIToOPVEastDirection)
-        simulatorClass.setEstimatedDirectDLIToOPVWestDirection(estimatedDirectDLIToOPVWestDirection)
-        simulatorClass.setEstimatedDiffuseDLIToOPV(estimatedDiffuseDLIToOPV)
-        simulatorClass.setEestimatedGroundReflectedDLIToOPV(estimatedGroundReflectedDLIToOPV)
-
-        # deactivate the mode to use the formulas for estimation
+        # deactivate the mode to the default value.
         simulatorClass.setEstimateSolarRadiationMode(False)
 
         ##################plot the difference of total solar radiation with imported data and simulated data start######################
@@ -235,15 +263,6 @@ def simulateCropElectricityYieldProfit1():
         util.saveFigure(Title + " " + constant.SimulationStartDate + "-" + constant.SimulationEndDate)
         ##################plot the difference of total solar radiation with imported data and simulated data  end######################
 
-        ##################plot the difference of total solar radiation with real data and simulated data start######################
-        Title = "total solar radiation to OPV with tilted with measured and estimated tilted"
-        xAxisLabel = "time [hour]: " + constant.SimulationStartDate + "-" + constant.SimulationEndDate
-        yAxisLabel = "total Solar irradiance [W m^-2]"
-        util.plotTwoData(np.linspace(0, simulationDaysInt * constant.hourperDay, simulationDaysInt * constant.hourperDay), \
-                         totalSolarRadiationToOPV, estimatedTotalSolarRadiationToOPV ,Title, xAxisLabel, yAxisLabel, "tilted with measured", "estimated tilted")
-        util.saveFigure(Title + " " + constant.SimulationStartDate + "-" + constant.SimulationEndDate)
-        ##################plot the difference of total solar radiation with real data and simulated data  end######################
-
         # ################## plot the difference of total DLI with real data and simulated data start######################
         # Title = "difference of total DLI to tilted OPV with real data and estimation"
         # xAxisLabel = "time [hour]: " + constant.SimulationStartDate + "-" + constant.SimulationEndDate
@@ -253,12 +272,20 @@ def simulateCropElectricityYieldProfit1():
         # util.saveFigure(Title + " " + constant.SimulationStartDate + "-" + constant.SimulationEndDate)
         # ################## plot the difference of total DLI with real data and simulated data  end######################
 
+    ################# calculate solar irradiance without real data (estimate the data) end #######################
 
-    ################# calculate solar irradiance without real data (estimate the data) start #######################
+    # ##################plot the difference of total solar radiation with real data and simulated data start######################
+    # Title = "total solar radiation to OPV with tilted with measured and estimated tilted"
+    # xAxisLabel = "time [hour]: " + constant.SimulationStartDate + "-" + constant.SimulationEndDate
+    # yAxisLabel = "total Solar irradiance [W m^-2]"
+    # util.plotTwoData(np.linspace(0, simulationDaysInt * constant.hourperDay, simulationDaysInt * constant.hourperDay), \
+    #                  totalSolarRadiationToOPV, estimatedTotalSolarRadiationToOPV ,Title, xAxisLabel, yAxisLabel, "tilted with measured", "estimated tilted")
+    # util.saveFigure(Title + " " + constant.SimulationStartDate + "-" + constant.SimulationEndDate)
+    # ##################plot the difference of total solar radiation with real data and simulated data  end######################
 
-    # get the solar radiation data only on 15th day
+    # If necessary, get the solar radiation data only on 15th day
     if util.getSimulationDaysInt() > 31 and constant.ifGet15thDayData:
-        ################## plot the imported horizontal data vs estimated data only with 15th day each month (the tilt should be zeor) ######################
+        ################## plot the imported horizontal data vs estimated data only with 15th day each month (the tilt should be zero) start ######################
         title = "measured and estimated horizontal data only 15th day (tilt should be zero)"
         # measured horizontal data
         hourlyMeasuredHorizontalTotalSolarRadiationOnly15th = util.getOnly15thDay(hourlyHorizontalTotalOuterSolarIrradiance)
@@ -268,16 +295,15 @@ def simulateCropElectricityYieldProfit1():
         yAxisLabel = "hourly estimated horizontal Total outer solar radiation [W m^-2]"
         util.plotData(hourlyMeasuredHorizontalTotalSolarRadiationOnly15th, hourlyEstimatedTotalSolarRadiationToOPVOnly15th, title, xAxisLabel, yAxisLabel, None, True, 0.0, 1.0)
         util.saveFigure(title + " " + constant.SimulationStartDate + "-" + constant.SimulationEndDate)
-        ################### plot the electricity yield per area with given OPV film end
+        ################## plot the imported horizontal data vs estimated data only with 15th day each month (the tilt should be zero) end ######################
 
         # data export
         util.exportCSVFile(np.array([hourlyMeasuredHorizontalTotalSolarRadiationOnly15th, hourlyEstimatedTotalSolarRadiationToOPVOnly15th]).T, "hourlyMeasuredHorizontalAndEstimatedTotalSolarRadiationOnly15th")
         # util.exportCSVFile(hourlyEstimatedTotalSolarRadiationToOPVOnly15th, "hourlyEstimatedTotalSolarRadiationToOPVOnly15th")
 
-    # export measured horizontal and estimated data only when the simulation date is 1 day. Modify the condition if necessary.
+    # export measured horizontal and estimated data only when the simulation date is 1 day. *Modify the condition if necessary.
     elif constant.ifExportMeasuredHorizontalAndExtimatedData == True and util.getSimulationDaysInt() == 1:
         util.exportCSVFile(np.array([estimatedTotalSolarRadiationToOPV, hourlyHorizontalTotalOuterSolarIrradiance]).T, "hourlyMeasuredHOrizontalAndEstimatedTotalSolarRadiation")
-
 
     # ################## plot the distribution of direct and diffuse PPFD start######################
     # Title = "TOTAL outer PPFD to OPV"
@@ -301,7 +327,7 @@ def simulateCropElectricityYieldProfit1():
 
     ################## plot the distribution of various DLI to OPV film start######################
     Title = "various DLI to OPV film"
-    plotDataSet = np.array([directDLIToOPVEastDirection, directDLIToOPVWestDirection, diffuseDLIToOPV, groundReflectedDLIToOPV])
+    plotDataSet = np.array([simulatorClass.getDirectDLIToOPVEastDirection(), simulatorClass.getDirectDLIToOPVWestDirection(), simulatorClass.getDiffuseDLIToOPV(), simulatorClass.getGroundReflectedDLIToOPV()])
     labelList = np.array(["directDLIToOPVEastDirection", "directDLIToOPVWestDirection", "diffuseDLIToOPV", "groundReflectedDLIToOPV"])
     xAxisLabel = "time [day]: " + constant.SimulationStartDate + "-" + constant.SimulationEndDate
     yAxisLabel = "DLI [mol m^-2 day^-1]"
@@ -309,13 +335,16 @@ def simulateCropElectricityYieldProfit1():
     util.saveFigure(Title + " " + constant.SimulationStartDate + "-" + constant.SimulationEndDate)
     ################## plot the distribution of various DLI to OPV film end######################
 
+
+    ############################################################################################
     ################## calculate the daily electricity yield per area start#####################
-    # TODO maybe we need to consider the tilt of OPV and OPV material for the temperature of OPV film, but right now, just use the measured temperature
+    ############################################################################################
+    # TODO: for more accurate modeling, we need actual data for a more detailed model (considering the OPV material) for the temperature of OPV film, but right now, just use the imported body temperature.
     # get the daily electricity yield per area per day ([J/m^2] per day) based on the given light intensity ([Celsius],[W/m^2]).
     # regard the east side and west tilted OPV module differently/
-    dailyJopvoutperAreaEastRoof = simulatorDetail.calcDailyElectricityYieldSimulationperArea(hourlyHorizontalTotalBeamMeterBodyTemperature, \
+    dailyJopvoutperAreaEastRoof = simulatorDetail.getDailyElectricityYieldperArea(hourlyHorizontalTotalBeamMeterBodyTemperature, \
                                                                     directSolarRadiationToOPVEastDirection, diffuseSolarRadiationToOPV, albedoSolarRadiationToOPV)
-    dailyJopvoutperAreaWestRoof = simulatorDetail.calcDailyElectricityYieldSimulationperArea(hourlyHorizontalTotalBeamMeterBodyTemperature, \
+    dailyJopvoutperAreaWestRoof = simulatorDetail.getDailyElectricityYieldperArea(hourlyHorizontalTotalBeamMeterBodyTemperature, \
                                                                     directSolarRadiationToOPVWestDirection, diffuseSolarRadiationToOPV, albedoSolarRadiationToOPV)
     # print("dailyJopvoutperAreaWestRoof:{}".format(dailyJopvoutperAreaWestRoof))
 
@@ -340,11 +369,13 @@ def simulateCropElectricityYieldProfit1():
     # data export
     util.exportCSVFile(np.array([year[::24], month[::24], day[::24], dailykWhopvoutperAreaEastRoof, dailykWhopvoutperAreaWestRoof]).T,
                           "measuredDailySolarRadiationToEastWestOPVPerArea")
-
+    ##########################################################################################
     ################## calculate the daily electricity yield per area end#####################
+    ##########################################################################################
 
-
-    ################## calculate the daily electricity sales per area start#####################
+    ##########################################################################################
+    ################## calculate the daily electricity sales per area start###################
+    ##########################################################################################
     # convert the year of each hour to the year to each day
     yearOfeachDay = year[::24]
     # convert the month of each hour to the month to each day
@@ -358,9 +389,13 @@ def simulateCropElectricityYieldProfit1():
     simulatorClass.setMonthlyElectricitySalesperAreaWestRoof(monthlyElectricitySalesperAreaWastRoof)
 
     # print "simulatorClass.getMonthlyElectricitySalesperArea():{}".format(simulatorClass.getMonthlyElectricitySalesperArea())
+    ###########################################################################################
     ################## calculate the daily electricity sales  per area end#####################
+    ###########################################################################################
 
+    #####################################################################################################
     ##################calculate the electricity cost per area start######################################
+    #####################################################################################################
     if constant.ifConsiderOPVCost is True:
         initialOPVCostUSD = constant.OPVPricePerAreaUSD * OPVFilm.getOPVArea(constant.OPVAreaCoverageRatio)
         # [USD]
@@ -370,52 +405,56 @@ def simulateCropElectricityYieldProfit1():
     else:
         # set the value to the object. the value is zero if not consider the purchase cost
         simulatorClass.setOPVCostUSDForDepreciationperArea(0.0)
+    ###################################################################################################
     ##################calculate the electricity cost per area end######################################
+    ###################################################################################################
+
+    ##################################################################################################################################################################
+    ###################calculate the solar irradiance to multi span roof start################### The calculated irradiance is stored to the object in this function
+    ##################################################################################################################################################################
+    simulatorDetail.getSolarIrradianceToMultiSpanRoof(simulatorClass)
+    ###########################################################################################
+    ###################calculate the solar irradiance to multi span roof end###################
+    ###########################################################################################
 
     ################## calculate the daily plant yield start#####################
-    # substitute the plant growth name [String]
+    # get/set the plant growth model name [String]
     plantGrowthModel = constant.plantGrowthModel
-    # set the plant growth model name
     simulatorClass.setPlantGrowthModel(plantGrowthModel)
 
-    # cultivation days per harvest [days/harvest]
+    # get/set cultivation days per harvest [days/harvest]
     cultivationDaysperHarvest = constant.cultivationDaysperHarvest
     simulatorClass.setCultivationDaysperHarvest(cultivationDaysperHarvest)
 
-    # OPV coverage ratio [-]
+    # get/set OPV coverage ratio [-]
     OPVCoverage = constant.OPVAreaCoverageRatio
     simulatorClass.setOPVAreaCoverageRatio(OPVCoverage)
 
-    # OPV coverage ratio during fallow period[-]
+    # get/set OPV coverage ratio during fallow period[-]
     OPVCoverageFallowPeriod = constant.OPVAreaCoverageRatioFallowPeriod
     simulatorClass.setOPVCoverageRatioFallowPeriod(OPVCoverageFallowPeriod)
 
-    # boolean
+    # get if we assume to have shading curtain
     hasShadingCurtain = constant.hasShadingCurtain
     simulatorClass.setIfHasShadingCurtain(hasShadingCurtain)
 
-    # PPFD [umol m^-2 s^-1]
+    # the amount of PPFD to deploy shading curtain PPFD [umol m^-2 s^-1]
     shadingCurtainDeployPPFD = constant.shadingCurtainDeployPPFD
     # this variable is substituted to the object at the declaration
     # simulatorClass.setShadingCurtainDeployPPFD(shadingCurtainDeployPPFD)
 
-    # get imported data to calculate the plant yield given an OPV coverage and model
-    # Since the plants are not tilted, do not use the light intensity to the tilted surface, just use the imported data or estimated data with 0 degree surface.
-    # However, since the ground reflectance solar radiation is not directly imported, it is given by the calculated radiation
-    # unit change of the imported outer solar radiation: [W m^-2] -> [umol m^-2 s^-1] == PPFD
-    importedDirectPPFDToOPV = util.convertFromWattperSecSquareMeterToPPFD(simulatorClass.getImportedHourlyHorizontalDirectSolarRadiation())
-    importedDiffusePPFDToOPV = util.convertFromWattperSecSquareMeterToPPFD(simulatorClass.getImportedHourlyHorizontalDiffuseSolarRadiation())
-    importedGroundReflectedPPFDToOPV = util.convertFromWattperSecSquareMeterToPPFD(simulatorClass.getGroundReflectedPPFDToOPV())
+    # get the solar irradiance to multi span roof (this irradiance is gonna be for a single span if you configure the constant values)
+    directPPFDToMultiSpanRoof = simulatorClass.getHourlyDirectPPFDToMultiSpanRoof()
+    diffusePPFDToMultiSpanRoof = simulatorClass.getHourlyDiffusePPFDToMultiSpanRoof()
+    groundReflectedPPFDToMultiSpanRoof = simulatorClass.getGroundReflectedPPFDToMultiSpanRoof()
 
     #calculate plant yield given an OPV coverage and model :daily [g/unit]
     shootFreshMassList, \
     unitDailyFreshWeightIncrease, \
     accumulatedUnitDailyFreshWeightIncrease, \
-    unitDailyHarvestedFreshWeight = simulatorDetail.calcPlantYieldSimulation(importedDirectPPFDToOPV, importedDiffusePPFDToOPV, importedGroundReflectedPPFDToOPV, simulatorClass)
+    unitDailyHarvestedFreshWeight = simulatorDetail.calcPlantYieldSimulation(directPPFDToMultiSpanRoof, diffusePPFDToMultiSpanRoof, groundReflectedPPFDToMultiSpanRoof, simulatorClass)
     # print ("shootFreshMassList:{}".format(shootFreshMassList))
     # print ("unitDailyFreshWeightIncrease:{}".format(unitDailyFreshWeightIncrease))
-
-
 
 
     # get the penalized plant fresh weight with  too strong sunlight : :daily [g/unit]
@@ -455,6 +494,7 @@ def simulateCropElectricityYieldProfit1():
     util.plotData(np.linspace(0, simulationDaysInt, simulationDaysInt), shootFreshMassList, title, xAxisLabel, yAxisLabel)
     util.saveFigure(title + " " + constant.SimulationStartDate + "-" + constant.SimulationEndDate)
     #######################################################################
+
     # data export
     util.exportCSVFile(np.array([totalDLItoPlants, shootFreshMassList]).T, "shootFreshMassAandDLIToPlants")
     # util.exportCSVFile(hourlyEstimatedTotalSolarRadiationToOPVOnly15th, "hourlyEstimatedTotalSolarRadiationToOPVOnly15th")
@@ -482,7 +522,6 @@ def simulateCropElectricityYieldProfit1():
     util.plotMultipleData(np.linspace(0, simulationDaysInt, simulationDaysInt), plotDataSet, labelList, title, xAxisLabel, yAxisLabel)
     util.saveFigure(title + " " + constant.SimulationStartDate + "-" + constant.SimulationEndDate)
     #######################################################################
-
 
 
     ################## calculate the daily plant yield end#####################

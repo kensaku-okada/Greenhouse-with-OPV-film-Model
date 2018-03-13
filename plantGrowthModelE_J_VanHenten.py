@@ -24,6 +24,7 @@ import datetime
 
 def calcUnitDailyFreshWeightE_J_VanHenten1994(hourlyInnerPPFDToPlants, simulatorClass):
     '''
+    "dt" is 1 hour.
 
     :param U_T: canopy temperature [`C]
     :param U_par:
@@ -31,31 +32,30 @@ def calcUnitDailyFreshWeightE_J_VanHenten1994(hourlyInnerPPFDToPlants, simulator
     :param cropElectricityYieldSimulator1:
     :return:
     '''
-
     # According to Van Henten (1994), 'With data logging system connected to the greenhouse climate computer, half-hour mean values of the indoor climate data were recorded.'
+
 
     # TODO it is temporarily assumed that the canopy temperature is same as the imported temperature, but it has to be our experiement data later
     U_T = simulatorClass.getImportedHourlyAirTemperature()
-    print("U_T:[]".format(U_T))
-    print("U_T.shape:[]".format(U_T.shape))
+    print("U_T:{}".format(U_T))
+    print("U_T.shape:{}".format(U_T.shape))
 
-    # unit: W/m^2
-    # U_par =
+    # the unit conversion W/m^2 and PPFD: Van Henten replied that he just divided the measured ppfd by 2
+    # unit: PPFD (umol/sec/m^2 )W/m^2
+    U_par = simulatorClass.get() / 2.0
+
+
+
 
     # unit: ppm - pers per million (1/1000000)
     # TODO it is temporarily assumed that all hourly CO2 concentration is 400 ppm
-    # U_CO2 =
-
-    ####################################################################################################
-    # Stop execution here...
-    sys.exit()
-    # Move the above line to different parts of the assignment as you implement more of the functionality.
-    ####################################################################################################
+    U_CO2 = np.array([400] * U_T.shape[0])
 
 
     structuralDryWeight = 0.0
     nonStructuralDryWeight = 0.0
     dt = {'day': 1}
+
 
     # [g / m**2]
     d_nonStructuralDryWeight = np.zeros(util.getSimulationDaysInt())
@@ -65,6 +65,13 @@ def calcUnitDailyFreshWeightE_J_VanHenten1994(hourlyInnerPPFDToPlants, simulator
     Xsdw = np.zeros(util.getSimulationDaysInt())
     # non structured dry weight on each day [g / m**2]
     Xnsdw = np.zeros(util.getSimulationDaysInt())
+
+
+    ####################################################################################################
+    # Stop execution here...
+    sys.exit()
+    # Move the above line to different parts of the assignment as you implement more of the functionality.
+    ####################################################################################################
 
     i = 0
     while i  < util.getSimulationDaysInt():
@@ -107,3 +114,8 @@ def calcUnitDailyFreshWeightE_J_VanHenten1994(hourlyInnerPPFDToPlants, simulator
 
         # the plant weight per head
         Ydw = (Xsdw + Xnsdw) / float(constant.numOfHeadsPerArea)
+
+
+# if __name__ == "__main__":
+#     calcUnitDailyFreshWeightE_J_VanHenten1994(hourlyInnerPPFDToPlants, simulatorClass)
+

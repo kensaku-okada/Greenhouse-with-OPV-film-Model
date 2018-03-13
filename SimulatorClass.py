@@ -1,4 +1,3 @@
-
 import CropElectricityYeildSimulatorConstant as constant
 
 class SimulatorClass:
@@ -17,6 +16,7 @@ class SimulatorClass:
     self._monthlyElectricitySalesperAreaEastRoof = None
     self._monthlyElectricitySalesperAreaWestRoof = None
     self._oPVCostUSDForDepreciationperArea = None
+
     self._hourlyInnerLightIntensityPPFDThroughGlazing = None
     self._hourlyInnerLightIntensityPPFDThroughInnerStructure = None
     self._directPPFDToOPVEastDirection = None
@@ -28,6 +28,13 @@ class SimulatorClass:
     self._directDLIToOPVWestDirection = None
     self._diffuseDLIToOPV = None
     self._groundReflectedDLIToOPV = None
+    self._hourlyDirectSolarRadiationToMultiSpanRoof = None
+    self._hourlyDiffuseSolarRadiationToMultiSpanRoof = None
+    self._groundReflectedRadiationToMultiSpanRoof = None
+    self._hourlyDirectPPFDToMultiSpanRoof = None
+    self._hourlyDiffusePPFDToMultiSpanRoof = None
+    self._groundReflectedPPFDToMultiSpanRoof = None
+
     self._shootFreshMassList = None
     self._unitDailyFreshWeightIncrease = None
     self._accumulatedUnitDailyFreshWeightIncrease = None
@@ -50,11 +57,21 @@ class SimulatorClass:
     self._estimatedDiffuseSolarRadiationToOPV = None
     self._estimatedAlbedoSolarRadiationToOPV = None
 
+    # the following variables are got/set by property
+    self._hourlySolarIncidenceAngleEastDirection = None
+    self._hourlySolarIncidenceAngleWestDirection = None
+
     ############## boolean variables ##############
     self._ifGrowForFallowPeriod = False
-    # if you want to calaculate the estimated data which does not require the measured data, true.
+    # if you want to calculate the estimated data which does not require the measured data, set this variable True.
     self._estimateSolarRadiationMode = False
     self._ifHasShadingCurtain = None
+
+    self._hourlySolarAltitudeAngle = None
+    self._hourlySolarAzimuthAngle = None
+    self._hourlyModuleAzimuthAngleEast = None
+    self._hourlyModuleAzimuthAngleWest = None
+
 
   def setOPVAreaCoverageRatio(self, OPVAreaCoverageRatio):
     self._OPVAreaCoverageRatio = OPVAreaCoverageRatio
@@ -82,9 +99,9 @@ class SimulatorClass:
     return self.hasShadingCurtain
 
   def setShadingCurtainDeployPPFD(self, shadingCurtainDeployPPFD):
-    self._ShadingCurtainDeployPPFD = shadingCurtainDeployPPFD
+    self._shadingCurtainDeployPPFD = shadingCurtainDeployPPFD
   def getShadingCurtainDeployPPFD(self):
-    return self._ShadingCurtainDeployPPFD
+    return self._shadingCurtainDeployPPFD
 
   def setProfitVSOPVCoverageData(self,profitVSOPVCoverageData):
     self._profitVSOPVCoverageData = profitVSOPVCoverageData
@@ -224,6 +241,39 @@ class SimulatorClass:
   def getGroundReflectedDLIToOPV(self):
     return self._groundReflectedDLIToOPV
 
+
+  ##############################solar irradiance to multi span roof start##############################
+  def setHourlyDirectSolarRadiationToMultiSpanRoof(self, hourlyDirectSolarRadiationToMultiSpanRoof):
+    self._hourlyDirectSolarRadiationToMultiSpanRoof = hourlyDirectSolarRadiationToMultiSpanRoof
+  def getHourlyDirectSolarRadiationToMultiSpanRoof(self):
+    return self._hourlyDirectSolarRadiationToMultiSpanRoof
+
+  def setHourlyDiffuseSolarRadiationToMultiSpanRoof(self, hourlyDiffuseSolarRadiationToMultiSpanRoof):
+    self._hourlyDiffuseSolarRadiationToMultiSpanRoof = hourlyDiffuseSolarRadiationToMultiSpanRoof
+  def getHourlyDiffuseSolarRadiationToMultiSpanRoof(self):
+    return self._hourlyDiffuseSolarRadiationToMultiSpanRoof
+
+  def setGroundReflectedRadiationToMultiSpanRoof(self, groundReflectedRadiationToMultiSpanRoof):
+    self._groundReflectedRadiationToMultiSpanRoof = groundReflectedRadiationToMultiSpanRoof
+  def getGroundReflectedRadiationToMultiSpanRoof(self):
+    return self._groundReflectedRadiationToMultiSpanRoof
+
+  def setHourlyDirectPPFDToMultiSpanRoof(self, hourlyDirectPPFDToMultiSpanRoof):
+    self._hourlyDirectPPFDToMultiSpanRoof = hourlyDirectPPFDToMultiSpanRoof
+  def getHourlyDirectPPFDToMultiSpanRoof(self):
+    return self._hourlyDirectPPFDToMultiSpanRoof
+
+  def setHourlyDiffusePPFDToMultiSpanRoof(self, hourlyDiffusePPFDToMultiSpanRoof):
+    self._hourlyDiffusePPFDToMultiSpanRoof = hourlyDiffusePPFDToMultiSpanRoof
+  def getHourlyDiffusePPFDToMultiSpanRoof(self):
+    return self._hourlyDiffusePPFDToMultiSpanRoof
+
+  def setGroundReflectedPPFDToMultiSpanRoof(self, groundReflectedPPFDToMultiSpanRoof):
+    self._groundReflectedPPFDToMultiSpanRoof = groundReflectedPPFDToMultiSpanRoof
+  def getGroundReflectedPPFDToMultiSpanRoof(self):
+    return self._groundReflectedPPFDToMultiSpanRoof
+  ##############################solar irradiance to multi span roof end##############################
+
   def setShootFreshMassList(self, shootFreshMassList):
     self._shootFreshMassList = shootFreshMassList
   def getShootFreshMassList(self):
@@ -308,3 +358,54 @@ class SimulatorClass:
 
   def getIfHasShadingCurtain(self):
     return self._ifHasShadingCurtain
+
+  @property
+  def hourlySolarIncidenceAngleEastDirection(self):
+    return self._hourlySolarIncidenceAngleEastDirection
+
+  @hourlySolarIncidenceAngleEastDirection.setter
+  def hourlySolarIncidenceAngleEastDirection(self, hourlySolarIncidenceAngleEastDirection):
+    self._hourlySolarIncidenceAngleEastDirection = hourlySolarIncidenceAngleEastDirection
+
+  @property
+  def hourlySolarIncidenceAngleWestDirection(self):
+    return self._hourlySolarIncidenceAngleWestDirection
+
+  @hourlySolarIncidenceAngleWestDirection.setter
+  def hourlySolarIncidenceAngleWestDirection(self, hourlySolarIncidenceAngleWestDirection):
+    self._hourlySolarIncidenceAngleWestDirection = hourlySolarIncidenceAngleWestDirection
+
+  @property
+  def hourlySolarAltitudeAngle(self):
+    return self._hourlySolarAltitudeAngle
+
+  @hourlySolarAltitudeAngle.setter
+  def hourlySolarAltitudeAngle(self, hourlySolarAltitudeAngle):
+    self._hourlySolarAltitudeAngle = hourlySolarAltitudeAngle
+
+
+  @property
+  def hourlySolarAzimuthAngle(self):
+    return self._hourlySolarAzimuthAngle
+
+  @hourlySolarAzimuthAngle.setter
+  def hourlySolarAzimuthAngle(self, hourlySolarAzimuthAngle):
+    self._hourlySolarAzimuthAngle = hourlySolarAzimuthAngle
+
+
+  @property
+  def hourlyModuleAzimuthAngleEast(self):
+    return self._hourlyModuleAzimuthAngleEast
+
+  @hourlyModuleAzimuthAngleEast.setter
+  def hourlyModuleAzimuthAngleEast(self, hourlyModuleAzimuthAngleEast):
+    self._hourlyModuleAzimuthAngleEast = hourlyModuleAzimuthAngleEast
+
+
+  @property
+  def hourlyModuleAzimuthAngleWest(self):
+    return self._hourlyModuleAzimuthAngleWest
+
+  @hourlyModuleAzimuthAngleWest.setter
+  def hourlyModuleAzimuthAngleWest(self, hourlyModuleAzimuthAngleWest):
+    self._hourlyModuleAzimuthAngleWest = hourlyModuleAzimuthAngleWest

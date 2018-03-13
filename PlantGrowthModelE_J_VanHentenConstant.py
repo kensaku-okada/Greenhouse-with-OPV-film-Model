@@ -30,7 +30,7 @@ c_lar = {'m2 g-2' : 75 * 10**(-3)}
 # the canopy conductance to CO2 diffusion
 g_CO2 = {'m s-1' : }
 # density of CO2
-c_omega = ['g m-3' : 1.83 * 10**(-3) ]
+c_omega = {'g m-3' : 1.83 * 10**(-3) }
 # the CO2 compensation point at 20[C]
 c_upperCaseGamma = {'ppm': 40}
 # the Q10 value which account for the effect of temperature on upperCaseGamma (Γ)

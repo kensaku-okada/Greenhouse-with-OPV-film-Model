@@ -46,8 +46,8 @@ def calcDailyFreshWeightIncreaseByShimizuEtAl2008Revised(dailyInnerLightIntensit
     param:dailyInnerLightIntensityPPFD [μmol/m^2/s]
     return: dailyFreshWeightIncrease[g/day]
     '''
-    print "dailyInnerLightIntensityDLI:{}".format(dailyInnerLightIntensityDLI)
-    print "cultivationDaysperHarvest:{}".format(cultivationDaysperHarvest)
+    print("dailyInnerLightIntensityDLI:{}".format(dailyInnerLightIntensityDLI))
+    print("cultivationDaysperHarvest:{}".format(cultivationDaysperHarvest))
 
     # average the light intensity for the cultivation　by the period of lighting (photoperiod), which is assumed to be 14 hours.
     dailyInnerLightIntensityDLIAverage = dailyInnerLightIntensityDLI / constant.photoperiod
@@ -389,14 +389,6 @@ def calcUnitDailyFreshWeightIncreaseBoth2003Taylor(innerDLIToPlants, cultivation
 
 
 
-
-
-
-
-
-
-
-
 def getLettucePricepercwt(year):
     '''
     return the lettuce price per cwt based on the year of sales
@@ -429,7 +421,7 @@ def discountPlantSalesperSquareMeterByTipburn(plantSalesperSquareMeter, TotalDLI
 
 def getCultivationDaysWithoutHarvest(plantSalesperSquareMeter):
     '''
-
+    num of remained days when we cannot finish the cultivation, which is less than the num of cultivation days.
     :param plantSalesperSquareMeter:
     :return:
     '''
@@ -438,7 +430,7 @@ def getCultivationDaysWithoutHarvest(plantSalesperSquareMeter):
     # print "NumCultivationCycle:{}".format(NumCultivationCycle)
 
     # num of remained days when we cannot finish the cultivation, which is less than the num of cultivation days.
-    CultivationDaysWithNoHarvest = util.calcSimulationDaysInt() - NumCultivationCycle * cultivationDaysperHarvest
+    CultivationDaysWithNoHarvest = util.calcSimulationDaysInt() - NumCultivationCycle * constant.cultivationDaysperHarvest
     # print "CultivationDaysWithNoHarvest:{}".format(CultivationDaysWithNoHarvest)
 
     return CultivationDaysWithNoHarvest
@@ -453,7 +445,6 @@ def calcRevenueOfPlantYieldperHarvest(freshWeightTotalperHarvest):
     return constant.lantUnitPriceUSDperKilogram * freshWeightTotalperHarvest
 
 
-
 def calcCostofPlantYieldperYear():
     '''
     calculate the cost of plant sales per harvest (USD/per)
@@ -461,3 +452,4 @@ def calcCostofPlantYieldperYear():
     return: : cost Of Plant Production per year (USD/year)
     '''
     return  constant.plantProductionCostperSquareMeterPerYear * constant.greenhouseFloorArea
+

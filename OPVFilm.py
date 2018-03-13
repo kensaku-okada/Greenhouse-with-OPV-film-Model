@@ -1,9 +1,4 @@
 # -*- coding: utf-8 -*-
-#######################################################
-# author :Kensaku Okada [kensakuokada@email.arizona.edu]
-# create date : 12 Dec 2016
-# last edit date: 14 Dec 2016
-#######################################################
 
 ##########import package files##########
 from scipy import stats
@@ -74,7 +69,7 @@ def getSolarHourAngleYano2009(hour):
     :param hour:
     :return:solarHourAngle [degree]
     '''
-    # TODO: adopt the authorized way to calculate LAT. now it is approximated to be 0.4
+    # TODO: adopt the authorized way to calculate the local apparent time LAT. now it is approximated to be 0.4 based on Tucson, Arizona, US.
     localApparentTime = hour - 0.4
     return (math.pi/12.0) * (localApparentTime  - constant.noonHour)
 
@@ -118,17 +113,27 @@ def calcSolarAzimuthAngle(hourlyDeclinationAngle, hourlySolarAltitudeAngle, hour
     cosAlpha = np.cos(hourlySolarAltitudeAngle)
     sinPhi = np.sin(constant.Latitude)
     cosPhi = np.cos(constant.Latitude)
-    # print "sinDelta:{}".format(sinDelta)
-    # print "sinAlpha:{}".format(sinAlpha)
-    # print "cosAlpha:{}".format(cosAlpha)
-    # print "sinPhi:{}".format(sinPhi)
-    # print "cosPhi:{}".format(cosPhi)
+    # print ("sinDelta:{}".format(sinDelta))
+    # print ("sinAlpha:{}".format(sinAlpha))
+    # print ("cosAlpha:{}".format(cosAlpha))
+    # print ("sinPhi:{}".format(sinPhi))
+    # print ("cosPhi:{}".format(cosPhi))
+
 
     # [rad]
     # hourlyAzimuthAngle is multiplied by -1 when hourlySolarHourAngle (omega) < 0
-    hourlyAzimuthAngle = np.sign(hourlySolarHourAngle) * np.arccos((sinAlpha*sinPhi - sinDelta) / (cosAlpha * cosPhi))
-    # hourlyAzimuthAngle = (sinDelta - sinAlpha*sinPhi) / (cosAlpha * cosPhi)
-    # print "hourlyAzimuthAngle:{}".format(hourlyAzimuthAngle)
+
+    # when using the function of "", "np.arccos((sinAlpha*sinPhi - sinDelta) / (cosAlpha * cosPhi))" value became nan when "(sinAlpha*sinPhi - sinDelta) / (cosAlpha * cosPhi)" is "-1."
+    # Thus this if statement corrects this error.
+    a = (sinAlpha*sinPhi - sinDelta) / (cosAlpha * cosPhi)
+    for i in range (0, a.shape[0]):
+        if a[i] < -1.0:
+            a[i] = -1.0
+        elif a[i] > 1.0:
+            a[i] = 1.0
+    # print("a:{}".format(a))
+    hourlyAzimuthAngle = np.sign(hourlySolarHourAngle) * np.arccos(a)
+    # print("hourlyAzimuthAngle:{}".format(hourlyAzimuthAngle))
 
     return hourlyAzimuthAngle
 
@@ -169,7 +174,7 @@ def calcSolarIncidenceAngleKacira2003(hourlyDeclinationAngle, hourlySolarHourAng
     return np.arccos(solarIncidenceAngle)
 
 
-def calcSolarIncidenceAngleYano2009(hourlySolarAltitudeAngle, hourlySolarAzimuthAngle, hourlyModuleAzimuthAngle, OPVAngle = constant.OPVAngle ):
+def calcSolarIncidenceAngleYano2009(hourlySolarAltitudeAngle, hourlySolarAzimuthAngle, hourlyModuleAzimuthAngle, OPVAngle = constant.OPVAngle):
     '''
     calculate solar incidence angle. the equation wat taken from
     constant.OPVAngle: symbol capital s (S) [rad]
@@ -194,9 +199,9 @@ def calcSolarIncidenceAngleYano2009(hourlySolarAltitudeAngle, hourlySolarAzimuth
     sinPhiP = np.sin(hourlyModuleAzimuthAngle)
     cosPhiP = np.cos(hourlyModuleAzimuthAngle)
 
-    solarIncidenceAngle = sinAlpha*cosS + cosAlpha*sinS*np.cos(hourlySolarAzimuthAngle - hourlyModuleAzimuthAngle)
-
-    return np.arccos(solarIncidenceAngle)
+    solarIncidenceAngle = np.arccos(sinAlpha*cosS + cosAlpha*sinS*np.cos(hourlySolarAzimuthAngle - hourlyModuleAzimuthAngle))
+    # print("solarIncidenceAngle:{}".format(solarIncidenceAngle))
+    return solarIncidenceAngle
 
 def getMaxDirectBeamSolarRadiationKacira2003(hourlySolarAltitudeAngle, hourlyHorizontalDirectOuterSolarIrradiance, hourlyZenithAngle):
     '''
@@ -273,7 +278,7 @@ def getDirectTitledSolarRadiation(simulatorClass, hourlySolarAltitudeAngle, hour
     :return: maxDirectBeamSolarRadiation [W m^-2]
     '''
 
-    # if calculate the solar radiation without real data
+    # if we estimate the solar radiation (calculate the solar radiation without real data), get into this statement
     if simulatorClass.getEstimateSolarRadiationMode() == True:
     # if (hourlyHorizontalDirectOuterSolarIrradiance == 0.0).all():
 
@@ -295,14 +300,15 @@ def getDirectTitledSolarRadiation(simulatorClass, hourlySolarAltitudeAngle, hour
 
         return directTiltedSolarRadiation
 
+    # if we calculate the solar radiation with real data, get into this statement
     else:
         print("at OPVFilm.getDirectTitledSolarRadiation, hourlyHorizontalDirectOuterSolarIrradiance has data")
         # this equation was cited from Murat Kacira, "determining optimum tilt angles and orientations of photovoltaic panels in Sanliurfa, Turkey", 2004
         # since zenith angle == 90 - solar altitude angle, sin(solar altitude angle) == cos(zenith angle)
 
-        print("np.cos(hourlySolarIncidenceAngle):{}".format(np.cos(hourlySolarIncidenceAngle)))
-        print("np.sin(hourlySolarAltitudeAngle):{}".format(np.sin(hourlySolarAltitudeAngle)))
-        print("hourlySolarAltitudeAngle:{}".format(hourlySolarAltitudeAngle))
+        # print("np.cos(hourlySolarIncidenceAngle):{}".format(np.cos(hourlySolarIncidenceAngle)))
+        # print("np.sin(hourlySolarAltitudeAngle):{}".format(np.sin(hourlySolarAltitudeAngle)))
+        # print("hourlySolarAltitudeAngle:{}".format(hourlySolarAltitudeAngle))
 
         directTiltedSolarRadiation = hourlyHorizontalDirectOuterSolarIrradiance * np.cos(hourlySolarIncidenceAngle) / np.sin(hourlySolarAltitudeAngle)
 
@@ -593,16 +599,16 @@ def calcHourlyInnerLightIntensityPPFD(HourlyOuterLightIntensityPPFD, OPVAreaCove
     '''
 
     #consider the transmittance ratio of glazing
-    InnerLightIntensityPPFDThroughGlazing = constant.dobulePEPERTransmittance * HourlyOuterLightIntensityPPFD
+    InnerLightIntensityPPFDThroughGlazing = constant.dobulePERTransmittance * HourlyOuterLightIntensityPPFD
     # print "OPVAreaCoverageRatio:{}, HourlyOuterLightIntensityPPFD:{}".format(OPVAreaCoverageRatio, HourlyOuterLightIntensityPPFD)
     # print "OPVAreaCoverageRatio:{}, InnerLightIntensityPPFDThroughGlazing:{}".format(OPVAreaCoverageRatio, InnerLightIntensityPPFDThroughGlazing)
 
-    # make the list of OPV coverage ratio at each hour
-    unfixedOPVAreaCoverageRatio = getDifferentOPVCoverageRatioInFallowPeriod(OPVAreaCoverageRatio, cropElectricityYieldSimulator1)
+    # make the list of OPV coverage ratio at each hour fixing the ratio during summer
+    oPVAreaCoverageRatioFixingInSummer = getDifferentOPVCoverageRatioInFallowPeriod(OPVAreaCoverageRatio, cropElectricityYieldSimulator1)
 
+    # TODO the light intensity decrease by OPV film will be considered in calculating the solar iiradiance to multispan roof. move this calculation to CropElecricityYieldSimulationDetail.getSolarIrradianceToMultiSpanRoof
     #consider the transmission ratio of OPV film
-    HourlyInnerLightIntensityPPFDThroughOPV = InnerLightIntensityPPFDThroughGlazing * (1 - unfixedOPVAreaCoverageRatio) + InnerLightIntensityPPFDThroughGlazing * unfixedOPVAreaCoverageRatio * OPVPARTransmissionRatio
-
+    HourlyInnerLightIntensityPPFDThroughOPV = InnerLightIntensityPPFDThroughGlazing * (1 - oPVAreaCoverageRatioFixingInSummer) + InnerLightIntensityPPFDThroughGlazing * oPVAreaCoverageRatioFixingInSummer * OPVPARTransmissionRatio
     # print "OPVAreaCoverageRatio:{}, HourlyInnerLightIntensityPPFDThroughOPV:{}".format(OPVAreaCoverageRatio, HourlyInnerLightIntensityPPFDThroughOPV)
 
     #consider the light reflection by greenhouse inner structures and equipments like pipes, poles and gutters
@@ -673,6 +679,7 @@ def calcHourlyInnerLightIntensityPPFD(HourlyOuterLightIntensityPPFD, OPVAreaCove
 
 def getDifferentOPVCoverageRatioInFallowPeriod(OPVAreaCoverageRatio, cropElectricityYieldSimulator1):
     '''
+    this function changes the opv coverage ratio during the summer period into the constant ratio defined at the constant class.,
 
     :param OPVPARTransmissionRatio:
     :param cropElectricityYieldSimulator1:
@@ -684,10 +691,11 @@ def getDifferentOPVCoverageRatioInFallowPeriod(OPVAreaCoverageRatio, cropElectri
     month = cropElectricityYieldSimulator1.getMonth()
     day = cropElectricityYieldSimulator1.getDay()
 
+
     unfixedOPVCoverageRatio = np.zeros(year.shape[0])
 
     for i in range(0, year.shape[0]):
-        # if it is during the fallow period
+        # if it is during the summer period when shading curtain is deployed.
         if datetime.date(year[i], month[i], day[i]) >=  datetime.date(year[i], constant.FallowPeriodStartMM, constant.FallowPeriodStartDD) and \
             datetime.date(year[i], month[i], day[i]) <= datetime.date(year[i], constant.FallowPeriodEndMM, constant.FallowPeriodEndDD):
             unfixedOPVCoverageRatio[i] = constant.OPVAreaCoverageRatioFallowPeriod
