@@ -6,8 +6,8 @@ class SimulatorClass:
   def __init__(self):
 
     self._OPVAreaCoverageRatio = constant.OPVAreaCoverageRatio
-    self._OPVCoverageFallowPeriod = constant.OPVAreaCoverageRatioFallowPeriod
-    self._plantGrowthModel = constant.E_J_VanHenten
+    self._OPVCoverageRatioSummerPeriod = constant.OPVAreaCoverageRatioSummerPeriod
+    self._plantGrowthModel = constant.plantGrowthModel
     self._cultivationDaysperHarvest = constant.cultivationDaysperHarvest
     self._hasShadingCurtain = constant.hasShadingCurtain
     self._shadingCurtainDeployPPFD = constant.plantGrowthModel
@@ -28,12 +28,12 @@ class SimulatorClass:
     self._directDLIToOPVWestDirection = None
     self._diffuseDLIToOPV = None
     self._groundReflectedDLIToOPV = None
-    self._hourlyDirectSolarRadiationToMultiSpanRoof = None
-    self._hourlyDiffuseSolarRadiationToMultiSpanRoof = None
-    self._groundReflectedRadiationToMultiSpanRoof = None
-    self._hourlyDirectPPFDToMultiSpanRoof = None
-    self._hourlyDiffusePPFDToMultiSpanRoof = None
-    self._groundReflectedPPFDToMultiSpanRoof = None
+    self._hourlyDirectSolarRadiationAfterMultiSpanRoof = None
+    self._hourlyDiffuseSolarRadiationAfterMultiSpanRoof = None
+    self._groundReflectedRadiationAfterMultiSpanRoof = None
+    self._hourlyDirectPPFDAfterMultiSpanRoof = None
+    self._hourlyDiffusePPFDAfterMultiSpanRoof = None
+    self._groundReflectedPPFDAfterMultiSpanRoof = None
 
     self._shootFreshMassList = None
     self._unitDailyFreshWeightIncrease = None
@@ -57,20 +57,35 @@ class SimulatorClass:
     self._estimatedDiffuseSolarRadiationToOPV = None
     self._estimatedAlbedoSolarRadiationToOPV = None
 
-    # the following variables are got/set by property
+    # the following variables do not have got/set methods, but have properties
     self._hourlySolarIncidenceAngleEastDirection = None
     self._hourlySolarIncidenceAngleWestDirection = None
+    self._directSolarIrradianceToPlants = None
+    self._diffuseSolarIrradianceToPlants = None
+    self._directPPFDToPlants = None
+    self._diffusePPFDToPlants = None
+    self._directDLIToPlants = None
+    self._diffuseDLIToPlants = None
+    self._hourlyDayOrNightFlag = None
+    self._hourlyHorizontalDiffuseOuterSolarIrradiance = None
+    self._hourlyHorizontalTotalOuterSolarIrradiance = None
+    self._hourlyHorizontalDirectOuterSolarIrradiance = None
+    self._hourlyHorizontalTotalBeamMeterBodyTemperature = None
+    self._hourlyAirTemperature = None
 
     ############## boolean variables ##############
-    self._ifGrowForFallowPeriod = False
+    self._ifGrowForSummerPeriod = False
     # if you want to calculate the estimated data which does not require the measured data, set this variable True.
     self._estimateSolarRadiationMode = False
     self._ifHasShadingCurtain = None
-
     self._hourlySolarAltitudeAngle = None
     self._hourlySolarAzimuthAngle = None
     self._hourlyModuleAzimuthAngleEast = None
     self._hourlyModuleAzimuthAngleWest = None
+    self._T_matForPerpendicularIrrEastOrNorthFacingRoof = None
+    self._T_matForPerpendicularIrrWestOrSouthFacingRoof = None
+    self._integratedT_mat = None
+    self._directHorizontalSolarRadiation = None
 
 
   def setOPVAreaCoverageRatio(self, OPVAreaCoverageRatio):
@@ -78,10 +93,10 @@ class SimulatorClass:
   def getOPVAreaCoverageRatio(self):
     return self._OPVAreaCoverageRatio
 
-  def setOPVCoverageRatioFallowPeriod(self, OPVCoverageRatioFallowPeriod):
-    self._OPVCoverageRatioFallowPeriod = OPVCoverageRatioFallowPeriod
-  def getOPVCoverageRatioFallowPeriod(self):
-    return self._OPVCoverageRatioFallowPeriod
+  def setOPVCoverageRatioSummerPeriod(self, OPVCoverageRatioSummerPeriod):
+    self._OPVCoverageRatioSummerPeriod = OPVCoverageRatioSummerPeriod
+  def getOPVCoverageRatioSummerPeriod(self):
+    return self._OPVCoverageRatioSummerPeriod
 
   def setPlantGrowthModel(self, plantGrowthModel):
     self._plantGrowthModel = plantGrowthModel
@@ -243,35 +258,35 @@ class SimulatorClass:
 
 
   ##############################solar irradiance to multi span roof start##############################
-  def setHourlyDirectSolarRadiationToMultiSpanRoof(self, hourlyDirectSolarRadiationToMultiSpanRoof):
-    self._hourlyDirectSolarRadiationToMultiSpanRoof = hourlyDirectSolarRadiationToMultiSpanRoof
-  def getHourlyDirectSolarRadiationToMultiSpanRoof(self):
-    return self._hourlyDirectSolarRadiationToMultiSpanRoof
+  def setHourlyDirectSolarRadiationAfterMultiSpanRoof(self, hourlyDirectSolarRadiationAfterMultiSpanRoof):
+    self._hourlyDirectSolarRadiationAfterMultiSpanRoof = hourlyDirectSolarRadiationAfterMultiSpanRoof
+  def getHourlyDirectSolarRadiationAfterMultiSpanRoof(self):
+    return self._hourlyDirectSolarRadiationAfterMultiSpanRoof
 
-  def setHourlyDiffuseSolarRadiationToMultiSpanRoof(self, hourlyDiffuseSolarRadiationToMultiSpanRoof):
-    self._hourlyDiffuseSolarRadiationToMultiSpanRoof = hourlyDiffuseSolarRadiationToMultiSpanRoof
-  def getHourlyDiffuseSolarRadiationToMultiSpanRoof(self):
-    return self._hourlyDiffuseSolarRadiationToMultiSpanRoof
+  def setHourlyDiffuseSolarRadiationAfterMultiSpanRoof(self, hourlyDiffuseSolarRadiationAfterMultiSpanRoof):
+    self._hourlyDiffuseSolarRadiationAfterMultiSpanRoof = hourlyDiffuseSolarRadiationAfterMultiSpanRoof
+  def getHourlyDiffuseSolarRadiationAfterMultiSpanRoof(self):
+    return self._hourlyDiffuseSolarRadiationAfterMultiSpanRoof
 
-  def setGroundReflectedRadiationToMultiSpanRoof(self, groundReflectedRadiationToMultiSpanRoof):
-    self._groundReflectedRadiationToMultiSpanRoof = groundReflectedRadiationToMultiSpanRoof
-  def getGroundReflectedRadiationToMultiSpanRoof(self):
-    return self._groundReflectedRadiationToMultiSpanRoof
+  def setGroundReflectedRadiationAfterMultiSpanRoof(self, groundReflectedRadiationAfterMultiSpanRoof):
+    self._groundReflectedRadiationAfterMultiSpanRoof = groundReflectedRadiationAfterMultiSpanRoof
+  def getGroundReflectedRadiationAfterMultiSpanRoof(self):
+    return self._groundReflectedRadiationAfterMultiSpanRoof
 
-  def setHourlyDirectPPFDToMultiSpanRoof(self, hourlyDirectPPFDToMultiSpanRoof):
-    self._hourlyDirectPPFDToMultiSpanRoof = hourlyDirectPPFDToMultiSpanRoof
-  def getHourlyDirectPPFDToMultiSpanRoof(self):
-    return self._hourlyDirectPPFDToMultiSpanRoof
+  def setHourlyDirectPPFDAfterMultiSpanRoof(self, hourlyDirectPPFDAfterMultiSpanRoof):
+    self._hourlyDirectPPFDAfterMultiSpanRoof = hourlyDirectPPFDAfterMultiSpanRoof
+  def getHourlyDirectPPFDAfterMultiSpanRoof(self):
+    return self._hourlyDirectPPFDAfterMultiSpanRoof
 
-  def setHourlyDiffusePPFDToMultiSpanRoof(self, hourlyDiffusePPFDToMultiSpanRoof):
-    self._hourlyDiffusePPFDToMultiSpanRoof = hourlyDiffusePPFDToMultiSpanRoof
-  def getHourlyDiffusePPFDToMultiSpanRoof(self):
-    return self._hourlyDiffusePPFDToMultiSpanRoof
+  def setHourlyDiffusePPFDAfterMultiSpanRoof(self, hourlyDiffusePPFDAfterMultiSpanRoof):
+    self._hourlyDiffusePPFDAfterMultiSpanRoof = hourlyDiffusePPFDAfterMultiSpanRoof
+  def getHourlyDiffusePPFDAfterMultiSpanRoof(self):
+    return self._hourlyDiffusePPFDAfterMultiSpanRoof
 
-  def setGroundReflectedPPFDToMultiSpanRoof(self, groundReflectedPPFDToMultiSpanRoof):
-    self._groundReflectedPPFDToMultiSpanRoof = groundReflectedPPFDToMultiSpanRoof
-  def getGroundReflectedPPFDToMultiSpanRoof(self):
-    return self._groundReflectedPPFDToMultiSpanRoof
+  def setGroundReflectedPPFDAfterMultiSpanRoof(self, groundReflectedPPFDAfterMultiSpanRoof):
+    self._groundReflectedPPFDAfterMultiSpanRoof = groundReflectedPPFDAfterMultiSpanRoof
+  def getGroundReflectedPPFDAfterMultiSpanRoof(self):
+    return self._groundReflectedPPFDAfterMultiSpanRoof
   ##############################solar irradiance to multi span roof end##############################
 
   def setShootFreshMassList(self, shootFreshMassList):
@@ -341,11 +356,10 @@ class SimulatorClass:
     return self._importedHourlyAirTemperature
   ######################### imported data end #########################
 
-
-  def setIfGrowForFallowPeriod(self, ifGrowForFallowPeriod):
-    self._ifGrowForFallowPeriod = ifGrowForFallowPeriod
-  def getIfGrowForFallowPeriod(self):
-    return self._ifGrowForFallowPeriod
+  def setIfGrowForSummerPeriod(self, ifGrowForSummerPeriod):
+    self._ifGrowForSummerPeriod = ifGrowForSummerPeriod
+  def getIfGrowForSummerPeriod(self):
+    return self._ifGrowForSummerPeriod
 
   def setEstimateSolarRadiationMode(self, estimateSolarRadiationMode):
     self._estimateSolarRadiationMode = estimateSolarRadiationMode
@@ -363,6 +377,7 @@ class SimulatorClass:
   def hourlySolarIncidenceAngleEastDirection(self):
     return self._hourlySolarIncidenceAngleEastDirection
 
+    ############################################ angles start################
   @hourlySolarIncidenceAngleEastDirection.setter
   def hourlySolarIncidenceAngleEastDirection(self, hourlySolarIncidenceAngleEastDirection):
     self._hourlySolarIncidenceAngleEastDirection = hourlySolarIncidenceAngleEastDirection
@@ -409,3 +424,124 @@ class SimulatorClass:
   @hourlyModuleAzimuthAngleWest.setter
   def hourlyModuleAzimuthAngleWest(self, hourlyModuleAzimuthAngleWest):
     self._hourlyModuleAzimuthAngleWest = hourlyModuleAzimuthAngleWest
+    ############################################ angles end################
+
+  ##############################solar irradiance to plants start##############################
+  @property
+  def directSolarIrradianceToPlants(self):
+      return self._directSolarIrradianceToPlants
+  @directSolarIrradianceToPlants.setter
+  def directSolarIrradianceToPlants(self, directSolarIrradianceToPlants):
+      self._directSolarIrradianceToPlants = directSolarIrradianceToPlants
+
+  @property
+  def diffuseSolarIrradianceToPlants(self):
+    return self._diffuseSolarIrradianceToPlants
+  @diffuseSolarIrradianceToPlants.setter
+  def diffuseSolarIrradianceToPlants(self, diffuseSolarIrradianceToPlants):
+    self._diffuseSolarIrradianceToPlants = diffuseSolarIrradianceToPlants
+
+  @property
+  def directPPFDToPlants(self):
+    return self._directPPFDToPlants
+  @directPPFDToPlants.setter
+  def directPPFDToPlants(self, directPPFDToPlants):
+    self._directPPFDToPlants = directPPFDToPlants
+
+  @property
+  def diffusePPFDToPlants(self):
+    return self._diffusePPFDToPlants
+  @diffusePPFDToPlants.setter
+  def diffusePPFDToPlants(self, diffusePPFDToPlants):
+    self._diffusePPFDToPlants = diffusePPFDToPlants
+
+  @property
+  def directDLIToPlants(self):
+    return self._directDLIToPlants
+  @directDLIToPlants.setter
+  def directDLIToPlants(self, directDLIToPlants):
+    self._directDLIToPlants = directDLIToPlants
+
+  @property
+  def diffuseDLIToPlants(self):
+    return self._diffuseDLIToPlants
+  @diffuseDLIToPlants.setter
+  def diffuseDLIToPlants(self, diffuseDLIToPlants):
+    self._diffuseDLIToPlants = diffuseDLIToPlants
+  ##############################solar irradiance to plants end##############################
+
+  @property
+  def hourlyDayOrNightFlag(self):
+    return self._hourlyDayOrNightFlag
+  @hourlyDayOrNightFlag.setter
+  def hourlyDayOrNightFlag(self, hourlyDayOrNightFlag):
+    self._hourlyDayOrNightFlag = hourlyDayOrNightFlag
+
+  ##############################imported data start##############################
+
+  @property
+  def hourlyHorizontalDirectOuterSolarIrradiance(self):
+    return self._hourlyHorizontalDirectOuterSolarIrradiance
+  @hourlyHorizontalDirectOuterSolarIrradiance.setter
+  def hourlyHorizontalDirectOuterSolarIrradiance(self, hourlyHorizontalDirectOuterSolarIrradiance):
+    self._hourlyHorizontalDirectOuterSolarIrradiance = hourlyHorizontalDirectOuterSolarIrradiance
+
+  @property
+  def hourlyHorizontalDiffuseOuterSolarIrradiance(self):
+    return self._hourlyHorizontalDiffuseOuterSolarIrradiance
+  @hourlyHorizontalDiffuseOuterSolarIrradiance.setter
+  def hourlyHorizontalDiffuseOuterSolarIrradiance(self, hourlyHorizontalDiffuseOuterSolarIrradiance):
+    self._hourlyHorizontalDiffuseOuterSolarIrradiance = hourlyHorizontalDiffuseOuterSolarIrradiance
+
+  @property
+  def hourlyHorizontalTotalOuterSolarIrradiance(self):
+    return self._hourlyHorizontalTotalOuterSolarIrradiance
+  @hourlyHorizontalTotalOuterSolarIrradiance.setter
+  def hourlyHorizontalTotalOuterSolarIrradiance(self, hourlyHorizontalTotalOuterSolarIrradiance):
+    self._hourlyHorizontalTotalOuterSolarIrradiance = hourlyHorizontalTotalOuterSolarIrradiance
+
+  @property
+  def hourlyHorizontalTotalBeamMeterBodyTemperature(self):
+    return self._hourlyHorizontalTotalBeamMeterBodyTemperature
+  @hourlyHorizontalTotalBeamMeterBodyTemperature.setter
+  def hourlyHorizontalTotalBeamMeterBodyTemperature(self, hourlyHorizontalTotalBeamMeterBodyTemperature):
+    self._hourlyHorizontalTotalBeamMeterBodyTemperature = hourlyHorizontalTotalBeamMeterBodyTemperature
+
+  @property
+  def hourlyAirTemperature(self):
+    return self._hourlyAirTemperature
+  @hourlyAirTemperature.setter
+  def hourlyAirTemperature(self, hourlyAirTemperature):
+    self._hourlyAirTemperature = hourlyAirTemperature
+  ##############################imported data end##############################
+
+  ##############################multispan roof transmittance start##############################
+  @property
+  def T_matForPerpendicularIrrEastOrNorthFacingRoof(self):
+    return self._T_matForPerpendicularIrrEastOrNorthFacingRoof
+  @T_matForPerpendicularIrrEastOrNorthFacingRoof.setter
+  def T_matForPerpendicularIrrEastOrNorthFacingRoof(self, T_matForPerpendicularIrrEastOrNorthFacingRoof):
+    self._T_matForPerpendicularIrrEastOrNorthFacingRoof = T_matForPerpendicularIrrEastOrNorthFacingRoof
+
+  @property
+  def T_matForPerpendicularIrrWestOrSouthFacingRoof(self):
+    return self._T_matForPerpendicularIrrWestOrSouthFacingRoof
+  @T_matForPerpendicularIrrWestOrSouthFacingRoof.setter
+  def T_matForPerpendicularIrrWestOrSouthFacingRoof(self, T_matForPerpendicularIrrWestOrSouthFacingRoof):
+    self._T_matForPerpendicularIrrWestOrSouthFacingRoof = T_matForPerpendicularIrrWestOrSouthFacingRoof
+
+  @property
+  def integratedT_mat(self):
+    return self._integratedT_mat
+  @integratedT_mat.setter
+  def integratedT_mat(self, integratedT_mat):
+    self._integratedT_mat = integratedT_mat
+  ##############################multispan roof transmittance end##############################
+
+  @property
+  def directHorizontalSolarRadiation(self):
+    return self._directHorizontalSolarRadiation
+  @directHorizontalSolarRadiation.setter
+  def directHorizontalSolarRadiation(self, directHorizontalSolarRadiation):
+    self._directHorizontalSolarRadiation = directHorizontalSolarRadiation
+

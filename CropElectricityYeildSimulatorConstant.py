@@ -85,15 +85,13 @@ noonHour = 12
 
 #the temperature at STC (Standard Test Conditions) unit [Celsius]
 STCtemperature = 25.0
-#Simulation Period (days)
-SimulationPeriodDays = 365.0
 # current prepared data range: 20130101-20170101", 20150101 to 20160815 was the only correctly observed period. some 2014 data work too.
 # do not choose "20140201 to 20160101" specifically. somehow it does not work.
 # do not include 1/19/2014 as start date because 1/19/2014 partially misses its hourly data
 # do not include after 8/18/2016 because the dates after 8/18/2016 do not correctly log the body temperature.
 SimulationStartDate="20150101"
 # SimulationEndDate = "20151231"
-SimulationEndDate = "20150103"
+SimulationEndDate = "20150301"
 # one cultivation cycle
 # SimulationEndDate = "20150204"
 
@@ -132,6 +130,15 @@ atmosphericTransmissivity = 0.75
 
 # unit conversion. [cwt] -> [kg] US standard
 kgpercwt = 45.36
+
+# if this is true, then continue to grow plants during the Summer period. the default value is False in the object(instance)
+ifGrowForSummerPeriod = False
+
+# Summer period
+SummerPeriodStartMM = 6
+SummerPeriodStartDD = 1
+SummerPeriodEndMM = 9
+SummerPeriodEndDD = 15
 ######################################
 ##########other constant end##########
 ######################################
@@ -213,6 +220,8 @@ numOfSpans = 10.0
 roofDirectionNotation = "EastWestDirectionRoof"
 #side wall height of greenhouse (m)
 greenhouseHeightSideWall = 1.8288 # = 6[feet]
+# the total sidewall area
+greenhouseSideWallArea = 2.0 * (greenhouseWidth + greenhouseDepth) * greenhouseHeightSideWall
 #center height of greenhouse (m)
 greenhouseHeightRoofTop = 4.8768 # = 16[feet]
 #width of the rooftop. calculate from the Pythagorean theorem. assumed that the shape of rooftop is straight (not curved), and the top height and roof angels are same at each span.
@@ -236,8 +245,8 @@ print ("greenhouseRoofArea[m^2]: {}".format(greenhouseTotalRoofArea))
 #########################################################
 
 #the proportion of shade made by the structure, actuator (e.g. sensors and fog cooling systems) and farming equipments (e.g. gutters) (-)
-GreenhouseShadeProportion = 0.1
-# GreenhouseShadeProportion = 0.05
+# GreenhouseShadeProportion = 0.1
+GreenhouseShadeProportion = 0.05
 
 # DLI [mol m^-2 day^-1]
 DLIForButterHeadLettuceWithNoTipburn = 17.0
@@ -265,13 +274,17 @@ greenhouseGlazingType = "polyethylene (PE) DoubleLayer"
 # singlePEPERTransmittance = 0.875
 singlePERTransmittance = 0.85
 dobulePERTransmittance = singlePERTransmittance ** 2.0
+roofCoveringTrasmittance = singlePERTransmittance
 
 # reference: https://www.filmetrics.com/refractive-index-database/Polyethylene/PE-Polyethene
 PEFilmRefractiveIndex = 1.5
 # reference: https://en.wikipedia.org/wiki/Refractive_index
 AirRefractiveIndex = 1.000293
 
-
+# Source of reference https://www.amazon.com/Tomato-Greenhouse-Roadmap-Guide-Production-ebook/dp/B00O4CPO42
+singlePolycarbonateTransmittance = 0.91
+doublePolycarbonateTransmittance = singlePolycarbonateTransmittance ** 2.0
+sideWallTransmittance = singlePERTransmittance
 
 ################################################################
 ##########specification of glazing (covering film) end##########
@@ -290,10 +303,10 @@ OPVAreaCoverageRatio = 0.25
 # OPVAreaCoverageRatio = 0.0
 
 # the coverage ratio of OPV module on the greenhouse roof [-]. If you set this value same as OPVAreaCoverageRatio, it assumed that the OPV coverage ratio does not change during the whole period
-# OPVAreaCoverageRatioFallowPeriod = 1.0
-OPVAreaCoverageRatioFallowPeriod = 0.5
-# OPVAreaCoverageRatioFallowPeriod = 0.25
-# OPVAreaCoverageRatioFallowPeriod = 0.0
+# OPVAreaCoverageRatioSummerPeriod = 1.0
+OPVAreaCoverageRatioSummerPeriod = 0.5
+# OPVAreaCoverageRatioSummerPeriod = 0.25
+# OPVAreaCoverageRatioSummerPeriod = 0.0
 
 
 #the area of OPV on the roofTop.
@@ -335,7 +348,6 @@ TempCoeffitientImpp =  0.0008
 TempCoeffitientPmpp =  0.0002
 
 #transmission ratio of VISIBLE sunlight through OPV film.
-#TODO measure later
 #OPVPARTransmittance = 0.6
 OPVPARTransmittance = 0.3
 
@@ -364,10 +376,14 @@ ifConsiderOPVCost = False
 OPVDepreciationPeriodDays = 730.0
 
 OPVDepreciationMethod = "StraightLine"
-
+###################################################################
 ##########specification of OPV module (film or panel) end##########
+###################################################################
 
+
+##########################################################
 ##########specification of shading curtain start##########
+##########################################################
 #the transmittance ratio of shading curtain
 shadingTransmittanceRatio = 0.45
 
@@ -397,7 +413,6 @@ ShadigCuratinDeployEndHH = 14
 
 # this is gonna be true when you want to control shading curtain opening and closing every hour
 IsHourlyShadingCurtainDeploy = False
-
 ########################################################
 ##########specification of shading curtain end##########
 ########################################################
@@ -437,17 +452,26 @@ cultivationDaysperHarvest = 35
 # cultivationDaysperHarvest = 30
 
 # the constant of each plant growth model
-TaylorExpantionWithFluctuatingDLI = "TaylorExpantionWithFluctuatingDLI"
-E_J_VanHenten = "E_J_VanHenten"
-# plantGrowthModel = "TaylorExpantionWithFluctuatingDLI"
-# plantGrowthModel = "AccumulatedDLI"
-plantGrowthModel = E_J_VanHenten
+# Source: https://www.researchgate.net/publication/266453402_TEN_YEARS_OF_HYDROPONIC_LETTUCE_RESEARCH
+A_J_Both_Modified_TaylorExpantionWithFluctuatingDLI = "A_J_Both_Modified_TaylorExpantionWithFluctuatingDLI"
+# Source: https://www.researchgate.net/publication/4745082_Validation_of_a_dynamic_lettuce_growth_model_for_greenhouse_climate_control
+E_J_VanHenten1994 = "E_J_VanHenten1994"
+# Source: https://www.researchgate.net/publication/286938495_A_validated_model_to_predict_the_effects_of_environment_on_the_growth_of_lettuce_Lactuca_sativa_L_Implications_for_climate_change
+S_Pearson1997 = "S_Pearson1997"
+plantGrowthModel = E_J_VanHenten1994
 
-
+# lettuce base temperature [Celusius]
+# Reference: A validated model to predict the effects of environment on the growth of lettuce (Lactuca sativa L.): Implications for climate change
+# https://www.tandfonline.com/doi/abs/10.1080/14620316.1997.11515538
+lettuceBaseTemperature = 0.0
 DryMassToFreshMass = 1.0/0.045
 
 # [heads/m^2]
 numOfHeadsPerArea = 45.0
+# numOfHeadsPerArea = 25.0
+
+# the weight to harvest [g]
+harvestWeight = 200.0 / DryMassToFreshMass
 
 # operation cost of plants [USD/m^2/year]
 plantcostperSquaremeterperYear = 1.096405
@@ -461,23 +485,31 @@ tipburnDiscountRatio = 0.2
 # make this number 1.0 in the end. change this only for simulation experiment
 plantPriceDiscountRatio_justForSimulation = 1.0
 
-# if this is true, then continue to grow plants during the fallow period. the default value is False in the object(instance)
-ifGrowForFallowPeriod = False
-
-# fallow period
-FallowPeriodStartMM = 6
-FallowPeriodStartDD = 1
-FallowPeriodEndMM = 9
-FallowPeriodEndDD = 15
-
 # if consider the photo inhibition by too strong sunlight, True, if not, False
 IfConsiderPhotoInhibition = True
 
+# the set point temperature during day time [Celusius]
+# reference: A.J. Both, TEN YEARS OF HYDROPONIC LETTUCE RESEARCH: https://www.researchgate.net/publication/266453402_TEN_YEARS_OF_HYDROPONIC_LETTUCE_RESEARCH
+setPointTemperatureDayTime = 24.0
+# setPointTemperatureDayTime = 16.8
 
+# the set point temperature during night time [Celusius]
+# reference: A.J. Both, TEN YEARS OF HYDROPONIC LETTUCE RESEARCH: https://www.researchgate.net/publication/266453402_TEN_YEARS_OF_HYDROPONIC_LETTUCE_RESEARCH
+setPointTemperatureNightTime = 19.0
+# setPointTemperatureNightTime = 16.8
+
+
+# the flags indicating daytime or nighttime at each time step
+daytime = "daytime"
+nighttime = "nighttime"
+
+###################################################
 ##########Specification of the plants end##########
+###################################################
 
+#########################################################################
 ###########################Global variable end###########################
-
+#########################################################################
 
 class CropElectricityYeildSimulatorConstant:
     """

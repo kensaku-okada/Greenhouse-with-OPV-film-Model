@@ -35,7 +35,7 @@ def calcUnitDailyFreshWeightE_J_VanHenten1994(hourlyInnerPPFDToPlants, simulator
     # According to Van Henten (1994), 'With data logging system connected to the greenhouse climate computer, half-hour mean values of the indoor climate data were recorded.'
 
 
-    # TODO it is temporarily assumed that the canopy temperature is same as the imported temperature, but it has to be our experiement data later
+    # TODO it is temporarily assumed that the canopy temperature is same as the imported temperature, but it has to be experiement data.
     U_T = simulatorClass.getImportedHourlyAirTemperature()
     print("U_T:{}".format(U_T))
     print("U_T.shape:{}".format(U_T.shape))
@@ -43,8 +43,6 @@ def calcUnitDailyFreshWeightE_J_VanHenten1994(hourlyInnerPPFDToPlants, simulator
     # the unit conversion W/m^2 and PPFD: Van Henten replied that he just divided the measured ppfd by 2
     # unit: PPFD (umol/sec/m^2 )W/m^2
     U_par = simulatorClass.get() / 2.0
-
-
 
 
     # unit: ppm - pers per million (1/1000000)

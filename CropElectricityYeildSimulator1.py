@@ -64,6 +64,13 @@ def simulateCropElectricityYieldProfit1():
     hourlyAirTemperature = util.getArraysFromData(fileName, simulatorClass)
     ##########file import (TucsonHourlyOuterEinvironmentData) end##########
 
+    # set the imported data
+    simulatorClass.hourlyHorizontalDirectOuterSolarIrradiance = hourlyHorizontalDirectOuterSolarIrradiance
+    simulatorClass.hourlyHorizontalDiffuseOuterSolarIrradiance = hourlyHorizontalDiffuseOuterSolarIrradiance
+    simulatorClass.hourlyHorizontalTotalOuterSolarIrradiance = hourlyHorizontalTotalOuterSolarIrradiance
+    simulatorClass.hourlyHorizontalTotalBeamMeterBodyTemperature = hourlyHorizontalTotalBeamMeterBodyTemperature
+    simulatorClass.hourlyAirTemperature = hourlyAirTemperature
+
     # ################## plot the imported direct and diffuse solar radiation start######################
     # Title = "imported (measured horizontal) direct and diffuse solar radiation"
     # xAxisLabel = "time [hour]: " + constant.SimulationStartDate + "-" + constant.SimulationEndDate
@@ -74,7 +81,11 @@ def simulateCropElectricityYieldProfit1():
     # util.saveFigure(Title + " " + constant.SimulationStartDate + "-" + constant.SimulationEndDate)
     # ################## plot the imported direct and diffuse solar radiation end######################
 
+    print ("hourlyHorizontalDirectOuterSolarIrradiance:{}".format(hourlyHorizontalDirectOuterSolarIrradiance))
     print ("max(simulatorClass.getImportedHourlyHorizontalDirectSolarRadiation()):{}".format(max(simulatorClass.getImportedHourlyHorizontalDirectSolarRadiation())))
+
+    # set new data which can be derived from the imported data
+    util.deriveOtherArraysFromImportedData(simulatorClass)
 
     ################################################################################
     ##########solar irradiance to OPV calculation with imported data start##########
@@ -202,7 +213,7 @@ def simulateCropElectricityYieldProfit1():
         Title = "estimated various light intensity to tilted OPV film"
         plotDataSet = np.array([estimatedDirectSolarRadiationToOPVEastDirection, estimatedDirectSolarRadiationToOPVWestDirection, estimatedDiffuseSolarRadiationToOPV, estimatedAlbedoSolarRadiationToOPV])
         labelList = np.array(["Direct To  East Direction", "Direct To West Direction", "Diffuse", "Albedo"])
-        xAxisLabel = "time [day]: " + constant.SimulationStartDate + "-" + constant.SimulationEndDate
+        xAxisLabel = "time [hour]: " + constant.SimulationStartDate + "-" + constant.SimulationEndDate
         yAxisLabel = "[W m^-2]"
         util.plotMultipleData(np.linspace(0, simulationDaysInt * constant.hourperDay, simulationDaysInt * constant.hourperDay), plotDataSet, labelList, Title, xAxisLabel, yAxisLabel)
         util.saveFigure(Title + " " + constant.SimulationStartDate + "-" + constant.SimulationEndDate)
@@ -283,6 +294,15 @@ def simulateCropElectricityYieldProfit1():
     # util.saveFigure(Title + " " + constant.SimulationStartDate + "-" + constant.SimulationEndDate)
     # ##################plot the difference of total solar radiation with real data and simulated data  end######################
 
+    # data export of solar irradiance
+    util.exportCSVFile(np.array([year, month, day, hour, \
+                                 simulatorClass.getDirectSolarRadiationToOPVEastDirection(), \
+                                 simulatorClass.getDirectSolarRadiationToOPVWestDirection(), \
+                                 simulatorClass.getDiffuseSolarRadiationToOPV(), \
+                                 simulatorClass.getAlbedoSolarRadiationToOPV(), \
+                                 estimatedTotalSolarRadiationToOPV]).T,
+                          "SolarIrradianceToHorizontalSurface")
+
     # If necessary, get the solar radiation data only on 15th day
     if util.getSimulationDaysInt() > 31 and constant.ifGet15thDayData:
         ################## plot the imported horizontal data vs estimated data only with 15th day each month (the tilt should be zero) start ######################
@@ -335,7 +355,6 @@ def simulateCropElectricityYieldProfit1():
     util.saveFigure(Title + " " + constant.SimulationStartDate + "-" + constant.SimulationEndDate)
     ################## plot the distribution of various DLI to OPV film end######################
 
-
     ############################################################################################
     ################## calculate the daily electricity yield per area start#####################
     ############################################################################################
@@ -343,9 +362,13 @@ def simulateCropElectricityYieldProfit1():
     # get the daily electricity yield per area per day ([J/m^2] per day) based on the given light intensity ([Celsius],[W/m^2]).
     # regard the east side and west tilted OPV module differently/
     dailyJopvoutperAreaEastRoof = simulatorDetail.getDailyElectricityYieldperArea(hourlyHorizontalTotalBeamMeterBodyTemperature, \
-                                                                    directSolarRadiationToOPVEastDirection, diffuseSolarRadiationToOPV, albedoSolarRadiationToOPV)
+                                                                                  simulatorClass.getDirectSolarRadiationToOPVEastDirection(),
+                                                                                  simulatorClass.getDiffuseSolarRadiationToOPV(),
+                                                                                  simulatorClass.getAlbedoSolarRadiationToOPV())
     dailyJopvoutperAreaWestRoof = simulatorDetail.getDailyElectricityYieldperArea(hourlyHorizontalTotalBeamMeterBodyTemperature, \
-                                                                    directSolarRadiationToOPVWestDirection, diffuseSolarRadiationToOPV, albedoSolarRadiationToOPV)
+                                                                                  simulatorClass.getDirectSolarRadiationToOPVWestDirection(),
+                                                                                  simulatorClass.getDiffuseSolarRadiationToOPV(),
+                                                                                  simulatorClass.getAlbedoSolarRadiationToOPV())
     # print("dailyJopvoutperAreaWestRoof:{}".format(dailyJopvoutperAreaWestRoof))
 
     # electricity production unit Exchange [J/m^2] -> [wh / m^2]
@@ -368,7 +391,7 @@ def simulateCropElectricityYieldProfit1():
 
     # data export
     util.exportCSVFile(np.array([year[::24], month[::24], day[::24], dailykWhopvoutperAreaEastRoof, dailykWhopvoutperAreaWestRoof]).T,
-                          "measuredDailySolarRadiationToEastWestOPVPerArea")
+                          "dailyElectricEnergyFromRoofsFacingEachDirection")
     ##########################################################################################
     ################## calculate the daily electricity yield per area end#####################
     ##########################################################################################
@@ -410,18 +433,19 @@ def simulateCropElectricityYieldProfit1():
     ###################################################################################################
 
     ##################################################################################################################################################################
-    ###################calculate the solar irradiance to multi span roof start################### The calculated irradiance is stored to the object in this function
+    ###################calculate the solar irradiance through multi span roof start################ The calculated irradiance is stored to the object in this function
     ##################################################################################################################################################################
-    simulatorDetail.getSolarIrradianceToMultiSpanRoof(simulatorClass)
+    simulatorDetail.getDirectSolarIrradianceToMultiSpanRoof(simulatorClass)
+    # data export
+    util.exportCSVFile(np.array([year, month, day, simulatorClass.getHourlyDirectSolarRadiationAfterMultiSpanRoof(),]).T,
+                          "directSolarRadiationAfterMultiSpanRoof")
     ###########################################################################################
-    ###################calculate the solar irradiance to multi span roof end###################
+    ###################calculate the solar irradiance through multi span roof end##############
     ###########################################################################################
 
-    ################## calculate the daily plant yield start#####################
-    # get/set the plant growth model name [String]
-    plantGrowthModel = constant.plantGrowthModel
-    simulatorClass.setPlantGrowthModel(plantGrowthModel)
-
+    ###########################################################################################
+    ###################calculate the solar irradiance to plants start#########################
+    ###########################################################################################
     # get/set cultivation days per harvest [days/harvest]
     cultivationDaysperHarvest = constant.cultivationDaysperHarvest
     simulatorClass.setCultivationDaysperHarvest(cultivationDaysperHarvest)
@@ -431,8 +455,8 @@ def simulateCropElectricityYieldProfit1():
     simulatorClass.setOPVAreaCoverageRatio(OPVCoverage)
 
     # get/set OPV coverage ratio during fallow period[-]
-    OPVCoverageFallowPeriod = constant.OPVAreaCoverageRatioFallowPeriod
-    simulatorClass.setOPVCoverageRatioFallowPeriod(OPVCoverageFallowPeriod)
+    OPVCoverageSummerPeriod = constant.OPVAreaCoverageRatioSummerPeriod
+    simulatorClass.setOPVCoverageRatioSummerPeriod(OPVCoverageSummerPeriod)
 
     # get if we assume to have shading curtain
     hasShadingCurtain = constant.hasShadingCurtain
@@ -443,19 +467,45 @@ def simulateCropElectricityYieldProfit1():
     # this variable is substituted to the object at the declaration
     # simulatorClass.setShadingCurtainDeployPPFD(shadingCurtainDeployPPFD)
 
-    # get the solar irradiance to multi span roof (this irradiance is gonna be for a single span if you configure the constant values)
-    directPPFDToMultiSpanRoof = simulatorClass.getHourlyDirectPPFDToMultiSpanRoof()
-    diffusePPFDToMultiSpanRoof = simulatorClass.getHourlyDiffusePPFDToMultiSpanRoof()
-    groundReflectedPPFDToMultiSpanRoof = simulatorClass.getGroundReflectedPPFDToMultiSpanRoof()
+    # consider the OPV film, shading curtain, structure,
+    simulatorDetail.setSolarIrradianceToPlants(simulatorClass)
+    ########################################################################################
+    ###################calculate the solar irradiance to plants end#########################
+    ########################################################################################
+
+    # ####################################################################################################
+    # # Stop execution here...
+    # sys.exit()
+    # # Move the above line to different parts of the assignment as you implement more of the functionality.
+    # ####################################################################################################
+
+    #############################################################################
+    ################## calculate the daily plant yield start#####################
+    #############################################################################
+    # # On the model, since it was assumed the temperature in the greenhouse is maintained at the set point by cooling system (pad and fan system), this function is not used.
+    # # calc/set the thermal time to the object
+    # simulatorDetail.setThermalTimeToPlants(simulatorClass)
+
+    # get/set the plant growth model name [String]
+    plantGrowthModel = constant.plantGrowthModel
+    simulatorClass.setPlantGrowthModel(plantGrowthModel)
 
     #calculate plant yield given an OPV coverage and model :daily [g/unit]
     shootFreshMassList, \
     unitDailyFreshWeightIncrease, \
     accumulatedUnitDailyFreshWeightIncrease, \
-    unitDailyHarvestedFreshWeight = simulatorDetail.calcPlantYieldSimulation(directPPFDToMultiSpanRoof, diffusePPFDToMultiSpanRoof, groundReflectedPPFDToMultiSpanRoof, simulatorClass)
-    # print ("shootFreshMassList:{}".format(shootFreshMassList))
-    # print ("unitDailyFreshWeightIncrease:{}".format(unitDailyFreshWeightIncrease))
+    unitDailyHarvestedFreshWeight = simulatorDetail.getPlantYieldSimulation(simulatorClass)
+    print ("shootFreshMassList:{}".format(shootFreshMassList))
+    print ("unitDailyFreshWeightIncrease:{}".format(unitDailyFreshWeightIncrease))
+    ##########################################################################
+    ################## calculate the daily plant yield end####################
+    ##########################################################################
 
+    # ####################################################################################################
+    # # Stop execution here...
+    sys.exit()
+    # # Move the above line to different parts of the assignment as you implement more of the functionality.
+    # ####################################################################################################
 
     # get the penalized plant fresh weight with  too strong sunlight : :daily [g/unit]
     if constant.IfConsiderPhotoInhibition is True:
@@ -524,19 +574,30 @@ def simulateCropElectricityYieldProfit1():
     #######################################################################
 
 
-    ################## calculate the daily plant yield end#####################
+    ##########################################################################
+    ################## calculate the daily plant sales start##################
+    ##########################################################################
 
 
-    ################## calculate the daily plant sales start#####################
+    ##########################################################################
+    ################## calculate the daily plant sales end####################
+    ##########################################################################
 
-    ################## calculate the daily plant sales end#####################
 
-
+    ##########################################################################
     ################## calculate the daily plant cost start#####################
+    ##########################################################################
 
+
+    ##########################################################################
     ################## calculate the daily plant cost end#####################
+    ##########################################################################
 
+
+    ############################################################################################
     ###################Simulation with various opv film coverage ratio start####################
+    ############################################################################################
+
     # Choose the simulation type
     # simulationType = "economicProfitWithRealSolar"
     # simulationType = "plantAndElectricityYieldWithRealSolar"
@@ -683,10 +744,10 @@ def simulateCropElectricityYieldProfit1():
             # Since the plants are not tilted, do not use the light intensity to the tilted surface, just use the inmported data or estimated data with 0 degree surface.
             # daily [g/unit]
             # shootFreshMassList, unitDailyFreshWeightIncrease, accumulatedUnitDailyFreshWeightIncrease, unitDailyHarvestedFreshWeight = \
-            #     simulatorDetail.calcPlantYieldSimulation(plantGrowthModel, cultivationDaysperHarvest,OPVCoverageList[i], \
+            #     simulatorDetail.getPlantYieldSimulation(plantGrowthModel, cultivationDaysperHarvest,OPVCoverageList[i], \
             #     (directPPFDToOPVEastDirection + directPPFDToOPVWestDirection)/2.0, diffusePPFDToOPV, groundReflectedPPFDToOPV, hasShadingCurtain, shadingCurtainDeployPPFD, simulatorClass)
             shootFreshMassList, unitDailyFreshWeightIncrease, accumulatedUnitDailyFreshWeightIncrease, unitDailyHarvestedFreshWeight = \
-                simulatorDetail.calcPlantYieldSimulation(plantGrowthModel, cultivationDaysperHarvest,OPVCoverageList[i], \
+                simulatorDetail.getPlantYieldSimulation(plantGrowthModel, cultivationDaysperHarvest,OPVCoverageList[i], \
                 importedDirectPPFDToOPV, importedDiffusePPFDToOPV, importedGroundReflectedPPFDToOPV, hasShadingCurtain, shadingCurtainDeployPPFD, simulatorClass)
 
             # sum the daily increase and get the total increase for a given period with a certain OPV coverage ratio

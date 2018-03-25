@@ -154,13 +154,13 @@ def getOnly15thDay(hourlySolarradiation):
 
     return hourlySolarradiationOnly15th
 
-def getFallowDays(year):
+def getSummerDays(year):
   '''
 
   :param years:
   :return:
   '''
-  return datetime.date(year, constant.FallowPeriodEndMM,constant.FallowPeriodEndDD) - datetime.date(year, constant.FallowPeriodStartMM, constant.FallowPeriodStartDD)
+  return datetime.date(year, constant.SummerPeriodEndMM,constant.SummerPeriodEndDD) - datetime.date(year, constant.SummerPeriodStartMM, constant.SummerPeriodStartDD)
 
 def dateFormConversionYyyyMmDdToMnSlashddSlashYyyy(yyyymmdd):
     yyyy = yyyymmdd[0:4]
@@ -281,7 +281,7 @@ def exportDictionaryAsCSVFile(dictionary, fileName="exportFile", relativePath=""
   # print "os.getcwd():{}".format(os.getcwd())
 
 
-def getArraysFromData(fileName, cropElectricityYieldSimulator1):
+def getArraysFromData(fileName, simulatorClass):
   '''
   read data from a file, process the data and return them as arrays
   :param fileName: String
@@ -407,22 +407,28 @@ def getArraysFromData(fileName, cropElectricityYieldSimulator1):
   # print "hourlyAirTemperature.shape:{}".format(hourlyAirTemperature.shape)
 
   # set the values to the object
-  cropElectricityYieldSimulator1.setYear(year)
-  cropElectricityYieldSimulator1.setMonth(month)
-  cropElectricityYieldSimulator1.setDay(day)
-  cropElectricityYieldSimulator1.setHour(hour)
-  cropElectricityYieldSimulator1.setImportedHourlyHorizontalDirectSolarRadiation(hourlyHorizontalDirectOuterSolarIrradiance)
-  cropElectricityYieldSimulator1.setImportedHourlyHorizontalDiffuseSolarRadiation(hourlyHorizontalDiffuseOuterSolarIrradiance)
-  cropElectricityYieldSimulator1.setImportedHourlyHorizontalTotalBeamMeterBodyTemperature(hourlyHorizontalTotalBeamMeterBodyTemperature)
-  cropElectricityYieldSimulator1.setImportedHourlyAirTemperature(hourlyAirTemperature)
+  simulatorClass.setYear(year)
+  simulatorClass.setMonth(month)
+  simulatorClass.setDay(day)
+  simulatorClass.setHour(hour)
+  simulatorClass.setImportedHourlyHorizontalDirectSolarRadiation(hourlyHorizontalDirectOuterSolarIrradiance)
+  simulatorClass.setImportedHourlyHorizontalDiffuseSolarRadiation(hourlyHorizontalDiffuseOuterSolarIrradiance)
+  simulatorClass.setImportedHourlyHorizontalTotalBeamMeterBodyTemperature(hourlyHorizontalTotalBeamMeterBodyTemperature)
+  simulatorClass.setImportedHourlyAirTemperature(hourlyAirTemperature)
   ##########file import (TucsonHourlyOuterEinvironmentData) end##########
-
 
   return year, month, day, hour, hourlyHorizontalDiffuseOuterSolarIrradiance, \
   hourlyHorizontalTotalOuterSolarIrradiance,  \
   hourlyHorizontalDirectOuterSolarIrradiance, \
   hourlyHorizontalTotalBeamMeterBodyTemperature, \
   hourlyAirTemperature
+
+
+def deriveOtherArraysFromImportedData(simulatorClass):
+  # set the the flag indicating daytime or nighttime
+  hourlyHorizontalDirectOuterSolarIrradiance = simulatorClass.getImportedHourlyHorizontalDirectSolarRadiation()
+  hourlyDayOrNightFlag = np.array([constant.daytime if i > 0.0 else constant.nighttime for i in hourlyHorizontalDirectOuterSolarIrradiance])
+  simulatorClass.hourlyDayOrNightFlag = hourlyDayOrNightFlag
 
 
 def convertFromJouleToWattHour(joule):
@@ -432,6 +438,20 @@ def convertFromJouleToWattHour(joule):
     :return:
     '''
     return joule / constant.minuteperHour /constant.secondperMinute
+
+def convertWattPerSquareMeterEachHourToJoulePerSaureMeterEachDay(hourlySolarIrradiance):
+  '''
+  Unit conversion: [average W / m^2 each hour] -> [J / m^2 each day]
+  '''
+
+  # convert W / m^2 (= J/(s * m^2)) into J/(hour * m^2)
+  SolarRadiantEnergyPerHour = hourlySolarIrradiance * constant.secondperMinute * constant.minuteperHour
+
+  dailySolarEnergy = np.zeros(int(SolarRadiantEnergyPerHour.shape[0]/constant.hourperDay))
+  for i in range (0, dailySolarEnergy.shape[0]):
+    dailySolarEnergy[i] = sum(SolarRadiantEnergyPerHour[i*constant.hourperDay : (i+1)*constant.hourperDay])
+  return dailySolarEnergy
+
 
 def convertFromgramTokilogram(weightg):
     '''
@@ -480,23 +500,23 @@ def convertFromHourlyPPFDWholeDayToDLI(hourlyPPFDWholePeriod):
     # print "DLIWholePeriod:{}".format(DLIWholePeriod)
     return DLIWholePeriod
 
-def convertFromJouleperDayperAreaToWattper(hourlyPPFDWholePeriod):
-    '''
-    [umol m^-2 s^-1] -> [mol m^-2 day^-1]
-    :param hourlyPPFDWholePeriod:
-    :return:DLI
-    '''
-    DLIWholePeriod = np.zeros(calcSimulationDaysInt())
-
-    # convert the unit: [umol m^-2 s^-1] -> [umol m^-2 day^-1]
-    for day in range (0, calcSimulationDaysInt()):
-        for hour in range(0, hourlyPPFDWholePeriod.shape[0]/calcSimulationDaysInt()):
-            DLIWholePeriod[day] += hourlyPPFDWholePeriod[day * constant.hourperDay + hour] * constant.secondperMinute * constant.minuteperHour
-
-    # convert the unit: [umol m^-2 day^-1] -> [mol m^-2 day^-1]
-    DLIWholePeriod = DLIWholePeriod / float(10**6)
-    # print "DLIWholePeriod:{}".format(DLIWholePeriod)
-    return DLIWholePeriod
+# def convertFromJouleperDayperAreaToWattper(hourlyPPFDWholePeriod):
+#     '''
+#     [umol m^-2 s^-1] -> [mol m^-2 day^-1]
+#     :param hourlyPPFDWholePeriod:
+#     :return:DLI
+#     '''
+#     DLIWholePeriod = np.zeros(calcSimulationDaysInt())
+#
+#     # convert the unit: [umol m^-2 s^-1] -> [umol m^-2 day^-1]
+#     for day in range (0, calcSimulationDaysInt()):
+#         for hour in range(0, hourlyPPFDWholePeriod.shape[0]/calcSimulationDaysInt()):
+#             DLIWholePeriod[day] += hourlyPPFDWholePeriod[day * constant.hourperDay + hour] * constant.secondperMinute * constant.minuteperHour
+#
+#     # convert the unit: [umol m^-2 day^-1] -> [mol m^-2 day^-1]
+#     DLIWholePeriod = DLIWholePeriod / float(10**6)
+#     # print "DLIWholePeriod:{}".format(DLIWholePeriod)
+#     return DLIWholePeriod
 
 def convertFromWattperSecSquareMeterToPPFD(WattperSquareMeter):
    '''
@@ -513,21 +533,26 @@ def convertFromWattperSecSquareMeterToPPFD(WattperSquareMeter):
 
 def convertUnitShootFreshMassToShootFreshMassperArea(shootFreshMassList):
     '''
-
-    :param shootFreshMassList:
     :return:
     '''
-    # unit convert [g/unit] -> [g/m^2]
+    # unit convert [g/head] -> [g/m^2]
     shootFreshMassListperArea = shootFreshMassList * constant.numOfHeadsPerArea
     return shootFreshMassListperArea
 
 def convertcwtToKg(cwt):
-    '''
-
-    :param cwt:
-    :return:[]
-    '''
+    # unit convert [cwt] -> [kg]
     return cwt * constant.kgpercwt
+
+
+def convertHourlyTemperatureToDailyAverageTemperature(hourlyTemperature):
+  '''
+  Unit conversion: [g/head] -> [g/m^2]
+  '''
+  dailyAverageTemperature = np.zeros(int(hourlyTemperature.shape[0]/constant.hourperDay))
+  for i in range (0, hourlyTemperature.shape[0]):
+    dailyAverageTemperature[i] = np.average(hourlyTemperature[i*constant.hourperDay : (i+1)*constant.hourperDay])
+
+  return dailyAverageTemperature
 
 
 def saveFigure (filename):
@@ -791,220 +816,221 @@ def sigma(m, n, func, s=0):
     :param s: the default value before summing f(m). this is usually 0.0
     :return:
     '''
+    # print("m:{}, n:{}, s:{}".format(m, n, s))
     if m > n: return s
     return sigma(m + 1, n, func, s + func(m))
 
 
-# class Counter(dict):
-#   """
-#   A counter keeps track of counts for a set of keys.
-#
-#   The counter class is an extension of the standard python
-#   dictionary type.  It is specialized to have number values
-#   (integers or floats), and includes a handful of additional
-#   functions to ease the task of counting data.  In particular,
-#   all keys are defaulted to have value 0.  Using a dictionary:
-#
-#   a = {}
-#   print a['test']
-#
-#   would give an error, while the Counter class analogue:
-#
-#   >>> a = Counter()
-#   >>> print a['test']
-#   0
-#
-#   returns the default 0 value. Note that to reference a key
-#   that you know is contained in the counter,
-#   you can still use the dictionary syntax:
-#
-#   >>> a = Counter()
-#   >>> a['test'] = 2
-#   >>> print a['test']
-#   2
-#
-#   This is very useful for counting things without initializing their counts,
-#   see for example:
-#
-#   >>> a['blah'] += 1
-#   >>> print a['blah']
-#   1
-#
-#   The counter also includes additional functionality useful in implementing
-#   the classifiers for this assignment.  Two counters can be added,
-#   subtracted or multiplied together.  See below for details.  They can
-#   also be normalized and their total count and arg max can be extracted.
-#   """
-#
-#   def __getitem__(self, idx):
-#     self.setdefault(idx, 0)
-#     return dict.__getitem__(self, idx)
-#
-#   def incrementAll(self, keys, count):
-#     """
-#     Increments all elements of keys by the same count.
-#
-#     >>> a = Counter()
-#     >>> a.incrementAll(['one','two', 'three'], 1)
-#     >>> a['one']
-#     1
-#     >>> a['two']
-#     1
-#     """
-#     for key in keys:
-#       self[key] += count
-#
-#   def argMax(self):
-#     """
-#     Returns the key with the highest value.
-#     """
-#     if len(self.keys()) == 0: return None
-#     all = self.items()
-#     values = [x[1] for x in all]
-#     maxIndex = values.index(max(values))
-#     return all[maxIndex][0]
-#
-#   def sortedKeys(self):
-#     """
-#     Returns a list of keys sorted by their values.  Keys
-#     with the highest values will appear first.
-#
-#     >>> a = Counter()
-#     >>> a['first'] = -2
-#     >>> a['second'] = 4
-#     >>> a['third'] = 1
-#     >>> a.sortedKeys()
-#     ['second', 'third', 'first']
-#     """
-#     sortedItems = self.items()
-#     compare = lambda x, y: sign(y[1] - x[1])
-#     sortedItems.sort(cmp=compare)
-#     return [x[0] for x in sortedItems]
-#
-#   def totalCount(self):
-#     """
-#     Returns the sum of counts for all keys.
-#     """
-#     return sum(self.values())
-#
-#   def normalize(self):
-#     """
-#     Edits the counter such that the total count of all
-#     keys sums to 1.  The ratio of counts for all keys
-#     will remain the same. Note that normalizing an empty
-#     Counter will result in an error.
-#     """
-#     total = float(self.totalCount())
-#     if total == 0: return
-#     for key in self.keys():
-#       self[key] = self[key] / total
-#
-#   def divideAll(self, divisor):
-#     """
-#     Divides all counts by divisor
-#     """
-#     divisor = float(divisor)
-#     for key in self:
-#       self[key] /= divisor
-#
-#   def copy(self):
-#     """
-#     Returns a copy of the counter
-#     """
-#     return Counter(dict.copy(self))
-#
-#   def __mul__(self, y):
-#     """
-#     Multiplying two counters gives the dot product of their vectors where
-#     each unique label is a vector element.
-#
-#     >>> a = Counter()
-#     >>> b = Counter()
-#     >>> a['first'] = -2
-#     >>> a['second'] = 4
-#     >>> b['first'] = 3
-#     >>> b['second'] = 5
-#     >>> a['third'] = 1.5
-#     >>> a['fourth'] = 2.5
-#     >>> a * b
-#     14
-#     """
-#     sum = 0
-#     x = self
-#     if len(x) > len(y):
-#       x, y = y, x
-#     for key in x:
-#       if key not in y:
-#         continue
-#       sum += x[key] * y[key]
-#     return sum
-#
-#   def __radd__(self, y):
-#     """
-#     Adding another counter to a counter increments the current counter
-#     by the values stored in the second counter.
-#
-#     >>> a = Counter()
-#     >>> b = Counter()
-#     >>> a['first'] = -2
-#     >>> a['second'] = 4
-#     >>> b['first'] = 3
-#     >>> b['third'] = 1
-#     >>> a += b
-#     >>> a['first']
-#     1
-#     """
-#     for key, value in y.items():
-#       self[key] += value
-#
-#   def __add__(self, y):
-#     """
-#     Adding two counters gives a counter with the union of all keys and
-#     counts of the second added to counts of the first.
-#
-#     >>> a = Counter()
-#     >>> b = Counter()
-#     >>> a['first'] = -2
-#     >>> a['second'] = 4
-#     >>> b['first'] = 3
-#     >>> b['third'] = 1
-#     >>> (a + b)['first']
-#     1
-#     """
-#     addend = Counter()
-#     for key in self:
-#       if key in y:
-#         addend[key] = self[key] + y[key]
-#       else:
-#         addend[key] = self[key]
-#     for key in y:
-#       if key in self:
-#         continue
-#       addend[key] = y[key]
-#     return addend
-#
-#   def __sub__(self, y):
-#     """
-#     Subtracting a counter from another gives a counter with the union of all keys and
-#     counts of the second subtracted from counts of the first.
-#
-#     >>> a = Counter()
-#     >>> b = Counter()
-#     >>> a['first'] = -2
-#     >>> a['second'] = 4
-#     >>> b['first'] = 3
-#     >>> b['third'] = 1
-#     >>> (a - b)['first']
-#     -5
-#     """
-#     addend = Counter()
-#     for key in self:
-#       if key in y:
-#         addend[key] = self[key] - y[key]
-#       else:
-#         addend[key] = self[key]
-#     for key in y:
-#       if key in self:
-#         continue
-#       addend[key] = -1 * y[key]
-#     return addend
+class Counter(dict):
+  """
+  A counter keeps track of counts for a set of keys.
+
+  The counter class is an extension of the standard python
+  dictionary type.  It is specialized to have number values
+  (integers or floats), and includes a handful of additional
+  functions to ease the task of counting data.  In particular,
+  all keys are defaulted to have value 0.  Using a dictionary:
+
+  a = {}
+  print a['test']
+
+  would give an error, while the Counter class analogue:
+
+  >>> a = Counter()
+  >>> print a['test']
+  0
+
+  returns the default 0 value. Note that to reference a key
+  that you know is contained in the counter,
+  you can still use the dictionary syntax:
+
+  >>> a = Counter()
+  >>> a['test'] = 2
+  >>> print a['test']
+  2
+
+  This is very useful for counting things without initializing their counts,
+  see for example:
+
+  >>> a['blah'] += 1
+  >>> print a['blah']
+  1
+
+  The counter also includes additional functionality useful in implementing
+  the classifiers for this assignment.  Two counters can be added,
+  subtracted or multiplied together.  See below for details.  They can
+  also be normalized and their total count and arg max can be extracted.
+  """
+
+  def __getitem__(self, idx):
+    self.setdefault(idx, 0)
+    return dict.__getitem__(self, idx)
+
+  def incrementAll(self, keys, count):
+    """
+    Increments all elements of keys by the same count.
+
+    >>> a = Counter()
+    >>> a.incrementAll(['one','two', 'three'], 1)
+    >>> a['one']
+    1
+    >>> a['two']
+    1
+    """
+    for key in keys:
+      self[key] += count
+
+  def argMax(self):
+    """
+    Returns the key with the highest value.
+    """
+    if len(self.keys()) == 0: return None
+    all = self.items()
+    values = [x[1] for x in all]
+    maxIndex = values.index(max(values))
+    return all[maxIndex][0]
+
+  def sortedKeys(self):
+    """
+    Returns a list of keys sorted by their values.  Keys
+    with the highest values will appear first.
+
+    >>> a = Counter()
+    >>> a['first'] = -2
+    >>> a['second'] = 4
+    >>> a['third'] = 1
+    >>> a.sortedKeys()
+    ['second', 'third', 'first']
+    """
+    sortedItems = self.items()
+    compare = lambda x, y: sign(y[1] - x[1])
+    sortedItems.sort(cmp=compare)
+    return [x[0] for x in sortedItems]
+
+  def totalCount(self):
+    """
+    Returns the sum of counts for all keys.
+    """
+    return sum(self.values())
+
+  def normalize(self):
+    """
+    Edits the counter such that the total count of all
+    keys sums to 1.  The ratio of counts for all keys
+    will remain the same. Note that normalizing an empty
+    Counter will result in an error.
+    """
+    total = float(self.totalCount())
+    if total == 0: return
+    for key in self.keys():
+      self[key] = self[key] / total
+
+  def divideAll(self, divisor):
+    """
+    Divides all counts by divisor
+    """
+    divisor = float(divisor)
+    for key in self:
+      self[key] /= divisor
+
+  def copy(self):
+    """
+    Returns a copy of the counter
+    """
+    return Counter(dict.copy(self))
+
+  def __mul__(self, y):
+    """
+    Multiplying two counters gives the dot product of their vectors where
+    each unique label is a vector element.
+
+    >>> a = Counter()
+    >>> b = Counter()
+    >>> a['first'] = -2
+    >>> a['second'] = 4
+    >>> b['first'] = 3
+    >>> b['second'] = 5
+    >>> a['third'] = 1.5
+    >>> a['fourth'] = 2.5
+    >>> a * b
+    14
+    """
+    sum = 0
+    x = self
+    if len(x) > len(y):
+      x, y = y, x
+    for key in x:
+      if key not in y:
+        continue
+      sum += x[key] * y[key]
+    return sum
+
+  def __radd__(self, y):
+    """
+    Adding another counter to a counter increments the current counter
+    by the values stored in the second counter.
+
+    >>> a = Counter()
+    >>> b = Counter()
+    >>> a['first'] = -2
+    >>> a['second'] = 4
+    >>> b['first'] = 3
+    >>> b['third'] = 1
+    >>> a += b
+    >>> a['first']
+    1
+    """
+    for key, value in y.items():
+      self[key] += value
+
+  def __add__(self, y):
+    """
+    Adding two counters gives a counter with the union of all keys and
+    counts of the second added to counts of the first.
+
+    >>> a = Counter()
+    >>> b = Counter()
+    >>> a['first'] = -2
+    >>> a['second'] = 4
+    >>> b['first'] = 3
+    >>> b['third'] = 1
+    >>> (a + b)['first']
+    1
+    """
+    addend = Counter()
+    for key in self:
+      if key in y:
+        addend[key] = self[key] + y[key]
+      else:
+        addend[key] = self[key]
+    for key in y:
+      if key in self:
+        continue
+      addend[key] = y[key]
+    return addend
+
+  def __sub__(self, y):
+    """
+    Subtracting a counter from another gives a counter with the union of all keys and
+    counts of the second subtracted from counts of the first.
+
+    >>> a = Counter()
+    >>> b = Counter()
+    >>> a['first'] = -2
+    >>> a['second'] = 4
+    >>> b['first'] = 3
+    >>> b['third'] = 1
+    >>> (a - b)['first']
+    -5
+    """
+    addend = Counter()
+    for key in self:
+      if key in y:
+        addend[key] = self[key] - y[key]
+      else:
+        addend[key] = self[key]
+    for key in y:
+      if key in self:
+        continue
+      addend[key] = -1 * y[key]
+    return addend

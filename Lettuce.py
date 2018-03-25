@@ -151,8 +151,6 @@ def calcUnitDailyFreshWeightBoth2003TaylorExpantionWithVaryingDLIDetail(innerDLI
   # print "cycle * cultivationDaysperHarvest -1:{}".format(accumulatedUnitDailyFreshWeightIncrease[0 * cultivationDaysperHarvest -1])
   while i  < util.getSimulationDaysInt():
 
-    # print ("i : {}".format(i))
-
     DaysperCycle = datetime.timedelta(days = cultivationDaysperHarvest)
     # if ifGrowForFallowPeriod is False the end of the cultivation at a cycle is within the fallow period (constant.FallowPeriodStart*), then skip the cycle (= plus 35 days to index)
     if ifGrowForFallowPeriod is False and i % cultivationDaysperHarvest == 0 and \
@@ -220,7 +218,7 @@ def calcUnitDailyFreshWeightBoth2003TaylorExpantionWithVaryingDLIDetail(innerDLI
       # np.delete(harvestDaysList, np.where(harvestDaysList == i)[0][0])
       # print("current harvestDaysList:{}".format(harvestDaysList))
 
-
+    # increment the counter
     i += 1
 
   # change dry mass weight into fresh mass weight
@@ -271,122 +269,121 @@ def calcUnitDailyFreshWeightIncreaseBoth2003TaylorNotForRL(innerDLIToPlants, sho
 
   return shootDryMassIncrease
 
-def calcUnitDailyFreshWeightIncreaseBoth2003Taylor(innerDLIToPlants, cultivationDaysperHarvest, daysFromSeeding):
-  '''
-  this function is only for the Q learning reinforcement learning
-  calculate the unit fresh weight increase per day based on the revised model of Both (2003):
-  Both, A., 2003. Ten years of hydroponic lettuce research. Knowledgecenter.Illumitex.Com 18, 8.
-
-  param:innerDLIToPlants [mol/m^2/day] per day
-  param:cultivationDaysperHarvest [days] per day
-  param:daysFromSeeding [days] per day
-
-  return: dailyFreshWeightIncrease[g/day]
-  return: hervestDay[days]: days after seeeding
-  '''
-  # print "dailyInnerLightIntensityDLI:{}".format(dailyInnerLightIntensityDLI)
-  # print "cultivationDaysperHarvest:{}".format(cultivationDaysperHarvest)
-
-  # daily increase in unit plant weight [g]
-  unitDailyFreshWeightIncrease = np.zeros(1)
-  # accumulated weight of daily increase in unit plant weight during the whole simulation days [g]
-  accumulatedUnitDailyFreshWeightIncrease = np.zeros(1)
-  # harvested daily unit plant weight [g]
-  unitHarvestedFreshWeight = np.zeros(1)
-
-  # simulationDaysInt = util.calcSimulationDaysInt()
-  simulationDaysInt = 1
-
-  # num of cultivation cycle
-  NumCultivationCycle = 0
-  # print ("NumCultivationCycle:{}".format(NumCultivationCycle))
-
-  # num of remained days when we cannot finish the cultivation, which is less than the num of cultivation days.
-  CultivationDaysWithNoHarvest = simulationDaysInt - NumCultivationCycle * cultivationDaysperHarvest
-  # print "CultivationDaysWithNoHarvest:{}".format(CultivationDaysWithNoHarvest)
-
-  # define statistics for calculation
-  # daily unit plant weight on each cycle [g]
-  shootDryMassList = np.zeros(len(unitDailyFreshWeightIncrease))
-  d_shootDryMassList = np.zeros(len(unitDailyFreshWeightIncrease))
-  # dd_shootDryMassList = np.zeros(len(unitDailyFreshWeightIncrease))
-  # ddd_shootDryMassList = np.zeros(len(unitDailyFreshWeightIncrease))
-  a = 0
-  b = 0.4822
-  c = -0.006225
-  # time step[day]
-  dt = 1
-
-  # print "cycle * cultivationDaysperHarvest -1:{}".format(accumulatedUnitDailyFreshWeightIncrease[0 * cultivationDaysperHarvest -1])
-
-  for cycle in range(0, NumCultivationCycle + 1):
-
-    # define the initial values on each cycle [g]
-    # shootDryMassInit == the weight on day 0 == weight of seed [g]
-    shootDryMassInit = 0.0001
-    accumulatedUnitDailyFreshWeightIncrease[cycle * cultivationDaysperHarvest] = accumulatedUnitDailyFreshWeightIncrease[
-                                                                                   cycle * cultivationDaysperHarvest - 1] + shootDryMassInit
-    shootDryMassList[cycle * cultivationDaysperHarvest] = shootDryMassInit
-    d_shootDryMassList[cycle * cultivationDaysperHarvest] = (b + 2 * c * 0.0) * shootDryMassList[cycle * cultivationDaysperHarvest]
-    # dd_shootDryMassList[cycle * cultivationDaysperHarvest] = 2 * c * shootDryMassList[cycle * cultivationDaysperHarvest] + \
-    #                                                          (b + 2 * c * 0.0) ** 2 * shootDryMassList[cycle * cultivationDaysperHarvest]
-    # ddd_shootDryMassList[cycle * cultivationDaysperHarvest] = 2 * c * d_shootDryMassList[cycle * cultivationDaysperHarvest] + \
-    #                                                           4 * c * (b + 2 * c * 0.0) * shootDryMassList[cycle * cultivationDaysperHarvest] + \
-    #                                                           (b + 2 * c * 0) ** 2 * d_shootDryMassList[cycle * cultivationDaysperHarvest]
-
-    # print "shootDryMassList[cycle*cultivationDaysperHarvest]:{}".format(shootDryMassList[cycle*cultivationDaysperHarvest])
-    # print "d_shootDryMassList[cycle*cultivationDaysperHarvest]:{}".format(d_shootDryMassList[cycle*cultivationDaysperHarvest])
-    # print "dd_shootDryMassList[cycle*cultivationDaysperHarvest]:{}".format(dd_shootDryMassList[cycle*cultivationDaysperHarvest])
-    # print "ddd_shootDryMassList[cycle*cultivationDaysperHarvest]:{}".format(ddd_shootDryMassList[cycle*cultivationDaysperHarvest])
-
-
-    # update each statistic each day
-    a = -8.596 + 0.0743 * innerDLIToPlants
-    shootDryMassList = math.e ** (a + b * daysFromSeeding + c * daysFromSeeding ** 2)
-    d_shootDryMassList = (b + 2 * c * daysFromSeeding) * shootDryMassList
-    dd_shootDryMassList = 2 * c * shootDryMassList + (b + 2 * c * daysFromSeeding) ** 2 * shootDryMassList
-    ddd_shootDryMassList = 2 * c * d_shootDryMassList + 4 * c * (b + 2 * c * daysFromSeeding) * shootDryMassList + \
-                           (b + 2 * c * daysFromSeeding) ** 2 * d_shootDryMassList
-
-    # print "day{}, a:{},shootDryMassList[{}]:{}".format(day, a, cycle*cultivationDaysperHarvest+day, shootDryMassList[cycle*cultivationDaysperHarvest+day])
-
-    # Taylor expansion: x_0 = 0, h = 1 (source: http://eman-physics.net/math/taylor.html)
-    # shootDryMassList[cycle * cultivationDaysperHarvest + day] = shootDryMassList[cycle * cultivationDaysperHarvest + day - 1] + \
-    #                                                             1.0 / (math.factorial(1)) * d_shootDryMassList[
-    #                                                               cycle * cultivationDaysperHarvest + day - 1] * dt + \
-    #                                                             1.0 / (math.factorial(2)) * dd_shootDryMassList[
-    #                                                               cycle * cultivationDaysperHarvest + day - 1] * ((dt) ** 2) + \
-    #                                                             1.0 / (math.factorial(3)) * ddd_shootDryMassList[
-    #                                                               cycle * cultivationDaysperHarvest + day - 1] * ((dt) ** 3)
-
-    # unitDailyFreshWeightIncrease[cycle * cultivationDaysperHarvest + day] = shootDryMassList[cycle * cultivationDaysperHarvest + day] - \
-    #                                                                         shootDryMassList[cycle * cultivationDaysperHarvest + day - 1]
-    unitDailyFreshWeightIncrease = d_shootDryMassList
-
-    # accumulatedUnitDailyFreshWeightIncrease[cycle * cultivationDaysperHarvest + day] = \
-    #   accumulatedUnitDailyFreshWeightIncrease[cycle * cultivationDaysperHarvest + day - 1] + unitDailyFreshWeightIncrease[
-    #     cycle * cultivationDaysperHarvest + day]
-
-    # print "day:{}, cycle*cultivationDaysperHarvest+day:{}, shootDryMassList[cycle*cultivationDaysperHarvest + day]:{}".format(
-    #     day, cycle * cultivationDaysperHarvest + day, shootDryMassList[cycle * cultivationDaysperHarvest + day])
-
-  # change dry mass weight into fresh mass weight
-  # daily increase in unit plant weight [g]
-  unitDailyFreshWeightIncrease = unitDailyFreshWeightIncrease * constant.DryMassToFreshMass
-  # accumulated weight of daily increase in unit plant weight during the whole simulation days [g]
-  # accumulatedUnitDailyFreshWeightIncrease = accumulatedUnitDailyFreshWeightIncrease * constant.DryMassToFreshMass
-  # harvested daily unit plant weight [g]
-  # unitHarvestedFreshWeight = unitHarvestedFreshWeight * constant.DryMassToFreshMass
-  # daily unit plant weight on each cycle [g]
-  # shootFreshMassList = shootDryMassList * constant.DryMassToFreshMass
-
-  # print "shootDryMassList:{}".format(shootDryMassList)
-  # print "unitDailyFreshWeightIncrease:{}".format(unitDailyFreshWeightIncrease)
-  # print "accumulatedUnitDailyFreshWeightIncrease:{}".format(accumulatedUnitDailyFreshWeightIncrease)
-  # print "unitHarvestedFreshWeight:{}".format(unitHarvestedFreshWeight)
-
-  return unitDailyFreshWeightIncrease
-
+# def calcUnitDailyFreshWeightIncreaseBoth2003Taylor(innerDLIToPlants, cultivationDaysperHarvest, daysFromSeeding):
+#   '''
+#   this function is only for the Q learning reinforcement learning
+#   calculate the unit fresh weight increase per day based on the revised model of Both (2003):
+#   Both, A., 2003. Ten years of hydroponic lettuce research. Knowledgecenter.Illumitex.Com 18, 8.
+#
+#   param:innerDLIToPlants [mol/m^2/day] per day
+#   param:cultivationDaysperHarvest [days] per day
+#   param:daysFromSeeding [days] per day
+#
+#   return: dailyFreshWeightIncrease[g/day]
+#   return: hervestDay[days]: days after seeeding
+#   '''
+#   # print "dailyInnerLightIntensityDLI:{}".format(dailyInnerLightIntensityDLI)
+#   # print "cultivationDaysperHarvest:{}".format(cultivationDaysperHarvest)
+#
+#   # daily increase in unit plant weight [g]
+#   unitDailyFreshWeightIncrease = np.zeros(1)
+#   # accumulated weight of daily increase in unit plant weight during the whole simulation days [g]
+#   accumulatedUnitDailyFreshWeightIncrease = np.zeros(1)
+#   # harvested daily unit plant weight [g]
+#   unitHarvestedFreshWeight = np.zeros(1)
+#
+#   # simulationDaysInt = util.calcSimulationDaysInt()
+#   simulationDaysInt = 1
+#
+#   # num of cultivation cycle
+#   NumCultivationCycle = 0
+#   # print ("NumCultivationCycle:{}".format(NumCultivationCycle))
+#
+#   # num of remained days when we cannot finish the cultivation, which is less than the num of cultivation days.
+#   CultivationDaysWithNoHarvest = simulationDaysInt - NumCultivationCycle * cultivationDaysperHarvest
+#   # print "CultivationDaysWithNoHarvest:{}".format(CultivationDaysWithNoHarvest)
+#
+#   # define statistics for calculation
+#   # daily unit plant weight on each cycle [g]
+#   shootDryMassList = np.zeros(len(unitDailyFreshWeightIncrease))
+#   d_shootDryMassList = np.zeros(len(unitDailyFreshWeightIncrease))
+#   # dd_shootDryMassList = np.zeros(len(unitDailyFreshWeightIncrease))
+#   # ddd_shootDryMassList = np.zeros(len(unitDailyFreshWeightIncrease))
+#   a = 0
+#   b = 0.4822
+#   c = -0.006225
+#   # time step[day]
+#   dt = 1
+#
+#   # print "cycle * cultivationDaysperHarvest -1:{}".format(accumulatedUnitDailyFreshWeightIncrease[0 * cultivationDaysperHarvest -1])
+#
+#   for cycle in range(0, NumCultivationCycle + 1):
+#
+#     # define the initial values on each cycle [g]
+#     # shootDryMassInit == the weight on day 0 == weight of seed [g]
+#     shootDryMassInit = 0.0001
+#     accumulatedUnitDailyFreshWeightIncrease[cycle * cultivationDaysperHarvest] = accumulatedUnitDailyFreshWeightIncrease[
+#                                                                                    cycle * cultivationDaysperHarvest - 1] + shootDryMassInit
+#     shootDryMassList[cycle * cultivationDaysperHarvest] = shootDryMassInit
+#     d_shootDryMassList[cycle * cultivationDaysperHarvest] = (b + 2 * c * 0.0) * shootDryMassList[cycle * cultivationDaysperHarvest]
+#     # dd_shootDryMassList[cycle * cultivationDaysperHarvest] = 2 * c * shootDryMassList[cycle * cultivationDaysperHarvest] + \
+#     #                                                          (b + 2 * c * 0.0) ** 2 * shootDryMassList[cycle * cultivationDaysperHarvest]
+#     # ddd_shootDryMassList[cycle * cultivationDaysperHarvest] = 2 * c * d_shootDryMassList[cycle * cultivationDaysperHarvest] + \
+#     #                                                           4 * c * (b + 2 * c * 0.0) * shootDryMassList[cycle * cultivationDaysperHarvest] + \
+#     #                                                           (b + 2 * c * 0) ** 2 * d_shootDryMassList[cycle * cultivationDaysperHarvest]
+#
+#     # print "shootDryMassList[cycle*cultivationDaysperHarvest]:{}".format(shootDryMassList[cycle*cultivationDaysperHarvest])
+#     # print "d_shootDryMassList[cycle*cultivationDaysperHarvest]:{}".format(d_shootDryMassList[cycle*cultivationDaysperHarvest])
+#     # print "dd_shootDryMassList[cycle*cultivationDaysperHarvest]:{}".format(dd_shootDryMassList[cycle*cultivationDaysperHarvest])
+#     # print "ddd_shootDryMassList[cycle*cultivationDaysperHarvest]:{}".format(ddd_shootDryMassList[cycle*cultivationDaysperHarvest])
+#
+#
+#     # update each statistic each day
+#     a = -8.596 + 0.0743 * innerDLIToPlants
+#     shootDryMassList = math.e ** (a + b * daysFromSeeding + c * daysFromSeeding ** 2)
+#     d_shootDryMassList = (b + 2 * c * daysFromSeeding) * shootDryMassList
+#     dd_shootDryMassList = 2 * c * shootDryMassList + (b + 2 * c * daysFromSeeding) ** 2 * shootDryMassList
+#     ddd_shootDryMassList = 2 * c * d_shootDryMassList + 4 * c * (b + 2 * c * daysFromSeeding) * shootDryMassList + \
+#                            (b + 2 * c * daysFromSeeding) ** 2 * d_shootDryMassList
+#
+#     # print "day{}, a:{},shootDryMassList[{}]:{}".format(day, a, cycle*cultivationDaysperHarvest+day, shootDryMassList[cycle*cultivationDaysperHarvest+day])
+#
+#     # Taylor expansion: x_0 = 0, h = 1 (source: http://eman-physics.net/math/taylor.html)
+#     # shootDryMassList[cycle * cultivationDaysperHarvest + day] = shootDryMassList[cycle * cultivationDaysperHarvest + day - 1] + \
+#     #                                                             1.0 / (math.factorial(1)) * d_shootDryMassList[
+#     #                                                               cycle * cultivationDaysperHarvest + day - 1] * dt + \
+#     #                                                             1.0 / (math.factorial(2)) * dd_shootDryMassList[
+#     #                                                               cycle * cultivationDaysperHarvest + day - 1] * ((dt) ** 2) + \
+#     #                                                             1.0 / (math.factorial(3)) * ddd_shootDryMassList[
+#     #                                                               cycle * cultivationDaysperHarvest + day - 1] * ((dt) ** 3)
+#
+#     # unitDailyFreshWeightIncrease[cycle * cultivationDaysperHarvest + day] = shootDryMassList[cycle * cultivationDaysperHarvest + day] - \
+#     #                                                                         shootDryMassList[cycle * cultivationDaysperHarvest + day - 1]
+#     unitDailyFreshWeightIncrease = d_shootDryMassList
+#
+#     # accumulatedUnitDailyFreshWeightIncrease[cycle * cultivationDaysperHarvest + day] = \
+#     #   accumulatedUnitDailyFreshWeightIncrease[cycle * cultivationDaysperHarvest + day - 1] + unitDailyFreshWeightIncrease[
+#     #     cycle * cultivationDaysperHarvest + day]
+#
+#     # print "day:{}, cycle*cultivationDaysperHarvest+day:{}, shootDryMassList[cycle*cultivationDaysperHarvest + day]:{}".format(
+#     #     day, cycle * cultivationDaysperHarvest + day, shootDryMassList[cycle * cultivationDaysperHarvest + day])
+#
+#   # change dry mass weight into fresh mass weight
+#   # daily increase in unit plant weight [g]
+#   unitDailyFreshWeightIncrease = unitDailyFreshWeightIncrease * constant.DryMassToFreshMass
+#   # accumulated weight of daily increase in unit plant weight during the whole simulation days [g]
+#   # accumulatedUnitDailyFreshWeightIncrease = accumulatedUnitDailyFreshWeightIncrease * constant.DryMassToFreshMass
+#   # harvested daily unit plant weight [g]
+#   # unitHarvestedFreshWeight = unitHarvestedFreshWeight * constant.DryMassToFreshMass
+#   # daily unit plant weight on each cycle [g]
+#   # shootFreshMassList = shootDryMassList * constant.DryMassToFreshMass
+#
+#   # print "shootDryMassList:{}".format(shootDryMassList)
+#   # print "unitDailyFreshWeightIncrease:{}".format(unitDailyFreshWeightIncrease)
+#   # print "accumulatedUnitDailyFreshWeightIncrease:{}".format(accumulatedUnitDailyFreshWeightIncrease)
+#   # print "unitHarvestedFreshWeight:{}".format(unitHarvestedFreshWeight)
+#
+#   return unitDailyFreshWeightIncrease
 
 
 def getLettucePricepercwt(year):
@@ -436,7 +433,7 @@ def getCultivationDaysWithoutHarvest(plantSalesperSquareMeter):
     return CultivationDaysWithNoHarvest
 
 
-def calcRevenueOfPlantYieldperHarvest(freshWeightTotalperHarvest):
+def getRevenueOfPlantYieldperHarvest(freshWeightTotalperHarvest):
     '''
     calculate the revenue of plant sales per harvest (USD/harvest)
     param:freshWeightTotalperHarvest: fresh Weight perHarvest (kg/harvest)
@@ -445,7 +442,7 @@ def calcRevenueOfPlantYieldperHarvest(freshWeightTotalperHarvest):
     return constant.lantUnitPriceUSDperKilogram * freshWeightTotalperHarvest
 
 
-def calcCostofPlantYieldperYear():
+def getCostofPlantYieldperYear():
     '''
     calculate the cost of plant sales per harvest (USD/per)
     param: :

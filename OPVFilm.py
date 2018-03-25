@@ -231,7 +231,7 @@ def getMaxDirectBeamSolarRadiationKacira2003(hourlySolarAltitudeAngle, hourlyHor
 
 def getDirectHorizontalSolarRadiation(hourlySolarAltitudeAngle, hourlyHorizontalSolarIncidenceAngle):
     '''
-    calculate the direct solar radiation to horizontal surface. referred to Yano 2009
+    calculate the direct solar radiation to horizontal surface. referred to Yano 2009 equation (6)
     :param hourlySolarAltitudeAngle: [rad]
     :param hourlyHorizontalSolarIncidenceAngle: [rad]
     :return: maxDirectBeamSolarRadiation [W m^-2]
@@ -251,7 +251,7 @@ def getDirectHorizontalSolarRadiation(hourlySolarAltitudeAngle, hourlyHorizontal
 
 def getDiffuseHorizontalSolarRadiation(hourlySolarAltitudeAngle, hourlyHorizontalSolarIncidenceAngle):
     '''
-    calculate the diffuse solar radiation to horizontal surface. referred to Yano 2009
+    calculate the diffuse solar radiation to horizontal surface. referred to Yano 2009 equation (7)
     :param hourlySolarAltitudeAngle: [rad]
     :return: maxDirectBeamSolarRadiation [W m^-2]
     '''
@@ -583,6 +583,93 @@ def calcCostofElectricityProduction(OPVArea):
     return OPVArea * constant.OPVPricePerAreaUSD
 
 
+def getDirectSolarIrradianceToPlants(simulatorClass):
+
+    # get the direct solar irradiance after penetrating multi span roof [W/m^2]
+    hourlyDirectSolarRadiationAfterMultiSpanRoof = simulatorClass.getHourlyDirectSolarRadiationAfterMultiSpanRoof()
+
+    # OPVAreaCoverageRatio = simulatorClass.getOPVAreaCoverageRatio()
+    OPVAreaCoverageRatio = constant.OPVAreaCoverageRatio
+    hasShadingCurtain = simulatorClass.getIfHasShadingCurtain()
+    ShadingCurtainDeployPPFD = simulatorClass.getShadingCurtainDeployPPFD()
+    OPVPARTransmittance = constant.OPVPARTransmittance
+
+    # make the list of OPV coverage ratio at each hour changing during summer
+    OPVAreaCoverageRatioChangingInSummer = getDifferentOPVCoverageRatioInSummerPeriod(OPVAreaCoverageRatio, simulatorClass)
+    print("OPVAreaCoverageRatioChangingInSummer:{}".format(OPVAreaCoverageRatioChangingInSummer))
+
+    #consider the transmission ratio of OPV film
+    hourlyDirectSolarRadiationAfterOPVAndRoof = hourlyDirectSolarRadiationAfterMultiSpanRoof * (1 - OPVAreaCoverageRatioChangingInSummer) \
+                                              + hourlyDirectSolarRadiationAfterMultiSpanRoof * OPVAreaCoverageRatioChangingInSummer * OPVPARTransmittance
+    # print "OPVAreaCoverageRatio:{}, HourlyInnerLightIntensityPPFDThroughOPV:{}".format(OPVAreaCoverageRatio, HourlyInnerLightIntensityPPFDThroughOPV)
+
+    #consider the light reduction by greenhouse inner structures and equipments like pipes, poles and gutters
+    hourlyDirectSolarRadiationAfterInnerStructure = (1 - constant.GreenhouseShadeProportion) * hourlyDirectSolarRadiationAfterOPVAndRoof
+    # print "hourlyInnerLightIntensityPPFDThroughInnerStructure:{}".format(hourlyInnerLightIntensityPPFDThroughInnerStructure)
+
+    # take date and time
+    year = simulatorClass.getYear()
+    month = simulatorClass.getMonth()
+    day = simulatorClass.getDay()
+    hour = simulatorClass.getHour()
+
+    # array storing the light intensity after penetrating the shading curtain
+    hourlyDirectSolarRadiationAfterShadingCurtain= np.zeros(hour.shape[0])
+
+    # consider the shading curtain
+    if hasShadingCurtain == True:
+        # if the date is between the following time and date, discount the irradiance by the shading curtain transmittance.
+        # if we assume the shading curtain is deployed all time for the given period,
+        if constant.IsShadingCurtainDeployOnlyDayTime == False:
+            for i in range(0, hour.shape[0]):
+                if (datetime.date(year[i], month[i], day[i]) >=  datetime.date(year[i], constant.ShadingCurtainDeployStartMMSpring, constant.ShadingCurtainDeployStartDDSpring ) and \
+                    datetime.date(year[i], month[i], day[i]) <= datetime.date(year[i], constant.ShadingCurtainDeployEndMMSpring, constant.ShadingCurtainDeployEndDDSpring)) or\
+                    (datetime.date(year[i], month[i], day[i]) >=  datetime.date(year[i], constant.ShadingCurtainDeployStartMMFall, constant.ShadingCurtainDeployStartDDFall ) and \
+                    datetime.date(year[i], month[i], day[i]) <= datetime.date(year[i], constant.ShadingCurtainDeployEndMMFall, constant.ShadingCurtainDeployEndDDFall)):
+                    # deploy the shading curtain
+                    hourlyDirectSolarRadiationAfterShadingCurtain[i] = hourlyDirectSolarRadiationAfterInnerStructure[i] * constant.shadingTransmittanceRatio
+
+                else:
+                    # not deploy the curtain
+                    hourlyDirectSolarRadiationAfterShadingCurtain[i] = hourlyDirectSolarRadiationAfterInnerStructure[i]
+
+        # if we assume the shading curtain is deployed only for a certain hot time in a day, use this
+        elif constant.IsShadingCurtainDeployOnlyDayTime == True:
+            for i in range(0, hour.shape[0]):
+                if (datetime.date(year[i], month[i], day[i]) >=  datetime.date(year[i], constant.ShadingCurtainDeployStartMMSpring, constant.ShadingCurtainDeployStartDDSpring ) and \
+                    datetime.date(year[i], month[i], day[i]) <= datetime.date(year[i], constant.ShadingCurtainDeployEndMMSpring, constant.ShadingCurtainDeployEndDDSpring) and \
+                    hour[i] >= constant.ShadigCuratinDeployStartHH and hour[i] <= constant.ShadigCuratinDeployEndHH) or\
+                    (datetime.date(year[i], month[i], day[i]) >=  datetime.date(year[i], constant.ShadingCurtainDeployStartMMFall, constant.ShadingCurtainDeployStartDDFall ) and \
+                    datetime.date(year[i], month[i], day[i]) <= datetime.date(year[i], constant.ShadingCurtainDeployEndMMFall, constant.ShadingCurtainDeployEndDDFall) and \
+                    hour[i] >= constant.ShadigCuratinDeployStartHH and hour[i] <= constant.ShadigCuratinDeployEndHH):
+                    # deploy the shading curtain
+                    hourlyDirectSolarRadiationAfterShadingCurtain[i] = hourlyDirectSolarRadiationAfterInnerStructure[i] * constant.shadingTransmittanceRatio
+
+                else:
+                    # not deploy the curtain
+                    hourlyDirectSolarRadiationAfterShadingCurtain[i] = hourlyDirectSolarRadiationAfterInnerStructure[i]
+
+        return hourlyDirectSolarRadiationAfterShadingCurtain
+
+
+def getDiffuseSolarIrradianceToPlants(simulatorClass):
+    '''
+    the diffuse solar radiation was calculated by multiplying the average transmittance of all covering materials of the greenhouse (side wall, roof and PV module
+    '''
+
+    # get the diffuse solar irradiance, which has not consider the transmittance of OPV film yet.
+    diffuseSolarIrradianceToOPV = simulatorClass.getDiffuseSolarRadiationToOPV()
+
+    averageTransmittance = (constant.greenhouseSideWallArea * constant.sideWallTransmittance + constant.greenhouseTotalRoofArea * constant.roofCoveringTrasmittance) / (constant.greenhouseSideWallArea + constant.greenhouseTotalRoofArea)
+    # get the diffuse solar irradiance after penetrating the greenhouse cover material
+    diffuseSolarIrradianceAfterGreenhouseCover = diffuseSolarIrradianceToOPV * averageTransmittance
+
+    #consider the light reflection by greenhouse inner structures and equipments like pipes, poles and gutters
+    diffuseSolarIrradianceToPlants = (1 - constant.GreenhouseShadeProportion) * diffuseSolarIrradianceAfterGreenhouseCover
+
+    return diffuseSolarIrradianceToPlants
+
+
 def calcHourlyInnerLightIntensityPPFD(HourlyOuterLightIntensityPPFD, OPVAreaCoverageRatio, OPVPARTransmissionRatio, hasShadingCurtain=False, \
                                       shadingCurtainDeployPPFD=constant.shadingCurtainDeployPPFD, cropElectricityYieldSimulator1 = None):
     '''
@@ -604,7 +691,7 @@ def calcHourlyInnerLightIntensityPPFD(HourlyOuterLightIntensityPPFD, OPVAreaCove
     # print "OPVAreaCoverageRatio:{}, InnerLightIntensityPPFDThroughGlazing:{}".format(OPVAreaCoverageRatio, InnerLightIntensityPPFDThroughGlazing)
 
     # make the list of OPV coverage ratio at each hour fixing the ratio during summer
-    oPVAreaCoverageRatioFixingInSummer = getDifferentOPVCoverageRatioInFallowPeriod(OPVAreaCoverageRatio, cropElectricityYieldSimulator1)
+    oPVAreaCoverageRatioFixingInSummer = getDifferentOPVCoverageRatioInSummerPeriod(OPVAreaCoverageRatio, cropElectricityYieldSimulator1)
 
     # TODO the light intensity decrease by OPV film will be considered in calculating the solar iiradiance to multispan roof. move this calculation to CropElecricityYieldSimulationDetail.getSolarIrradianceToMultiSpanRoof
     #consider the transmission ratio of OPV film
@@ -677,7 +764,7 @@ def calcHourlyInnerLightIntensityPPFD(HourlyOuterLightIntensityPPFD, OPVAreaCove
     return hourlyInnerLightIntensityPPFDThroughInnerStructure
 
 
-def getDifferentOPVCoverageRatioInFallowPeriod(OPVAreaCoverageRatio, cropElectricityYieldSimulator1):
+def getDifferentOPVCoverageRatioInSummerPeriod(OPVAreaCoverageRatio, cropElectricityYieldSimulator1):
     '''
     this function changes the opv coverage ratio during the summer period into the constant ratio defined at the constant class.,
 
@@ -691,15 +778,14 @@ def getDifferentOPVCoverageRatioInFallowPeriod(OPVAreaCoverageRatio, cropElectri
     month = cropElectricityYieldSimulator1.getMonth()
     day = cropElectricityYieldSimulator1.getDay()
 
-
-    unfixedOPVCoverageRatio = np.zeros(year.shape[0])
+    OPVCoverageRatio = np.zeros(year.shape[0])
 
     for i in range(0, year.shape[0]):
         # if it is during the summer period when shading curtain is deployed.
-        if datetime.date(year[i], month[i], day[i]) >=  datetime.date(year[i], constant.FallowPeriodStartMM, constant.FallowPeriodStartDD) and \
-            datetime.date(year[i], month[i], day[i]) <= datetime.date(year[i], constant.FallowPeriodEndMM, constant.FallowPeriodEndDD):
-            unfixedOPVCoverageRatio[i] = constant.OPVAreaCoverageRatioFallowPeriod
+        if datetime.date(year[i], month[i], day[i]) >=  datetime.date(year[i], constant.SummerPeriodStartMM, constant.SummerPeriodStartDD) and \
+            datetime.date(year[i], month[i], day[i]) <= datetime.date(year[i], constant.SummerPeriodEndMM, constant.SummerPeriodEndDD):
+            OPVCoverageRatio[i] = constant.OPVAreaCoverageRatioSummerPeriod
         else:
-            unfixedOPVCoverageRatio[i] = OPVAreaCoverageRatio
+            OPVCoverageRatio[i] = OPVAreaCoverageRatio
 
-    return unfixedOPVCoverageRatio
+    return OPVCoverageRatio

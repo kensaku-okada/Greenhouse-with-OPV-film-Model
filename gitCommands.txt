@@ -1,4 +1,15 @@
 
-
+#move to the directory
 cd /c/Users/kensa/Google\ Drive/Studying\ abroad/University\ of\ Arizona/MyThesisPaperDissertation/Simulator7code/Greenhouse-with-OPV-film-Model
+
+# add all of modified and deleted files
+git add -u
+
+# add all of new files
+git add .
+
+
+# commit
+git commit -m “any message”
+
 
