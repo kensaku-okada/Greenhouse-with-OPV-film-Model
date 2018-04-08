@@ -52,7 +52,7 @@ def simulateCropElectricityYieldProfit1():
     # simulatorDetail.setSimulationSpecifications(simulatorClass)
 
     ##########file import (TucsonHourlyOuterEinvironmentData) start##########
-    fileName = "20130101-20170101" + ".csv"
+    fileName = constant.environmentData
     year, \
     month, \
     day, \
@@ -209,23 +209,23 @@ def simulateCropElectricityYieldProfit1():
         # print "estimatedDiffuseSolarRadiationToOPV:{}".format(estimatedDiffuseSolarRadiationToOPV)
         # print "estimatedAlbedoSolarRadiationToOPV:{}".format(estimatedAlbedoSolarRadiationToOPV)
 
-        ################## plot the distribution of estimated various DLI to OPV film start######################
-        Title = "estimated various light intensity to tilted OPV film"
-        plotDataSet = np.array([estimatedDirectSolarRadiationToOPVEastDirection, estimatedDirectSolarRadiationToOPVWestDirection, estimatedDiffuseSolarRadiationToOPV, estimatedAlbedoSolarRadiationToOPV])
-        labelList = np.array(["Direct To  East Direction", "Direct To West Direction", "Diffuse", "Albedo"])
-        xAxisLabel = "time [hour]: " + constant.SimulationStartDate + "-" + constant.SimulationEndDate
-        yAxisLabel = "[W m^-2]"
-        util.plotMultipleData(np.linspace(0, simulationDaysInt * constant.hourperDay, simulationDaysInt * constant.hourperDay), plotDataSet, labelList, Title, xAxisLabel, yAxisLabel)
-        util.saveFigure(Title + " " + constant.SimulationStartDate + "-" + constant.SimulationEndDate)
-        ################## plot the distribution of estimated various DLI to OPV film end######################
+        # ################## plot the distribution of estimated various DLI to OPV film start######################
+        # Title = "estimated various light intensity to tilted OPV film"
+        # plotDataSet = np.array([estimatedDirectSolarRadiationToOPVEastDirection, estimatedDirectSolarRadiationToOPVWestDirection, estimatedDiffuseSolarRadiationToOPV, estimatedAlbedoSolarRadiationToOPV])
+        # labelList = np.array(["Direct To  East Direction", "Direct To West Direction", "Diffuse", "Albedo"])
+        # xAxisLabel = "time [hour]: " + constant.SimulationStartDate + "-" + constant.SimulationEndDate
+        # yAxisLabel = "[W m^-2]"
+        # util.plotMultipleData(np.linspace(0, simulationDaysInt * constant.hourperDay, simulationDaysInt * constant.hourperDay), plotDataSet, labelList, Title, xAxisLabel, yAxisLabel)
+        # util.saveFigure(Title + " " + constant.SimulationStartDate + "-" + constant.SimulationEndDate)
+        # ################## plot the distribution of estimated various DLI to OPV film end######################
 
-        ################## plot the imported horizontal data vs estimated data (the tilt should be zeor) ######################
-        title = "measured and estimated horizontal data (tilt should be zero)"
-        xAxisLabel = "hourly measured horizontal total outer solar radiation [W m^-2]" + constant.SimulationStartDate + "-" + constant.SimulationEndDate
-        yAxisLabel = "hourly estimated horizontal Total outer solar radiation [W m^-2]"
-        util.plotData(hourlyHorizontalTotalOuterSolarIrradiance, estimatedTotalSolarRadiationToOPV, title, xAxisLabel, yAxisLabel, None, True, 0.0, 1.0)
-        util.saveFigure(title + " " + constant.SimulationStartDate + "-" + constant.SimulationEndDate)
-        ################### plot the electricity yield per area with given OPV film end######################
+        # ################## plot the imported horizontal data vs estimated data (the tilt should be zeor) ######################
+        # title = "measured and estimated horizontal data (tilt should be zero)"
+        # xAxisLabel = "hourly measured horizontal total outer solar radiation [W m^-2]" + constant.SimulationStartDate + "-" + constant.SimulationEndDate
+        # yAxisLabel = "hourly estimated horizontal Total outer solar radiation [W m^-2]"
+        # util.plotData(hourlyHorizontalTotalOuterSolarIrradiance, estimatedTotalSolarRadiationToOPV, title, xAxisLabel, yAxisLabel, None, True, 0.0, 1.0)
+        # util.saveFigure(title + " " + constant.SimulationStartDate + "-" + constant.SimulationEndDate)
+        # ################### plot the electricity yield per area with given OPV film end######################
 
         # [estimated data] unit change:
         estimatedDirectPPFDToOPVEastDirection = util.convertFromWattperSecSquareMeterToPPFD(estimatedDirectSolarRadiationToOPVEastDirection)
@@ -265,14 +265,14 @@ def simulateCropElectricityYieldProfit1():
         # deactivate the mode to the default value.
         simulatorClass.setEstimateSolarRadiationMode(False)
 
-        ##################plot the difference of total solar radiation with imported data and simulated data start######################
-        Title = "total solar radiation to OPV with measured horizontal and estimated tilted"
-        xAxisLabel = "time [hour]: " + constant.SimulationStartDate + "-" + constant.SimulationEndDate
-        yAxisLabel = "total Solar irradiance [W m^-2]"
-        util.plotTwoData(np.linspace(0, simulationDaysInt * constant.hourperDay, simulationDaysInt * constant.hourperDay), \
-                         hourlyHorizontalTotalOuterSolarIrradiance, estimatedTotalSolarRadiationToOPV ,Title, xAxisLabel, yAxisLabel, "measured horizontal", "estimated tilted")
-        util.saveFigure(Title + " " + constant.SimulationStartDate + "-" + constant.SimulationEndDate)
-        ##################plot the difference of total solar radiation with imported data and simulated data  end######################
+        # ##################plot the difference of total solar radiation with imported data and simulated data start######################
+        # Title = "total solar radiation to OPV with measured horizontal and estimated tilted"
+        # xAxisLabel = "time [hour]: " + constant.SimulationStartDate + "-" + constant.SimulationEndDate
+        # yAxisLabel = "total Solar irradiance [W m^-2]"
+        # util.plotTwoData(np.linspace(0, simulationDaysInt * constant.hourperDay, simulationDaysInt * constant.hourperDay), \
+        #                  hourlyHorizontalTotalOuterSolarIrradiance, estimatedTotalSolarRadiationToOPV ,Title, xAxisLabel, yAxisLabel, "measured horizontal", "estimated tilted")
+        # util.saveFigure(Title + " " + constant.SimulationStartDate + "-" + constant.SimulationEndDate)
+        # ##################plot the difference of total solar radiation with imported data and simulated data  end######################
 
         # ################## plot the difference of total DLI with real data and simulated data start######################
         # Title = "difference of total DLI to tilted OPV with real data and estimation"
@@ -359,7 +359,7 @@ def simulateCropElectricityYieldProfit1():
     ################## calculate the daily electricity yield per area start#####################
     ############################################################################################
     # TODO: for more accurate modeling, we need actual data for a more detailed model (considering the OPV material) for the temperature of OPV film, but right now, just use the imported body temperature.
-    # get the daily electricity yield per area per day ([J/m^2] per day) based on the given light intensity ([Celsius],[W/m^2]).
+    # get the daily electricity yield per area per day ([J/m^2/day]) based on the given light intensity ([Celsius],[W/m^2]).
     # regard the east side and west tilted OPV module differently/
     dailyJopvoutperAreaEastRoof = simulatorDetail.getDailyElectricityYieldperArea(hourlyHorizontalTotalBeamMeterBodyTemperature, \
                                                                                   simulatorClass.getDirectSolarRadiationToOPVEastDirection(),
@@ -369,25 +369,41 @@ def simulateCropElectricityYieldProfit1():
                                                                                   simulatorClass.getDirectSolarRadiationToOPVWestDirection(),
                                                                                   simulatorClass.getDiffuseSolarRadiationToOPV(),
                                                                                   simulatorClass.getAlbedoSolarRadiationToOPV())
+    # print("dailyJopvoutperAreaEastRoof:{}".format(dailyJopvoutperAreaEastRoof))
     # print("dailyJopvoutperAreaWestRoof:{}".format(dailyJopvoutperAreaWestRoof))
 
-    # electricity production unit Exchange [J/m^2] -> [wh / m^2]
+    # unit change [J/m^2/day] -> [Wh/m^2/day]
     # dailyWhopvoutperArea = util.convertFromJouleToWattHour(dailyJopvoutperArea)
     dailyWhopvoutperAreaEastRoof = util.convertFromJouleToWattHour(dailyJopvoutperAreaEastRoof)
     dailyWhopvoutperAreaWestRoof = util.convertFromJouleToWattHour(dailyJopvoutperAreaWestRoof)
+    # set the variables
+    simulatorClass.dailyWhopvoutperAreaEastRoof = dailyWhopvoutperAreaEastRoof
+    simulatorClass.dailyWhopvoutperAreaWestRoof = dailyWhopvoutperAreaWestRoof
+    # print("dailyWhopvoutperAreaEastRoof:{}".format(dailyWhopvoutperAreaEastRoof))
+    # print("dailyWhopvoutperAreaWestRoof:{}".format(dailyWhopvoutperAreaWestRoof ))
 
-    # electricity production  unit Exchange [Wh/ m^2] -> [kWh/m^2]
+    # electricity production  unit Exchange [Wh/m^2/day] -> [kWh/m^2/day]
     # dailykWhopvoutperArea = util.convertWhTokWh(dailyWhopvoutperArea)
     dailykWhopvoutperAreaEastRoof = util.convertWhTokWh(dailyWhopvoutperAreaEastRoof)
     dailykWhopvoutperAreaWestRoof = util.convertWhTokWh(dailyWhopvoutperAreaWestRoof)
+    # set the variables
+    simulatorClass.dailykWhopvoutperAreaEastRoof = dailykWhopvoutperAreaEastRoof
+    simulatorClass.dailykWhopvoutperAreaWestRoof = dailykWhopvoutperAreaWestRoof
 
-    ################### plot the electricity yield per area with given OPV film
-    title = "electricity yield per area vs OPV film (east_west average)"
-    xAxisLabel = "time [day]: " + constant.SimulationStartDate + "-" + constant.SimulationEndDate
-    yAxisLabel = "Electricity yield per OPV area [kWh/m^2/day]"
-    util.plotData(np.linspace(0, simulationDaysInt, simulationDaysInt), (dailykWhopvoutperAreaEastRoof + dailykWhopvoutperAreaWestRoof)/2.0, title, xAxisLabel, yAxisLabel)
-    util.saveFigure(title + " " + constant.SimulationStartDate + "-" + constant.SimulationEndDate)
-    ################### plot the electricity yield per area with given OPV film end
+    # the total electricity produced (unit exchange: [kWh/m^2/day] -> [kWh/day])
+    totalkWhopvoutPerday = dailykWhopvoutperAreaEastRoof * (constant.greenhouseRoofTotalAreaEastOrNorth) + dailykWhopvoutperAreaWestRoof * (constant.greenhouseRoofTotalAreaWestOrSouth)
+    totalkWhopvoutPerMeterPerday = totalkWhopvoutPerday/constant.greenhouseTotalRoofArea
+    # set the calculated value
+    simulatorClass.totalkWhopvoutPerday = totalkWhopvoutPerday
+    simulatorClass.totalkWhopvoutPerMeterPerday = totalkWhopvoutPerMeterPerday
+
+    # ################### plot the electricity yield per area with given OPV film
+    # title = "electricity yield per area vs OPV film (east_west average)"
+    # xAxisLabel = "time [day]: " + constant.SimulationStartDate + "-" + constant.SimulationEndDate
+    # yAxisLabel = "Electricity yield per OPV area [kWh/m^2/day]"
+    # util.plotData(np.linspace(0, simulationDaysInt, simulationDaysInt), (dailykWhopvoutperAreaEastRoof + dailykWhopvoutperAreaWestRoof)/2.0, title, xAxisLabel, yAxisLabel)
+    # util.saveFigure(title + " " + constant.SimulationStartDate + "-" + constant.SimulationEndDate)
+    # ################### plot the electricity yield per area with given OPV film end
 
     # data export
     util.exportCSVFile(np.array([year[::24], month[::24], day[::24], dailykWhopvoutperAreaEastRoof, dailykWhopvoutperAreaWestRoof]).T,
@@ -406,12 +422,20 @@ def simulateCropElectricityYieldProfit1():
     # get the monthly electricity sales per area [USD/month/m^2]
     monthlyElectricitySalesperAreaEastRoof = simulatorDetail.getMonthlyElectricitySalesperArea(dailykWhopvoutperAreaEastRoof, yearOfeachDay, monthOfeachDay)
     monthlyElectricitySalesperAreaWastRoof = simulatorDetail.getMonthlyElectricitySalesperArea(dailykWhopvoutperAreaWestRoof, yearOfeachDay, monthOfeachDay)
-
     # set the value to the object
     simulatorClass.setMonthlyElectricitySalesperAreaEastRoof(monthlyElectricitySalesperAreaEastRoof)
     simulatorClass.setMonthlyElectricitySalesperAreaWestRoof(monthlyElectricitySalesperAreaWastRoof)
-
     # print "simulatorClass.getMonthlyElectricitySalesperArea():{}".format(simulatorClass.getMonthlyElectricitySalesperArea())
+
+    # electricity sales unit Exchange [USD/m^2/month] -> [USD/month]
+    totalElectricitySalesPerMonth = monthlyElectricitySalesperAreaEastRoof  * (constant.OPVAreaFacingEastOrNorthfacingRoof) + monthlyElectricitySalesperAreaWastRoof * (constant.OPVAreaFacingWestOrSouthfacingRoof)
+    # the averaged electricity sales [USD/m^2/month]
+    totalElectricitySalesPerAreaPerMonth = totalElectricitySalesPerMonth/constant.OPVArea
+    # set the value to the object
+    simulatorClass.totalElectricitySalesPerAreaPerMonth = totalElectricitySalesPerAreaPerMonth
+    simulatorClass.totalElectricitySalesPerMonth = totalElectricitySalesPerMonth
+    simulatorClass.totalElectricitySales = sum(totalElectricitySalesPerMonth)
+
     ###########################################################################################
     ################## calculate the daily electricity sales  per area end#####################
     ###########################################################################################
@@ -420,31 +444,55 @@ def simulateCropElectricityYieldProfit1():
     ##################calculate the electricity cost per area start######################################
     #####################################################################################################
     if constant.ifConsiderOPVCost is True:
+        # get the depreciation price for the whole simulation period
+        # it was assumed that the depreciation method is gross average method
+        # unit: USD
         initialOPVCostUSD = constant.OPVPricePerAreaUSD * OPVFilm.getOPVArea(constant.OPVAreaCoverageRatio)
-        # [USD]
-        OPVCostUSDForDepreciation = initialOPVCostUSD * (util.getSimulationDaysInt() / constant.OPVDepreciationPeriodDays)
+        # unit: USD/day
+        totalOPVCostUSDForDepreciation = initialOPVCostUSD * (util.getSimulationDaysInt() / constant.OPVDepreciationPeriodDays)
         # set the value to the object
-        simulatorClass.setOPVCostUSDForDepreciationperArea(OPVCostUSDForDepreciation / OPVFilm.getOPVArea(constant.OPVAreaCoverageRatio))
+        simulatorClass.setOPVCostUSDForDepreciationPerOPVArea(totalOPVCostUSDForDepreciation / OPVFilm.getOPVArea(constant.OPVAreaCoverageRatio))
+        simulatorClass.totalOPVCostUSDForDepreciation = totalOPVCostUSDForDepreciation
+        simulatorClass.totalOPVCostUSDForDepreciationPerGHFloorArea = totalOPVCostUSDForDepreciation / constant.greenhouseFloorArea
+
     else:
         # set the value to the object. the value is zero if not consider the purchase cost
-        simulatorClass.setOPVCostUSDForDepreciationperArea(0.0)
+        simulatorClass.setOPVCostUSDForDepreciationPerOPVArea(0.0)
+        simulatorClass.totalOPVCostUSDForDepreciation = 0.0
+        simulatorClass.totalOPVCostUSDForDepreciationPerGHFloorArea = 0.0
+
     ###################################################################################################
     ##################calculate the electricity cost per area end######################################
     ###################################################################################################
 
-    ##################################################################################################################################################################
-    ###################calculate the solar irradiance through multi span roof start################ The calculated irradiance is stored to the object in this function
-    ##################################################################################################################################################################
-    simulatorDetail.getDirectSolarIrradianceToMultiSpanRoof(simulatorClass)
+    ################################################################################
+    ################## calculate the electricity production profit/loss start#######
+    ################################################################################
+    # profit == sales - less(cost)
+    electricityProductionProfit = simulatorClass.totalElectricitySales - simulatorClass.totalOPVCostUSDForDepreciation
+    electricityProductionProfitPerGHFloorArea = electricityProductionProfit / constant.greenhouseFloorArea
+
+    # set the variable to the object
+    simulatorClass.electricityProductionProfit = electricityProductionProfit
+    simulatorClass.electricityProductionProfitPerGHFloorArea = electricityProductionProfitPerGHFloorArea
+    ################################################################################
+    ################## calculate the electricity production profit/loss end#########
+    ################################################################################
+
+    ###############################################################################################
+    ###################calculate the solar irradiance through multi span roof start################
+    ###############################################################################################
+    # The calculated irradiance is stored to the object in this function
+    simulatorDetail.getDirectSolarIrradianceThroughMultiSpanRoof(simulatorClass)
     # data export
-    util.exportCSVFile(np.array([year, month, day, simulatorClass.getHourlyDirectSolarRadiationAfterMultiSpanRoof(),]).T,
+    util.exportCSVFile(np.array([year, month, day, hour, simulatorClass.getHourlyDirectSolarRadiationAfterMultiSpanRoof(),]).T,
                           "directSolarRadiationAfterMultiSpanRoof")
     ###########################################################################################
     ###################calculate the solar irradiance through multi span roof end##############
     ###########################################################################################
 
     ###########################################################################################
-    ###################calculate the solar irradiance to plants start#########################
+    ###################calculate the solar irradiance to plants start##########################
     ###########################################################################################
     # get/set cultivation days per harvest [days/harvest]
     cultivationDaysperHarvest = constant.cultivationDaysperHarvest
@@ -462,6 +510,7 @@ def simulateCropElectricityYieldProfit1():
     hasShadingCurtain = constant.hasShadingCurtain
     simulatorClass.setIfHasShadingCurtain(hasShadingCurtain)
 
+    # TODO: delete this if it was determined not to use this variable
     # the amount of PPFD to deploy shading curtain PPFD [umol m^-2 s^-1]
     shadingCurtainDeployPPFD = constant.shadingCurtainDeployPPFD
     # this variable is substituted to the object at the declaration
@@ -469,6 +518,15 @@ def simulateCropElectricityYieldProfit1():
 
     # consider the OPV film, shading curtain, structure,
     simulatorDetail.setSolarIrradianceToPlants(simulatorClass)
+
+    # the DLI to plants [mol/m^2/day]
+    # totalDLItoPlants = simulatorDetail.getTotalDLIToPlants(OPVCoverage, importedDirectPPFDToOPV, importedDiffusePPFDToOPV, importedGroundReflectedPPFDToOPV,\
+    #                                        hasShadingCurtain, shadingCurtainDeployPPFD, simulatorClass)
+    # print "totalDLItoPlants:{}".format(totalDLItoPlants)
+    # print "totalDLItoPlants.shape:{}".format(totalDLItoPlants.shape)
+    totalDLItoPlants = simulatorClass.directDLIToPlants + simulatorClass.diffuseDLIToPlants
+    # unit: DLI/day
+    simulatorClass.totalDLItoPlants = totalDLItoPlants
     ########################################################################################
     ###################calculate the solar irradiance to plants end#########################
     ########################################################################################
@@ -490,25 +548,22 @@ def simulateCropElectricityYieldProfit1():
     plantGrowthModel = constant.plantGrowthModel
     simulatorClass.setPlantGrowthModel(plantGrowthModel)
 
-    #calculate plant yield given an OPV coverage and model :daily [g/unit]
+    #calculate plant yield given an OPV coverage and model :daily [g/head]
     shootFreshMassList, \
     unitDailyFreshWeightIncrease, \
     accumulatedUnitDailyFreshWeightIncrease, \
     unitDailyHarvestedFreshWeight = simulatorDetail.getPlantYieldSimulation(simulatorClass)
-    print ("shootFreshMassList:{}".format(shootFreshMassList))
-    print ("unitDailyFreshWeightIncrease:{}".format(unitDailyFreshWeightIncrease))
-    ##########################################################################
-    ################## calculate the daily plant yield end####################
-    ##########################################################################
-
-    # ####################################################################################################
-    # # Stop execution here...
-    sys.exit()
-    # # Move the above line to different parts of the assignment as you implement more of the functionality.
-    # ####################################################################################################
+    # np.set_printoptions(threshold=np.inf)
+    # print ("shootFreshMassList:{}".format(shootFreshMassList))
+    # print ("unitDailyFreshWeightIncrease:{}".format(unitDailyFreshWeightIncrease))
+    # print ("accumulatedUnitDailyFreshWeightIncrease:{}".format(accumulatedUnitDailyFreshWeightIncrease))
+    # print ("unitDailyHarvestedFreshWeight:{}".format(unitDailyHarvestedFreshWeight))
+    # np.set_printoptions(threshold=100)
 
     # get the penalized plant fresh weight with  too strong sunlight : :daily [g/unit]
     if constant.IfConsiderPhotoInhibition is True:
+
+        # TODO: modify this function to decrease the plant when the average DLI during the cultivation period exceeds 17mol/m^2/day, which is the maximum DLI not causing tipburn
         penalizedUnitDailyHarvestedFreshWeight = simulatorDetail.penalizeUnitDailyHarvestedFreshWeight(unitDailyHarvestedFreshWeight, simulatorClass)
 
         ######################### plot UnitDailyHarvestedFreshWeight and penalized UnitDailyHarvestedFreshWeight
@@ -521,47 +576,46 @@ def simulateCropElectricityYieldProfit1():
         util.saveFigure(title + " " + constant.SimulationStartDate + "-" + constant.SimulationEndDate)
         #######################################################################
 
-    # the DLI to plants [mol/m^2/day]
-    totalDLItoPlants = simulatorDetail.getTotalDLIToPlants(OPVCoverage, importedDirectPPFDToOPV, importedDiffusePPFDToOPV, importedGroundReflectedPPFDToOPV,\
-                                           hasShadingCurtain, shadingCurtainDeployPPFD, simulatorClass)
-    # print "totalDLItoPlants:{}".format(totalDLItoPlants)
-    # print "totalDLItoPlants.shape:{}".format(totalDLItoPlants.shape)
+    # ######################### plot a graph showing the DLI to plants ######################################
+    # title = "DLI to plants (OPV coverage " + str(int(100*OPVCoverage)) + "%)"
+    # xAxisLabel = "time [day]:  " + constant.SimulationStartDate + "-" + constant.SimulationEndDate
+    # yAxisLabel = "DLI[mol/m^2/day]"
+    # util.plotData(np.linspace(0, simulationDaysInt, simulationDaysInt), totalDLItoPlants, title, xAxisLabel, yAxisLabel)
+    # util.saveFigure(title + " " + constant.SimulationStartDate + "-" + constant.SimulationEndDate)
+    # #######################################################################################################
 
-    # set the value to the instance
-    simulatorClass.setTotalDLItoPlantsBaselineShadingCuratin(totalDLItoPlants)
-
-    ######################### plot a graph showing the DLI to plants
-    title = "DLI to plants (OPV coverage " + str(int(100*OPVCoverage)) + "%)"
-    xAxisLabel = "time [day]:  " + constant.SimulationStartDate + "-" + constant.SimulationEndDate
-    yAxisLabel = "DLI[mol/m^2/day]"
-    util.plotData(np.linspace(0, simulationDaysInt, simulationDaysInt), totalDLItoPlants, title, xAxisLabel, yAxisLabel)
-    util.saveFigure(title + " " + constant.SimulationStartDate + "-" + constant.SimulationEndDate)
-    #######################################################################
-    ######################### plot a graph showing only shootFreshMassList per unit
-    title = "plant yield per head vs time (OPV coverage " + str(int(100*OPVCoverage)) + "%)"
-    xAxisLabel = "time [day]:  " + constant.SimulationStartDate + "-" + constant.SimulationEndDate
-    yAxisLabel = "plant fresh weight[g/head]"
-    util.plotData(np.linspace(0, simulationDaysInt, simulationDaysInt), shootFreshMassList, title, xAxisLabel, yAxisLabel)
-    util.saveFigure(title + " " + constant.SimulationStartDate + "-" + constant.SimulationEndDate)
-    #######################################################################
+    # ######################### plot a graph showing only shootFreshMassList per unit #######################
+    # title = "plant yield per head vs time (OPV coverage " + str(int(100*OPVCoverage)) + "%)"
+    # xAxisLabel = "time [day]:  " + constant.SimulationStartDate + "-" + constant.SimulationEndDate
+    # yAxisLabel = "plant fresh weight[g/head]"
+    # util.plotData(np.linspace(0, simulationDaysInt, simulationDaysInt), shootFreshMassList, title, xAxisLabel, yAxisLabel)
+    # util.saveFigure(title + " " + constant.SimulationStartDate + "-" + constant.SimulationEndDate)
+    # #######################################################################################################
 
     # data export
-    util.exportCSVFile(np.array([totalDLItoPlants, shootFreshMassList]).T, "shootFreshMassAandDLIToPlants")
+    util.exportCSVFile(np.array([year[::24], month[::24], day[::24], totalDLItoPlants, shootFreshMassList]).T, "shootFreshMassAndDLIToPlants")
     # util.exportCSVFile(hourlyEstimatedTotalSolarRadiationToOPVOnly15th, "hourlyEstimatedTotalSolarRadiationToOPVOnly15th")
 
+    # unit conversion; get the plant yield per day per area: [g/head/day] -> [g/m^2/day]
+    shootFreshMassPerAreaPerDay = util.convertUnitShootFreshMassToShootFreshMassperArea(shootFreshMassList)
+    # print("shootFreshMassPerAreaPerDay:{}".format(shootFreshMassPerAreaPerDay))
+    harvestedShootFreshMassPerAreaPerDay = util.convertUnitShootFreshMassToShootFreshMassperArea(unitDailyHarvestedFreshWeight)
+    # print("harvestedShootFreshMassPerAreaPerDay:{}".format(harvestedShootFreshMassPerAreaPerDay))
+    # unit conversion:  [g/m^2/day] -> [kg/m^2/day]
+    shootFreshMassPerAreaKgPerDay = util.convertFromgramTokilogram(shootFreshMassPerAreaPerDay)
+    harvestedShootFreshMassPerAreaKgPerDay = util.convertFromgramTokilogram(harvestedShootFreshMassPerAreaPerDay)
 
-    # unit conversion; get the plant yield per day per area: [g/head] -> [g/m^2]
-    shootFreshMassListperArea = util.convertUnitShootFreshMassToShootFreshMassperArea(shootFreshMassList)
-    # unit conversion:  [g/m^2] -> [kg/m^2]
-    shootFreshMassListperAreaKg = util.convertFromgramTokilogram(shootFreshMassListperArea)
+    # set the value to the object
+    simulatorClass.shootFreshMassPerAreaKgPerDay = shootFreshMassPerAreaKgPerDay
+    simulatorClass.harvestedShootFreshMassPerAreaKgPerDay = harvestedShootFreshMassPerAreaKgPerDay
 
-    ######################## plot a graph showing only shootFreshMassList per square meter
-    title = "plant yield per area vs time (OPV coverage " + str(int(100*OPVCoverage)) + "%)"
-    xAxisLabel = "time [day]:  " + constant.SimulationStartDate + "-" + constant.SimulationEndDate
-    yAxisLabel = "plant fresh weight[kg/m^2]"
-    util.plotData(np.linspace(0, simulationDaysInt, simulationDaysInt), shootFreshMassListperAreaKg, title, xAxisLabel, yAxisLabel)
-    util.saveFigure(title + " " + constant.SimulationStartDate + "-" + constant.SimulationEndDate)
-    ######################################################################
+    # ######################## plot a graph showing only shootFreshMassList per square meter ########################
+    # title = "plant yield per area vs time (OPV coverage " + str(int(100*OPVCoverage)) + "%)"
+    # xAxisLabel = "time [day]:  " + constant.SimulationStartDate + "-" + constant.SimulationEndDate
+    # yAxisLabel = "plant fresh weight[kg/m^2]"
+    # util.plotData(np.linspace(0, simulationDaysInt, simulationDaysInt), shootFreshMassPerAreaKgPerDay, title, xAxisLabel, yAxisLabel)
+    # util.saveFigure(title + " " + constant.SimulationStartDate + "-" + constant.SimulationEndDate)
+    # ###############################################################################################################
 
     ################## plot various unit Plant Yield vs time
     plotDataSet = np.array([shootFreshMassList, unitDailyFreshWeightIncrease, accumulatedUnitDailyFreshWeightIncrease, unitDailyHarvestedFreshWeight])
@@ -572,32 +626,100 @@ def simulateCropElectricityYieldProfit1():
     util.plotMultipleData(np.linspace(0, simulationDaysInt, simulationDaysInt), plotDataSet, labelList, title, xAxisLabel, yAxisLabel)
     util.saveFigure(title + " " + constant.SimulationStartDate + "-" + constant.SimulationEndDate)
     #######################################################################
-
+    ##########################################################################
+    ################## calculate the daily plant yield end####################
+    ##########################################################################
 
     ##########################################################################
     ################## calculate the daily plant sales start##################
     ##########################################################################
+    # get the sales price of plant [USD/m^2]
+    # if the average DLI during each harvest term is more than 17 mol/m^2/day, discount the price
+    # It was assumed that there is no tipburn.
+    # unit: USD/m^2/day
+    dailyPlantSalesPerSquareMeter = simulatorDetail.getPlantSalesperSquareMeter(simulatorClass)
+    # print ("dailyPlantSalesperSquareMeter.shape:{}".format(dailyPlantSalesperSquareMeter.shape))
+    # unit: USD/m^2
+    # TODO: this sales is the sales per unit cultivation area, not per the whole greenhouse floor area.
+    totalPlantSalesperSquareMeter = sum(dailyPlantSalesPerSquareMeter)
+    print ("totalPlantSalesperSquareMeter:{}".format(totalPlantSalesperSquareMeter))
+    # unit: USD
+    totalplantSales = totalPlantSalesperSquareMeter * constant.greenhouseCultivationFloorArea
+    print ("totalplantSales:{}".format(totalplantSales))
+    totalPlantSalesPerGHFloorArea = totalplantSales / constant.greenhouseFloorArea
 
-
+    # set the variable to the object
+    simulatorClass.totalPlantSalesperSquareMeter = totalPlantSalesperSquareMeter
+    simulatorClass.totalplantSales = totalplantSales
+    simulatorClass.totalPlantSalesPerGHFloorArea = totalPlantSalesPerGHFloorArea
     ##########################################################################
     ################## calculate the daily plant sales end####################
     ##########################################################################
 
+    ######################################################################################################
+    ################## calculate the daily plant cost (greenhouse operation cost) start###################
+    ######################################################################################################
+    # it was assumed that the cost for growing plants is significantly composed of labor cost and electricity and fuel energy cost for heating/cooling (including pad and fan syste)
 
-    ##########################################################################
-    ################## calculate the daily plant cost start#####################
-    ##########################################################################
+    # TODO: make the functions for fuel and electricity cost
+    totalFuelEnergyCost = 0.0
+    totalFuelEnergyCostPerGHFloorArea = totalFuelEnergyCost / constant.greenhouseFloorArea
+    totalElectricityCost = 0.0
+    totalElectricityCostPerGHFloorArea = totalElectricityCost / constant.greenhouseFloorArea
 
+    totalLaborCost = simulatorDetail.getLaborCost(simulatorClass)
+    totalLaborCostPerGHFloorArea = totalLaborCost / constant.greenhouseFloorArea
+    # set the values to the object
+    simulatorClass.totalLaborCost = totalLaborCost
+    simulatorClass.totalLaborCostPerGHFloorArea = totalLaborCostPerGHFloorArea
 
-    ##########################################################################
-    ################## calculate the daily plant cost end#####################
-    ##########################################################################
+    totalPlantProductionCost = totalFuelEnergyCost + totalElectricityCost + totalLaborCost
+    totalPlantProductionCostPerGHFloorArea = totalFuelEnergyCostPerGHFloorArea + totalElectricityCostPerGHFloorArea + totalLaborCostPerGHFloorArea
+    # set the values to the object
+    simulatorClass.totalPlantProductionCost = totalPlantProductionCost
+    simulatorClass.totalPlantProductionCostPerGHFloorArea = totalPlantProductionCostPerGHFloorArea
+    ######################################################################################################
+    ################## calculate the daily plant cost (greenhouse operation cost) end#####################
+    ######################################################################################################
+
+    ################################################################################
+    ################## calculate the plant production profit/los start##############
+    ################################################################################
+    totalPlantProfit = totalplantSales - totalPlantProductionCost
+    totalPlantProfitPerGHFloorArea =  totalPlantSalesPerGHFloorArea - totalPlantProductionCostPerGHFloorArea
+    # set the values to the object
+    simulatorClass.totalPlantProfit = totalPlantProfit
+    simulatorClass.totalPlantProfitPerGHFloorArea = totalPlantProfitPerGHFloorArea
+    ################################################################################
+    ################## calculate the plant production profit/loss end###############
+    ################################################################################
+
+    ################################################################################
+    ################## calculate the total economic profit/loss start###############
+    ################################################################################
+    # get the economic profit
+    economicProfit = totalPlantProfit + electricityProductionProfit
+    economicProfitPerGHFloorArea = totalPlantProfitPerGHFloorArea + electricityProductionProfitPerGHFloorArea
+    # set the values to the object
+    simulatorClass.economicProfit = economicProfit
+    simulatorClass.economicProfitPerGHFloorArea = economicProfitPerGHFloorArea
+    ##############################################################################
+    ################## calculate the total economic profit/loss end###############
+    ##############################################################################
+
+    return simulatorClass
+
+    # ####################################################################################################
+    # # Stop execution here...
+    sys.exit()
+    # # Move the above line to different parts of the assignment as you implement more of the functionality.
+    # ####################################################################################################
+
 
 
     ############################################################################################
     ###################Simulation with various opv film coverage ratio start####################
     ############################################################################################
-
     # Choose the simulation type
     # simulationType = "economicProfitWithRealSolar"
     # simulationType = "plantAndElectricityYieldWithRealSolar"
@@ -849,31 +971,12 @@ def simulateCropElectricityYieldProfit1():
 
         return profitVSOPVCoverageData, simulatorClass
 
-        # #######calculate the resource use efficiency and plot
-        # #TODO  calculate the energy consumption by greenhouse
-        # resourceUseEfficiency = np.zeros(int(1.0/OPVCoverageDelta), dtype = float)
-        #
-        # energyConsumptionByGreenhouse = simulatorDetail.getEnergyConsumptionByGreenhouse()
-        #
-        # for i in range(0, int(1.0 / OPVCoverageDelta)):
-        #     resourceUseEfficiency[i] = simulatorDetail.getResourseUseEfficiency()
-        #
-        # # plot the graph
-        # title = "Resource Use Efficiency"
-        # xAxisLabel = "OPV Coverage Ratio [-]: " + constant.SimulationStartDate + "-" + constant.SimulationEndDate
-        # yAxisLabel = "Resource Use Efficiency[g/unit]/[kwh]"
-        # util.plotData(OPVCoverageList, unitDailyFreshWeightIncreaseList, title, xAxisLabel, yAxisLabel)
-        # util.saveFigure(Title + " " + constant.SimulationStartDate + "-" + constant.SimulationEndDate)
-        #
-        # # TODO also generate this graph. the unit is different
-        # # plot the graph
-        # title = "Resource Use Efficiency"
-        # xAxisLabel = "OPV Coverage Ratio [-]: " + constant.SimulationStartDate + "-" + constant.SimulationEndDate
-        # yAxisLabel = "Resource Use Efficiency[kg/m^2]/[kwh]"
-        # util.plotData(OPVCoverageList, unitDailyFreshWeightIncreaseList, title, xAxisLabel, yAxisLabel)
-        # util.saveFigure(Title + " " + constant.SimulationStartDate + "-" + constant.SimulationEndDate)
-
     print("iteration cot conducted")
-
     return None
-                                         
+
+
+
+
+
+
+                               

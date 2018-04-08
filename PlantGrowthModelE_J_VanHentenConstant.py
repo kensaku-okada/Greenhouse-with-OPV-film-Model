@@ -24,15 +24,15 @@ c_Q10_resp = 2.0
 # the ratio of the root dry weight to the total crop dry weight
 c_tau = 0.15
 # extinction coefficient
-c_K = 0.9
+# c_K = 0.9
+# extinction coefficient for 25 heads/m^2 density
+c_K = 1.0
 # structural leaf area ratio
 c_lar = {'m2 g-2' : 75 * 10**(-3)}
-# the canopy conductance to CO2 diffusion
-g_CO2 = {'m s-1' : }
 # density of CO2
 c_omega = {'g m-3' : 1.83 * 10**(-3) }
 # the CO2 compensation point at 20[C]
-c_upperCaseGamma = {'ppm': 40}
+c_upperCaseGamma = {'ppm': 40.0}
 # the Q10 value which account for the effect of temperature on upperCaseGamma (Γ)
 c_Q10_upperCaseGamma = 2.0
 # light use efficiency at very high CO2 concentrations
@@ -44,11 +44,7 @@ g_stm = {'m s-1': 0.005 }
 # parameters for the carboxylation conductance
 c_car1 = -1.32 * 10**(-5)
 c_car2 = 5.94 * 10**(-4)
-c_car3 = -.264 * 10**(-3)
-
-
-
-
+c_car3 = -2.64 * 10**(-3)
 
 canopyTemp = {'celsius': 17.5 }
 # canopyTemp = {'celsius': 40 }

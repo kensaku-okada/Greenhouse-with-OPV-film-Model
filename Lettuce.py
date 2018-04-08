@@ -14,6 +14,7 @@ import math
 import CropElectricityYeildSimulatorConstant as constant
 import Util as util
 import datetime
+import sys
 #######################################################
 
 
@@ -394,6 +395,80 @@ def getLettucePricepercwt(year):
     '''
     return 0.583 * year - 1130
 
+
+def getRetailPricePerArea(simulatorClass):
+    # the source of the romaine lettuce retail price data
+    # https://data.bls.gov/timeseries/APU0000FL2101?amp%253bdata_tool=XGtable&output_view=data&include_graphs=true
+
+    # unit: kg/m^2/day
+    harvestedShootFreshMassPerAreaKgPerDay = simulatorClass.harvestedShootFreshMassPerAreaKgPerDay
+    print("harvestedShootFreshMassPerAreaKgPerDay:{}".format(harvestedShootFreshMassPerAreaKgPerDay))
+
+    # unit: USD/m^2/day
+    harvestedFreshMassPricePerAreaPerDay = np.zeros(harvestedShootFreshMassPerAreaKgPerDay.shape[0])
+
+    # get the month and year lists
+    simulationMonthEachDay = simulatorClass.getMonth()[::24]
+    simulationYearEachDay = simulatorClass.getYear()[::24]
+
+    # import the price data
+    filename = constant.romaineLettceRetailPriceFileName
+    relativePath = constant.romaineLettceRetailPriceFilePath
+    romaineLettceRetailPricePerMonth = util.readData(filename, relativePath, 0, ',')
+    # print("romaineLettceRetailPricePerMonth:{}".format(romaineLettceRetailPricePerMonth))
+    # print("type(romaineLettceRetailPricePerMonth):{}".format(type(romaineLettceRetailPricePerMonth)))
+
+    # get the sales price of each harvested lettuce (weight)
+    for i in range (0, harvestedShootFreshMassPerAreaKgPerDay.shape[0]):
+      # if it is not the harvest date then skip the day
+      if harvestedShootFreshMassPerAreaKgPerDay[i] == 0.0: continue
+
+      # get the unit price (USD/pound)
+      unitRetailPricePerPound = getUnitRomainLettucePrice(simulationMonthEachDay[i], simulationYearEachDay[i], romaineLettceRetailPricePerMonth)
+
+      # unit conversion: 1USD/pound -> USD/kg
+      unitRetailPricePerKg = util.convertPoundToKg(unitRetailPricePerPound)
+
+      # unit: USD/m^2/day
+      harvestedFreshMassPricePerAreaPerDay[i] = harvestedShootFreshMassPerAreaKgPerDay[i] * unitRetailPricePerKg
+
+
+    return harvestedFreshMassPricePerAreaPerDay
+
+def getUnitRomainLettucePrice(month, year, priceInfoList):
+  """
+
+  return: the unit price of a given month and year
+  """
+  # print("priceInfoList:{}".format(priceInfoList))
+  # print("priceInfoList.shape:{}".format(priceInfoList.shape))
+  # print("type(month):{}".format(type(month)))
+  # print("type(year):{}".format(type(year)))
+
+  # assuming the list has the header, so skip the header
+  for i in range (1, priceInfoList.shape[0]):
+    priceInfo = priceInfoList[i]
+    # print("i:{}, priceInfo:{}".format(i, priceInfo))
+    # print("year:{}".format(year))
+    # print("type(year):{}".format(type(month)))
+    # print("month:{}".format(year))
+    # print("type(month):{}".format(type(month)))
+    # print("priceInfo[1]:{}".format(priceInfo[1]))
+    # print("priceInfo[2][0:2]:{}".format(priceInfo[2][1:]))
+
+    if year == int(priceInfo[1]) and month == int(priceInfo[2][1:]):
+      # print("priceInfo[3]:{}".format(priceInfo[3]))
+      # print("type(priceInfo[3]):{}".format(type(priceInfo[3])))
+      return float(priceInfo[3])
+
+  print("The specified simulation period include the term where there is no lettuce unit price information. Simulation stopped.")
+  # ####################################################################################################
+  # # Stop execution here...
+  sys.exit()
+  # # Move the above line to different parts of the assignment as you implement more of the functionality.
+  # ####################################################################################################
+
+
 def discountPlantSalesperSquareMeterByTipburn(plantSalesperSquareMeter, TotalDLItoPlants):
     '''
 
@@ -449,4 +524,66 @@ def getCostofPlantYieldperYear():
     return: : cost Of Plant Production per year (USD/year)
     '''
     return  constant.plantProductionCostperSquareMeterPerYear * constant.greenhouseFloorArea
+
+
+def getGreenhouseTemperatureEachDay(simulatorClass):
+  # It was assumed the greenhouse temperature was instantaneously adjusted to the set point temperatures at daytime and night time respectively
+  hourlyDayOrNightFlag = simulatorClass.hourlyDayOrNightFlag
+  greenhouseTemperature = np.array([constant.setPointTemperatureDayTime if i == constant.daytime else constant.setPointTemperatureNightTime for i in hourlyDayOrNightFlag])
+
+  # calc the mean temperature each day
+  dailyAverageTemperature = np.zeros(util.getSimulationDaysInt())
+  for i in range(0, util.getSimulationDaysInt()):
+    dailyAverageTemperature[i] = np.average(greenhouseTemperature[i * constant.hourperDay: (i + 1) * constant.hourperDay])
+  return dailyAverageTemperature
+
+def getGreenhouseTemperatureEachHour(simulatorClass):
+  # It was assumed the greenhouse temperature was instantaneously adjusted to the set point temperatures at daytime and night time respectively
+  hourlyDayOrNightFlag = simulatorClass.hourlyDayOrNightFlag
+  greenhouseTemperature = np.array(
+    [constant.setPointTemperatureDayTime if i == constant.daytime else constant.setPointTemperatureNightTime for i in hourlyDayOrNightFlag])
+
+  return greenhouseTemperature
+
+def getFreshWeightIncrease(FWPerHead):
+  # get the fresh weight increase
+
+  # freshWeightIncrease = np.array([WFresh[i] - WFresh[i-1] if WFresh[i] - WFresh[i-1] > 0 else 0.0 for i in range (1, WFresh.shape[0])])
+  # # insert the value for i == 0
+  # freshWeightIncrease[0] = 0.0
+  # it is possible that the weight decreases at E_J_VanHenten1994
+  freshWeightIncrease = np.array([0.0 if i == 0 or FWPerHead[i] - FWPerHead[i-1] <= -constant.harvestDryWeight*constant.DryMassToFreshMass/2.0\
+                                    else FWPerHead[i] - FWPerHead[i-1] for i in range (0, FWPerHead.shape[0])])
+
+  return freshWeightIncrease
+
+
+def getAccumulatedFreshWeightIncrease(WFresh):
+  # get accumulated fresh weight
+
+  freshWeightIncrease = getFreshWeightIncrease(WFresh)
+  accumulatedFreshWeightIncrease = np.zeros(WFresh.shape[0])
+  accumulatedFreshWeightIncrease[0] = WFresh[0]
+  for i in range(1, freshWeightIncrease.shape[0]):
+    # print("i:{}, accumulatedFreshWeightIncrease[i]:{}, accumulatedFreshWeightIncrease[i-1]:{}, freshWeightIncrease[i]:{}".format(i, accumulatedFreshWeightIncrease[i], accumulatedFreshWeightIncrease[i-1], freshWeightIncrease[i]))
+    accumulatedFreshWeightIncrease[i] = accumulatedFreshWeightIncrease[i-1] + freshWeightIncrease[i]
+
+  return accumulatedFreshWeightIncrease
+
+
+def getHarvestedFreshWeight(WFresh):
+  # get the harvested fresh weight
+
+  # record the fresh weight harvested at each harvest day or hour
+  harvestedFreshWeight = np.array([WFresh[i] if WFresh[i] > 0.0 and WFresh[i+1] == 0.0 else 0.0 for i in range (0, WFresh.shape[0]-1)])
+  # print("0 harvestedFreshWeight.shape[0]:{}".format(harvestedFreshWeight.shape[0]))
+
+  # if the last hour of the last day is the harvest date
+  if WFresh[-1] > constant.harvestDryWeight*constant.DryMassToFreshMass:
+    harvestedFreshWeight = np.append(harvestedFreshWeight, [WFresh[-1]])
+  else:
+    harvestedFreshWeight = np.append(harvestedFreshWeight, [0.0])
+
+  return harvestedFreshWeight
+
 

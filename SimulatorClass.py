@@ -15,15 +15,21 @@ class SimulatorClass:
     self._monthlyElectricitySalesperArea = None
     self._monthlyElectricitySalesperAreaEastRoof = None
     self._monthlyElectricitySalesperAreaWestRoof = None
-    self._oPVCostUSDForDepreciationperArea = None
-
+    self._totalElectricitySalesPerAreaPerMonth = None
+    self._totalElectricitySalesPerMonth = None
+    self._totalElectricitySales = None
+    self._oPVCostUSDForDepreciationPerOPVArea = None
+    self._totalOPVCostUSDForDepreciation = None
+    self._totalOPVCostUSDForDepreciationPerGHFloorArea = None
+    self._electricityProductionProfit = None
+    self._electricityProductionProfitPerGHFloorArea = None
     self._hourlyInnerLightIntensityPPFDThroughGlazing = None
     self._hourlyInnerLightIntensityPPFDThroughInnerStructure = None
     self._directPPFDToOPVEastDirection = None
     self._directPPFDToOPVWestDirection = None
     self._diffusePPFDToOPV = None
     self._groundReflectedPPFDToOPV = None
-    self._totalDLItoPlantsBaselineShadingCuratin = None
+    # self._totalDLItoPlantsBaselineShadingCuratin = None
     self._directDLIToOPVEastDirection = None
     self._directDLIToOPVWestDirection = None
     self._diffuseDLIToOPV = None
@@ -34,11 +40,21 @@ class SimulatorClass:
     self._hourlyDirectPPFDAfterMultiSpanRoof = None
     self._hourlyDiffusePPFDAfterMultiSpanRoof = None
     self._groundReflectedPPFDAfterMultiSpanRoof = None
-
     self._shootFreshMassList = None
     self._unitDailyFreshWeightIncrease = None
     self._accumulatedUnitDailyFreshWeightIncrease = None
     self._unitDailyHarvestedFreshWeight = None
+    self._totalPlantSalesperSquareMeter = None
+    self._totalPlantSales = None
+    self._totalPlantSalesPerGHFloorArea = None
+    self._totalLaborCost = None
+    self._totalLaborCostPerGHFloorArea = None
+    self._totalPlantProductionCost = None
+    self._totalPlantProductionCostPerGHFloorArea = None
+    self._totalPlantProfit = None
+    self._totalPlantProfitPerGHFloorArea = None
+    self._economicProfit = None
+    self._economicProfitPerGHFloorArea = None
     self._averageDLIonEachCycle = None
     self._year = None
     self._month = None
@@ -66,6 +82,7 @@ class SimulatorClass:
     self._diffusePPFDToPlants = None
     self._directDLIToPlants = None
     self._diffuseDLIToPlants = None
+    self._totalDLItoPlants = None
     self._hourlyDayOrNightFlag = None
     self._hourlyHorizontalDiffuseOuterSolarIrradiance = None
     self._hourlyHorizontalTotalOuterSolarIrradiance = None
@@ -73,7 +90,6 @@ class SimulatorClass:
     self._hourlyHorizontalTotalBeamMeterBodyTemperature = None
     self._hourlyAirTemperature = None
 
-    ############## boolean variables ##############
     self._ifGrowForSummerPeriod = False
     # if you want to calculate the estimated data which does not require the measured data, set this variable True.
     self._estimateSolarRadiationMode = False
@@ -86,7 +102,13 @@ class SimulatorClass:
     self._T_matForPerpendicularIrrWestOrSouthFacingRoof = None
     self._integratedT_mat = None
     self._directHorizontalSolarRadiation = None
+    self._dailyWhopvoutperAreaEastRoof = None
+    self._dailyWhopvoutperAreaWestRoof = None
 
+    self._dailyShootFreshMass = None
+    self._dailyUnitDailyFreshWeightIncrease = None
+    self._dailyAccumulatedUnitDailyFreshWeightIncrease = None
+    self._dailyUnitHarvestedFreshWeight = None
 
   def setOPVAreaCoverageRatio(self, OPVAreaCoverageRatio):
     self._OPVAreaCoverageRatio = OPVAreaCoverageRatio
@@ -139,13 +161,59 @@ class SimulatorClass:
   def getMonthlyElectricitySalesperAreaWestRoof(self):
     return self._monthlyElectricitySalesperAreaWestRoof
 
-  def setOPVCostUSDForDepreciationperArea(self, oPVCostUSDForDepreciationperArea):
-    self._oPVCostUSDForDepreciationperArea = oPVCostUSDForDepreciationperArea
+  @property
+  def totalElectricitySalesPerMonth(self):
+    return self._totalElectricitySalesPerMonth
+  @totalElectricitySalesPerMonth.setter
+  def totalElectricitySalesPerMonth(self, totalElectricitySalesPerMonth):
+    self._totalElectricitySalesPerMonth = totalElectricitySalesPerMonth
 
-  def getOPVCostUSDForDepreciationperArea(self):
-    return self._oPVCostUSDForDepreciationperArea
+  @property
+  def totalElectricitySalesPerAreaPerMonth(self):
+    return self._totalElectricitySalesPerAreaPerMonth
+  @totalElectricitySalesPerAreaPerMonth.setter
+  def totalElectricitySalesPerAreaPerMonth(self, totalElectricitySalesPerAreaPerMonth):
+    self._totalElectricitySalesPerAreaPerMonth = totalElectricitySalesPerAreaPerMonth
 
+  @property
+  def totalElectricitySales(self):
+    return self._totalElectricitySales
+  @totalElectricitySales.setter
+  def totalElectricitySales(self, totalElectricitySales):
+    self._totalElectricitySales = totalElectricitySales
 
+  def setOPVCostUSDForDepreciationPerOPVArea(self, oPVCostUSDForDepreciationPerOPVArea):
+    self._oPVCostUSDForDepreciationPerOPVArea = oPVCostUSDForDepreciationPerOPVArea
+  def getOPVCostUSDForDepreciationPerOPVArea(self):
+    return self._oPVCostUSDForDepreciationPerOPVArea
+
+  @property
+  def totalOPVCostUSDForDepreciation(self):
+    return self._totalOPVCostUSDForDepreciation
+  @totalOPVCostUSDForDepreciation.setter
+  def totalOPVCostUSDForDepreciation(self, totalOPVCostUSDForDepreciation):
+    self._totalOPVCostUSDForDepreciation = totalOPVCostUSDForDepreciation
+
+  @property
+  def totalOPVCostUSDForDepreciationPerGHFloorArea(self):
+    return self._totalOPVCostUSDForDepreciationPerGHFloorArea
+  @totalOPVCostUSDForDepreciationPerGHFloorArea.setter
+  def totalOPVCostUSDForDepreciationPerGHFloorArea(self, totalOPVCostUSDForDepreciationPerGHFloorArea):
+    self._totalOPVCostUSDForDepreciationPerGHFloorArea = totalOPVCostUSDForDepreciationPerGHFloorArea
+
+  @property
+  def electricityProductionProfit(self):
+    return self._electricityProductionProfit
+  @electricityProductionProfit.setter
+  def electricityProductionProfit(self, electricityProductionProfit):
+    self._electricityProductionProfit = electricityProductionProfit
+
+  @property
+  def electricityProductionProfitPerGHFloorArea(self):
+    return self._electricityProductionProfitPerGHFloorArea
+  @electricityProductionProfitPerGHFloorArea.setter
+  def electricityProductionProfitPerGHFloorArea(self, electricityProductionProfitPerGHFloorArea):
+    self._electricityProductionProfitPerGHFloorArea = electricityProductionProfitPerGHFloorArea
 
   ######################## measured solar radiation to OPV start ########################
   def setDirectSolarRadiationToOPVEastDirection(self, directSolarRadiationToOPVEastDirection):
@@ -231,10 +299,10 @@ class SimulatorClass:
   def getGroundReflectedPPFDToOPV(self):
     return self._groundReflectedPPFDToOPV
 
-  def setTotalDLItoPlantsBaselineShadingCuratin(self, totalDLItoPlantsBaselineShadingCuratin):
-    self._totalDLItoPlantsBaselineShadingCuratin = totalDLItoPlantsBaselineShadingCuratin
-  def getTotalDLItoPlantsBaselineShadingCuratin(self):
-    return self._totalDLItoPlantsBaselineShadingCuratin
+  # def setTotalDLItoPlantsBaselineShadingCuratin(self, totalDLItoPlantsBaselineShadingCuratin):
+  #   self._totalDLItoPlantsBaselineShadingCuratin = totalDLItoPlantsBaselineShadingCuratin
+  # def getTotalDLItoPlantsBaselineShadingCuratin(self):
+  #   return self._totalDLItoPlantsBaselineShadingCuratin
 
   def setDirectDLIToOPVEastDirection(self, directDLIToOPVEastDirection):
     self._directDLIToOPVEastDirection = directDLIToOPVEastDirection
@@ -309,6 +377,84 @@ class SimulatorClass:
   def getUnitDailyHarvestedFreshWeight(self):
     return self._unitDailyHarvestedFreshWeight
 
+  @property
+  def totalPlantSales(self):
+    return self._totalPlantSales
+  @totalPlantSales.setter
+  def totalPlantSales(self, totalPlantSales):
+    self._totalPlantSales = totalPlantSales
+
+  @property
+  def totalPlantSalesperSquareMeter(self):
+    return self._totalPlantSalesperSquareMeter
+  @totalPlantSalesperSquareMeter.setter
+  def totalPlantSalesperSquareMeter(self, totalPlantSalesperSquareMeter):
+    self._totalPlantSalesperSquareMeter = totalPlantSalesperSquareMeter
+
+  @property
+  def totalPlantSalesPerGHFloorArea(self):
+    return self._totalPlantSalesPerGHFloorArea
+  @totalPlantSalesPerGHFloorArea.setter
+  def totalPlantSalesPerGHFloorArea(self, totalPlantSalesPerGHFloorArea):
+    self._totalPlantSalesPerGHFloorArea = totalPlantSalesPerGHFloorArea
+
+
+  @property
+  def totalLaborCost(self):
+    return self._totalLaborCost
+  @totalLaborCost.setter
+  def totalLaborCost(self, totalLaborCost):
+    self._totalLaborCost = totalLaborCost
+
+  @property
+  def totalLaborCostPerGHFloorArea(self):
+    return self._totalLaborCostPerGHFloorArea
+  @totalLaborCostPerGHFloorArea.setter
+  def totalLaborCostPerGHFloorArea(self, totalLaborCostPerGHFloorArea):
+    self._totalLaborCostPerGHFloorArea = totalLaborCostPerGHFloorArea
+
+  @property
+  def totalPlantProductionCost(self):
+    return self._totalPlantProductionCost
+  @totalPlantProductionCost.setter
+  def totalPlantProductionCost(self, totalPlantProductionCost):
+    self._totalPlantProductionCost = totalPlantProductionCost
+
+  @property
+  def totalPlantProductionCostPerGHFloorArea(self):
+    return self._totalPlantProductionCostPerGHFloorArea
+  @totalPlantProductionCostPerGHFloorArea.setter
+  def totalPlantProductionCostPerGHFloorArea(self, totalPlantProductionCostPerGHFloorArea):
+    self._totalPlantProductionCostPerGHFloorArea = totalPlantProductionCostPerGHFloorArea
+
+  @property
+  def totalPlantProfit(self):
+    return self._totalPlantProfit
+  @totalPlantProfit.setter
+  def totalPlantProfit(self, totalPlantProfit):
+    self._totalPlantProfit = totalPlantProfit
+
+  @property
+  def totalPlantProfitPerGHFloorArea(self):
+    return self._totalPlantProfitPerGHFloorArea
+  @totalPlantProfitPerGHFloorArea.setter
+  def totalPlantProfitPerGHFloorArea(self, totalPlantProfitPerGHFloorArea):
+    self._totalPlantProfitPerGHFloorArea = totalPlantProfitPerGHFloorArea
+
+  @property
+  def economicProfit(self):
+    return self._economicProfit
+  @economicProfit.setter
+  def economicProfit(self, economicProfit):
+    self._economicProfit = economicProfit
+
+  @property
+  def economicProfitPerGHFloorArea(self):
+    return self._economicProfitPerGHFloorArea
+  @economicProfitPerGHFloorArea.setter
+  def economicProfitPerGHFloorArea(self, economicProfitPerGHFloorArea):
+    self._economicProfitPerGHFloorArea = economicProfitPerGHFloorArea
+
   def setAverageDLIonEachCycle(self, averageDLIonEachCycle):
     self._averageDLIonEachCycle = averageDLIonEachCycle
   def getAverageDLIonEachCycle(self):
@@ -356,6 +502,51 @@ class SimulatorClass:
     return self._importedHourlyAirTemperature
   ######################### imported data end #########################
 
+
+  ######################### solar radiation to tilted OPV (roof) start #########################
+  @property
+  def dailyWhopvoutperAreaEastRoof(self):
+    return self._dailyWhopvoutperAreaEastRoof
+  @dailyWhopvoutperAreaEastRoof.setter
+  def dailyWhopvoutperAreaEastRoof(self, dailyWhopvoutperAreaEastRoof):
+    self._dailyWhopvoutperAreaEastRoof = dailyWhopvoutperAreaEastRoof
+
+  @property
+  def dailyWhopvoutperAreaWestRoof(self):
+    return self._dailyWhopvoutperAreaWestRoof
+  @dailyWhopvoutperAreaWestRoof.setter
+  def dailyWhopvoutperAreaWestRoof(self, dailyWhopvoutperAreaWestRoof):
+    self._dailyWhopvoutperAreaWestRoof = dailyWhopvoutperAreaWestRoof
+
+  @property
+  def dailykWhopvoutperAreaEastRoof(self):
+    return self._dailykWhopvoutperAreaEastRoof
+  @dailykWhopvoutperAreaEastRoof.setter
+  def dailykWhopvoutperAreaEastRoof(self, dailykWhopvoutperAreaEastRoof):
+    self._dailykWhopvoutperAreaEastRoof = dailykWhopvoutperAreaEastRoof
+
+  @property
+  def dailykWhopvoutperAreaWestRoof(self):
+    return self._dailykWhopvoutperAreaWestRoof
+  @dailykWhopvoutperAreaWestRoof.setter
+  def dailykWhopvoutperAreaWestRoof(self, dailykWhopvoutperAreaWestRoof):
+    self._dailykWhopvoutperAreaWestRoof = dailykWhopvoutperAreaWestRoof
+
+  @property
+  def totalkWhopvoutPerday(self):
+    return self._totalkWhopvoutPerday
+  @totalkWhopvoutPerday.setter
+  def totalkWhopvoutPerday(self, totalkWhopvoutPerday):
+    self._totalkWhopvoutPerday = totalkWhopvoutPerday
+
+  @property
+  def totalkWhopvoutPerMeterPerday(self):
+    return self._totalkWhopvoutPerMeterPerday
+  @totalkWhopvoutPerMeterPerday.setter
+  def totalkWhopvoutPerMeterPerday(self, totalkWhopvoutPerMeterPerday):
+    self._totalkWhopvoutPerMeterPerday = totalkWhopvoutPerMeterPerday
+  ######################### solar radiation to tilted OPV (roof) end #########################
+
   def setIfGrowForSummerPeriod(self, ifGrowForSummerPeriod):
     self._ifGrowForSummerPeriod = ifGrowForSummerPeriod
   def getIfGrowForSummerPeriod(self):
@@ -373,11 +564,10 @@ class SimulatorClass:
   def getIfHasShadingCurtain(self):
     return self._ifHasShadingCurtain
 
+    ############################################ angles start################
   @property
   def hourlySolarIncidenceAngleEastDirection(self):
     return self._hourlySolarIncidenceAngleEastDirection
-
-    ############################################ angles start################
   @hourlySolarIncidenceAngleEastDirection.setter
   def hourlySolarIncidenceAngleEastDirection(self, hourlySolarIncidenceAngleEastDirection):
     self._hourlySolarIncidenceAngleEastDirection = hourlySolarIncidenceAngleEastDirection
@@ -385,7 +575,6 @@ class SimulatorClass:
   @property
   def hourlySolarIncidenceAngleWestDirection(self):
     return self._hourlySolarIncidenceAngleWestDirection
-
   @hourlySolarIncidenceAngleWestDirection.setter
   def hourlySolarIncidenceAngleWestDirection(self, hourlySolarIncidenceAngleWestDirection):
     self._hourlySolarIncidenceAngleWestDirection = hourlySolarIncidenceAngleWestDirection
@@ -468,6 +657,14 @@ class SimulatorClass:
   @diffuseDLIToPlants.setter
   def diffuseDLIToPlants(self, diffuseDLIToPlants):
     self._diffuseDLIToPlants = diffuseDLIToPlants
+
+  @property
+  def totalDLItoPlants(self):
+    return self._totalDLItoPlants
+  @totalDLItoPlants.setter
+  def totalDLItoPlants(self, totalDLItoPlants):
+    self._totalDLItoPlants = totalDLItoPlants
+
   ##############################solar irradiance to plants end##############################
 
   @property
@@ -478,7 +675,6 @@ class SimulatorClass:
     self._hourlyDayOrNightFlag = hourlyDayOrNightFlag
 
   ##############################imported data start##############################
-
   @property
   def hourlyHorizontalDirectOuterSolarIrradiance(self):
     return self._hourlyHorizontalDirectOuterSolarIrradiance
@@ -544,4 +740,53 @@ class SimulatorClass:
   @directHorizontalSolarRadiation.setter
   def directHorizontalSolarRadiation(self, directHorizontalSolarRadiation):
     self._directHorizontalSolarRadiation = directHorizontalSolarRadiation
+
+  ##############################plant weights (growth)start ##############################
+  @property
+  def dailyShootFreshMass(self):
+    return self._dailyShootFreshMass
+  @dailyShootFreshMass.setter
+  def dailyShootFreshMass(self, dailyShootFreshMass):
+    self._dailyShootFreshMass = dailyShootFreshMass
+
+  @property
+  def dailyUnitDailyFreshWeightIncrease(self):
+    return self._dailyUnitDailyFreshWeightIncrease
+  @dailyUnitDailyFreshWeightIncrease.setter
+  def dailyUnitDailyFreshWeightIncrease(self, dailyUnitDailyFreshWeightIncrease):
+    self._dailyUnitDailyFreshWeightIncrease = dailyUnitDailyFreshWeightIncrease
+
+  @property
+  def dailyAccumulatedUnitDailyFreshWeightIncrease(self):
+    return self._dailyAccumulatedUnitDailyFreshWeightIncrease
+  @dailyAccumulatedUnitDailyFreshWeightIncrease.setter
+  def dailyAccumulatedUnitDailyFreshWeightIncrease(self, dailyAccumulatedUnitDailyFreshWeightIncrease):
+    self._dailyAccumulatedUnitDailyFreshWeightIncrease = dailyAccumulatedUnitDailyFreshWeightIncrease
+
+  @property
+  def dailyUnitHarvestedFreshWeight(self):
+    return self._dailyUnitHarvestedFreshWeight
+  @dailyUnitHarvestedFreshWeight.setter
+  def dailyUnitHarvestedFreshWeight(self, dailyUnitHarvestedFreshWeight):
+    self._dailyUnitHarvestedFreshWeight = dailyUnitHarvestedFreshWeight
+
+  @property
+  def shootFreshMassPerAreaKgPerDay(self):
+    return self._shootFreshMassPerAreaKgPerDay
+  @shootFreshMassPerAreaKgPerDay.setter
+  def shootFreshMassPerAreaKgPerDay(self, shootFreshMassPerAreaKgPerDay):
+    self._shootFreshMassPerAreaKgPerDay = shootFreshMassPerAreaKgPerDay
+
+  @property
+  def harvestedShootFreshMassPerAreaKgPerDay(self):
+    return self._harvestedShootFreshMassPerAreaKgPerDay
+  @harvestedShootFreshMassPerAreaKgPerDay.setter
+  def harvestedShootFreshMassPerAreaKgPerDay(self, harvestedShootFreshMassPerAreaKgPerDay):
+    self._harvestedShootFreshMassPerAreaKgPerDay = harvestedShootFreshMassPerAreaKgPerDay
+
+
+
+
+
+
 

@@ -47,7 +47,7 @@ def calcOPVmoduleSolarIrradianceGHRoof(simulatorClass, roofDirectionNotation=con
 
     # [rad] symbol: delta
     hourlyDeclinationAngle = OPVFilm.calcDeclinationAngle(year, month, day)
-    # print "hourlyDeclinationAngle:{}".format(np.degrees(hourlyDeclinationAngle))
+    # print "hourlyDecl	inationAngle:{}".format(np.degrees(hourlyDeclinationAngle))
     # print "hourlyDeclinationAngle:{}".format(hourlyDeclinationAngle)
 
     # [rad] symbol: omega
@@ -169,8 +169,7 @@ def getDailyElectricityYieldperArea(hourlyOPVTemperature, directSolarRadiationTo
     '''
     calculate the daily electricity yield per area (m^2).
     :param hourlyOPVTemperature: [celsius]
-    :param directSolarRadiationToOPVEastDirection: [W/m^2]
-    :param directSolarRadiationToOPVWestDirection: [W/m^2]
+    :param directSolarRadiationToOPV: [W/m^2]
     :param diffuseSolarRadiationToOPV: [W/m^2]
     :param groundReflectedSolarradiationToOPV:[W/m^2]
     :return:
@@ -184,8 +183,7 @@ def getDailyElectricityYieldperArea(hourlyOPVTemperature, directSolarRadiationTo
     return dailyJopvoutperArea
 
 
-
-def getDirectSolarIrradianceToMultiSpanRoof(simulatorClass):
+def getDirectSolarIrradianceThroughMultiSpanRoof(simulatorClass):
     '''
     calculate the solar irradiance to multi span roof.
     this calculates the solar irradiance to the single span if you set proper variables at the constant class
@@ -199,8 +197,8 @@ def getDirectSolarIrradianceToMultiSpanRoof(simulatorClass):
     # get the direct solar radiation [W/m^2]
     directSolarRadiationToOPVEastFacingRoof = simulatorClass.getDirectSolarRadiationToOPVEastDirection()
     directSolarRadiationToOPVWestFacingRoof = simulatorClass.getDirectSolarRadiationToOPVWestDirection()
-    print("directSolarRadiationToOPVEastFacingRoof: {}".format(directSolarRadiationToOPVEastFacingRoof))
-    print("directSolarRadiationToOPVWestFacingRoof: {}".format(directSolarRadiationToOPVWestFacingRoof))
+    # print("directSolarRadiationToOPVEastFacingRoof: {}".format(directSolarRadiationToOPVEastFacingRoof))
+    # print("directSolarRadiationToOPVWestFacingRoof: {}".format(directSolarRadiationToOPVWestFacingRoof))
 
     # module azimuth of each roof facing the opposite direction [rad], which is a scalar value
     hourlyModuleAzimuthAngleEast = simulatorClass.hourlyModuleAzimuthAngleEast
@@ -298,8 +296,12 @@ def setSolarIrradianceToPlants(simulatorClass):
     # set the data to the object
     simulatorClass.directSolarIrradianceToPlants = directSolarIrradianceToPlants
     simulatorClass.diffuseSolarIrradianceToPlants = diffuseSolarIrradianceToPlants
-    print("directSolarIrradianceToPlants:{}".format(directSolarIrradianceToPlants))
-    print("diffuseSolarIrradianceToPlants:{}".format(diffuseSolarIrradianceToPlants))
+    # #############command to print out all array data
+    # np.set_printoptions(threshold=np.inf)
+    # print("directSolarIrradianceToPlants:{}".format(directSolarIrradianceToPlants))
+    # print("diffuseSolarIrradianceToPlants:{}".format(diffuseSolarIrradianceToPlants))
+    # np.set_printoptions(threshold=1000)
+    # #############
 
     # unit change of the imported outer solar radiation: [W m^-2] -> [umol m^-2 s^-1] == PPFD
     directPPFDToPlants = util.convertFromWattperSecSquareMeterToPPFD(directSolarIrradianceToPlants)
@@ -310,9 +312,15 @@ def setSolarIrradianceToPlants(simulatorClass):
 
     # convert the unit into PPFD snd DLI
     directDLIToPlants = util.convertFromHourlyPPFDWholeDayToDLI(directPPFDToPlants)
-    diffuseDLIToPlants = util.convertFromHourlyPPFDWholeDayToDLI(directPPFDToPlants)
+    diffuseDLIToPlants = util.convertFromHourlyPPFDWholeDayToDLI(diffusePPFDToPlants)
     simulatorClass.directDLIToPlants = directDLIToPlants
     simulatorClass.diffuseDLIToPlants = diffuseDLIToPlants
+    #############command to print out all array data
+    np.set_printoptions(threshold=np.inf)
+    print("directDLIToPlants:{}".format(directDLIToPlants))
+    print("diffuseDLIToPlants:{}".format(diffuseDLIToPlants))
+    np.set_printoptions(threshold=1000)
+    #############
 
 
 # def setThermalTimeToPlants(simulatorClass):
@@ -363,43 +371,59 @@ def getPlantYieldSimulation(simulatorClass):
 
     # calculate the daily increase of unit fresh weight
     # this model considers only solar irradiance, and so this will not be so practical
+    # the simulated cultivar is butter head lettuce
     if plantGrowthModel == constant.A_J_Both_Modified_TaylorExpantionWithFluctuatingDLI:
-        #unit  [g]
+        #unit  [g/head]
         shootFreshMassList, unitDailyFreshWeightIncrease, accumulatedUnitDailyFreshWeightIncrease, unitHarvestedFreshWeight = \
             Lettuce.calcUnitDailyFreshWeightBoth2003TaylorExpantionWithVaryingDLI(hourlyInnerPPFDToPlants, cultivationDaysperHarvest, simulatorClass)
         # print "shootFreshMassList.shape:{}".format(shootFreshMassList.shape)
 
-        return shootFreshMassList, unitDailyFreshWeightIncrease,accumulatedUnitDailyFreshWeightIncrease,unitHarvestedFreshWeight
-
+    # the simulated cultivar is Berlo and Norden
     elif plantGrowthModel == constant.E_J_VanHenten1994:
-        # unit  [g]
+        # unit  [g/head]
         shootFreshMassList, \
         unitDailyFreshWeightIncrease, \
         accumulatedUnitDailyFreshWeightIncrease, \
         unitHarvestedFreshWeight = \
             PlantGrowthModelE_J_VanHenten.calcUnitDailyFreshWeightE_J_VanHenten1994(simulatorClass)
 
-        return shootFreshMassList, unitDailyFreshWeightIncrease,accumulatedUnitDailyFreshWeightIncrease,unitHarvestedFreshWeight
+        print("shootFreshMassList.shape[0]:{}".format(shootFreshMassList.shape[0]))
+        print("unitDailyFreshWeightIncrease.shape[0]:{}".format(unitDailyFreshWeightIncrease.shape[0]))
+        print("accumulatedUnitDailyFreshWeightIncrease.shape[0]:{}".format(accumulatedUnitDailyFreshWeightIncrease.shape[0]))
+        print("unitHarvestedFreshWeight.shape[0]:{}".format(unitHarvestedFreshWeight.shape[0]))
 
+        # Be careful! this model returns hourly weight, not daily weight. so convert the hourly value into daily value.
+        dailyShootFreshMassList = shootFreshMassList[23::constant.hourperDay]
+        # dailyUnitDailyFreshWeightIncrease = np.array(sum[ unitDailyFreshWeightIncrease[constant.hourperDay*(i-1):constant.hourperDay*i]] \
+        #                                              for i in range (0, unitDailyFreshWeightIncrease.shape[0]/constant.hourperDay ))
+        dailyUnitDailyFreshWeightIncrease = Lettuce.getFreshWeightIncrease(dailyShootFreshMassList)
+        dailyAccumulatedUnitDailyFreshWeightIncrease = Lettuce.getAccumulatedFreshWeightIncrease(dailyShootFreshMassList)
+        dailyUnitHarvestedFreshWeight = Lettuce.getHarvestedFreshWeight(dailyShootFreshMassList)
+
+    # this model was coded, but the result was not better than constant.E_J_VanHenten1994
     elif plantGrowthModel == constant.S_Pearson1997:
-        # unit  [g]
-        shootFreshMassList, \
-        unitDailyFreshWeightIncrease, \
-        accumulatedUnitDailyFreshWeightIncrease, \
-        unitHarvestedFreshWeight = \
+        # unit  [g/head]
+        dailyShootFreshMassList, \
+        dailyUnitDailyFreshWeightIncrease, \
+        dailyAccumulatedUnitDailyFreshWeightIncrease, \
+        dailyUnitHarvestedFreshWeight = \
           PlantGrowthModelS_Pearson1997.calcUnitDailyFreshWeightS_Pearson1997(simulatorClass)
 
-        return shootFreshMassList, unitDailyFreshWeightIncrease, accumulatedUnitDailyFreshWeightIncrease, unitHarvestedFreshWeight
-
-
     else:
-      print ("no valid model name is assigned. Return error. stop the simulation")
+      print ("no valid model name is assigned. Stop the simulation. Please choose a registered one")
       ####################################################################################################
       # Stop execution here...
       sys.exit()
       # Move the above line to different parts of the assignment as you implement more of the functionality.
       ####################################################################################################
 
+    # set the values to the object
+    simulatorClass.dailyShootFreshMass = dailyShootFreshMassList
+    simulatorClass.dailyUnitDailyFreshWeightIncrease = dailyUnitDailyFreshWeightIncrease
+    simulatorClass.dailyAccumulatedUnitDailyFreshWeightIncrease = dailyAccumulatedUnitDailyFreshWeightIncrease
+    simulatorClass.dailyUnitHarvestedFreshWeight = dailyUnitHarvestedFreshWeight
+
+    return dailyShootFreshMassList, dailyUnitDailyFreshWeightIncrease, dailyAccumulatedUnitDailyFreshWeightIncrease, dailyUnitHarvestedFreshWeight
 
 
 def getTotalDLIToPlants(OPVAreaCoverageRatio, directPPFDToOPV, diffusePPFDToOPV, groundReflectedPPFDToOPV, hasShadingCurtain, ShadingCurtainDeployPPFD, \
@@ -493,6 +517,193 @@ def getPenalizedUnitFreshWeight(lightIntensityDLI):
     c = 54.26
     return a * lightIntensityDLI**2 + b * lightIntensityDLI + c
 
+def getWholeElectricityYieldEachOPVRatio(OPVAreaCoverageRatio, dailyJopvout, cropElectricityYieldSimulator1, greenhouseRoofArea = None):
+    '''
+    return the total electricity yield for a given period by the given OPV area(OPVAreaCoverageRatio * constant.greenhouseRoofArea)
+    :param OPVAreaCoverageRatio: [-] proportionOPVAreaCoverageRatio
+    :param dailyJopvout: [J/m^2] per day
+    :return: dailyJopvout [J/m^2] by whole OPV area
+    '''
+
+    # get the OPV coverage ratio changing during the fallow period
+    unfixedOPVCoverageRatio = OPVFilm.getDifferentOPVCoverageRatioInSummerPeriod(OPVAreaCoverageRatio, cropElectricityYieldSimulator1)
+    # change the num of list from hourly data (365 * 24) to daily data (365)
+    unfixedOPVCoverageRatio = unfixedOPVCoverageRatio[::24]
+
+    if greenhouseRoofArea is None:
+      return sum(dailyJopvout * unfixedOPVCoverageRatio * constant.greenhouseRoofArea)
+    else:
+      return sum(dailyJopvout * unfixedOPVCoverageRatio * greenhouseRoofArea)
+    # # print "dailyJopvout:{}".format(dailyJopvout)
+    # totalJopvout = sum(dailyJopvout)
+    # if greenhouseRoofArea is None:
+    #     return totalJopvout * unfixedOPVCoverageRatio * constant.greenhouseRoofArea
+    # else:
+    #     return totalJopvout * unfixedOPVCoverageRatio * greenhouseRoofArea
+
+
+def getDailyElectricitySalesperArea():
+    # todo do later if necessary
+    return 0
+
+def getMonthlyElectricitySalesperArea(dailyJopvoutperArea, yearOfeachDay, monthOfeachDay):
+    '''
+
+    :param dailyJopvoutperArea:
+    :param yearOfeachDay:
+    :param monthOfeachDay:
+    :return:
+    '''
+    monthlyElectricityYieldperArea = OPVFilm.getMonthlyElectricityProductionFromDailyData(dailyJopvoutperArea, yearOfeachDay, monthOfeachDay)
+    # print "monthlyElectricityYieldperArea:{}".format(monthlyElectricityYieldperArea)
+
+    # import the electricity sales price file
+    fileName = constant.electricityPurchasePriceData
+    # import the file removing the header
+    fileData = util.readData(fileName, relativePath="", skip_header=1, d='\t')
+    # print "fileData:{}".format(fileData)
+
+    # print "monthlyElectricityYieldperArea.shape[0]:{}".format(monthlyElectricityYieldperArea.shape[0])
+    year = np.zeros(monthlyElectricityYieldperArea.shape[0])
+    month = np.zeros(monthlyElectricityYieldperArea.shape[0])
+    monthlyResidentialElectricityPrice = np.zeros(monthlyElectricityYieldperArea.shape[0])
+
+    index = 0
+    for monthlyData in fileData:
+        # exclude the data out of the set start month and end month
+        if datetime.date(int(monthlyData[0]), int(monthlyData[1]), 1) + relativedelta(months=1) <= util.getStartDateDateType() or \
+                datetime.date(int(monthlyData[0]), int(monthlyData[1]), 1) > util.getEndDateDateType():
+            continue
+        year[index] = monthlyData[0]
+        month[index] = monthlyData[1]
+        monthlyResidentialElectricityPrice[index] = monthlyData[2]
+        # print "monthlyData:{}".format(monthlyData)
+        index += 1
+
+    # unit exchange: [J/m^2] -> [wh/m^2]
+    monthlyWhopvoutperArea =util.convertFromJouleToWattHour(monthlyElectricityYieldperArea)
+    # unit exchange: [wh/m^2] -> [kwh/m^2]
+    monthlyKWhopvoutperArea =util.convertWhTokWh(monthlyWhopvoutperArea)
+    # [USD/month/m^2]
+    monthlyElectricitySalesperArea = OPVFilm.getMonthlyElectricitySalesperArea(monthlyKWhopvoutperArea, monthlyResidentialElectricityPrice)
+    # print "monthlyElectricitySalesperArea:{}".format(monthlyElectricitySalesperArea)
+
+    return monthlyElectricitySalesperArea
+
+
+def getMonthlyElectricitySales(OPVCoverage, monthlyElectricitySalesperArea, greenhouseRoofArea = None):
+    '''
+    return the monthly electricity saled given a cetain OPV coverage ratio
+
+    :param OPVCoverageList:
+    :param monthlyElectricitySalesperArea:
+    :return:
+    '''
+    if greenhouseRoofArea is None:
+        return monthlyElectricitySalesperArea * OPVCoverage * constant.greenhouseRoofArea
+    else:
+        return monthlyElectricitySalesperArea * OPVCoverage * greenhouseRoofArea
+
+def getElectricitySalesperAreaEachOPVRatio():
+    return 0
+
+def getElectricityCostperArea():
+    return 0
+
+
+def getPlantSalesperSquareMeter(simulatorClass):
+    """
+    calculate the sales price of lettuce per square meter.
+    The referred price is Lettuce, romaine, per lb. (453.6 gm) in U.S ( Northeast region: Connecticut, Maine, Massachusetts, New Hampshire, New Jersey, New York, Pennsylvania, Rhode Island, and Vermont.), city average, average price, not seasonally adjusted
+    reference URL: https://data.bls.gov/timeseries/APU0000FL2101?amp%253bdata_tool=XGtable&output_view=data&include_graphs=true
+    """
+
+    # get the following data from the object
+    totalDLIToPlants = simulatorClass.totalDLItoPlants
+
+    #################### this conversion is not used any more ####################
+    # # the price of lettuce per hundredweight [cwt]
+    # priceperCwtEachHour = Lettuce.getLettucePricepercwt(year)
+    # # unit conversion: cwt -> kg
+    # priceperKgEachHour = priceperCwtEachHour / constant.kgpercwt * constant.plantPriceDiscountRatio_justForSimulation
+    # # print "harvestedFreshWeightListperAreaKg:{}".format(harvestedFreshWeightListperAreaKg)
+    # # print "dailyHarvestedFreshWeightListperAreaKg.shape:{}".format(dailyHarvestedFreshWeightListperAreaKg.shape)
+    # # print "priceperKg:{}".format(priceperKg)
+    # # convert the price each hour to the price each day
+    # priceperKgEachDay = priceperKgEachHour[::24]
+    # # print "priceperKgEachDay:{}".format(priceperKgEachDay)
+    # # print "priceperKgEachDay.shape:{}".format(priceperKgEachDay.shape)
+    #################################################################################0
+    # get the retail price of lettuce harvested at each cycle
+    # unit: USD/m^2/day
+    plantSalesPerSquareMeter = Lettuce.getRetailPricePerArea(simulatorClass)
+    print ("plantSalesPerSquareMeter:{}".format(plantSalesPerSquareMeter))
+
+    if constant.IfConsiderDiscountByTipburn  == True:
+      # Tipburn discount
+      # TODO: need to refine more
+      plantSalesperSquareMeter = Lettuce.discountPlantSalesperSquareMeterByTipburn(plantSalesPerSquareMeter, totalDLIToPlants)
+
+
+    return plantSalesPerSquareMeter
+
+def getLaborCost(simulatorClass):
+    """
+    get the total labor cost during the simulation period
+    :return:
+    """
+
+    harvestedShootFreshMassPerAreaKgPerDay = simulatorClass.harvestedShootFreshMassPerAreaKgPerDay
+    # unit:kg
+    totalHarvestedShootFreshMass = sum(harvestedShootFreshMassPerAreaKgPerDay) * constant.greenhouseCultivationFloorArea
+    print("totalHarvestedShootFreshMass:{}".format(totalHarvestedShootFreshMass))
+
+    # source: https://onlinelibrary.wiley.com/doi/abs/10.1111/cjag.12161
+    # unit: [labors/10000 kg yield]
+    necessaryLaborPer10000kgYield = constant.necessaryLaborPer10000kgYield
+
+    # source:https://www.bls.gov/regions/west/news-release/occupationalemploymentandwages_tucson.htm
+    # unit:USD/labor/hour
+    hourlyWagePerPerson = constant.hourlyWagePerPerson
+
+    # unit:hour/day
+    workingHourPerDay = constant.workingHourPerDay
+
+    totalLaborCost = (totalHarvestedShootFreshMass / 10000.0) * necessaryLaborPer10000kgYield * workingHourPerDay * hourlyWagePerPerson * util.getSimulationDaysInt()
+    print("totalLaborCost:{}".format(totalLaborCost))
+
+    return totalLaborCost
+
+
+def getPlantCostperSquareMeter(simulationDays):
+    '''
+    calculate the cost for plant cultivation for given period
+    :param year:
+    :return:
+    '''
+    # [USD/m^2]
+    return constant.plantcostperSquaremeterperYear * simulationDays / constant.dayperYear
+
+
+
+
+
+
+################################################# old code below################################
+
+def calcOptimizedOPVAreaMaximizingtotalEconomicProfit(OPVAreaVector, totalEconomicProfitperYearVector):
+    '''
+    determine the best OPVArea maximizing the economic profit
+    param:
+        OPVAreaVector
+        totalEconomicProfitperYearVector
+    return:
+        none
+    '''
+    maxtotalEconomicProfitperYear = np.max(totalEconomicProfitperYearVector)
+    bestOPVArea = OPVAreaVector[np.argmax(totalEconomicProfitperYearVector)]
+    print "The OPV area maximizing the economic profit is {}m^2 the max economic profit is {}USD/year ".format(bestOPVArea, maxtotalEconomicProfitperYear)
+
 
 def trainWeightsRLShadingCurtainDayStep(hasShadingCurtain, qLearningAgentsShadingCurtain=None, cropElectricityYieldSimulator1 = None):
   '''
@@ -584,7 +795,6 @@ def trainWeightsRLShadingCurtainDayStep(hasShadingCurtain, qLearningAgentsShadin
     # sys.exit()
     # Move the above line to different parts of the assignment as you implement more of the functionality.
     # ####################################################################################################
-
 
 def testWeightsRLShadingCurtainDayStep(hasShadingCurtain, qLearningAgentsShadingCurtain = None, cropElectricityYieldSimulator1=None):
 
@@ -694,154 +904,7 @@ def testWeightsRLShadingCurtainDayStep(hasShadingCurtain, qLearningAgentsShading
   return plantSalesperSquareMeter
 
 
-def getWholeElectricityYieldEachOPVRatio(OPVAreaCoverageRatio, dailyJopvout, cropElectricityYieldSimulator1, greenhouseRoofArea = None):
-    '''
-    return the total electricity yield for a given period by the given OPV area(OPVAreaCoverageRatio * constant.greenhouseRoofArea)
-    :param OPVAreaCoverageRatio: [-] proportionOPVAreaCoverageRatio
-    :param dailyJopvout: [J/m^2] per day
-    :return: dailyJopvout [J/m^2] by whole OPV area
-    '''
-
-    # get the OPV coverage ratio changing during the fallow period
-    unfixedOPVCoverageRatio = OPVFilm.getDifferentOPVCoverageRatioInSummerPeriod(OPVAreaCoverageRatio, cropElectricityYieldSimulator1)
-    # change the num of list from hourly data (365 * 24) to daily data (365)
-    unfixedOPVCoverageRatio = unfixedOPVCoverageRatio[::24]
-
-    if greenhouseRoofArea is None:
-      return sum(dailyJopvout * unfixedOPVCoverageRatio * constant.greenhouseRoofArea)
-    else:
-      return sum(dailyJopvout * unfixedOPVCoverageRatio * greenhouseRoofArea)
-    # # print "dailyJopvout:{}".format(dailyJopvout)
-    # totalJopvout = sum(dailyJopvout)
-    # if greenhouseRoofArea is None:
-    #     return totalJopvout * unfixedOPVCoverageRatio * constant.greenhouseRoofArea
-    # else:
-    #     return totalJopvout * unfixedOPVCoverageRatio * greenhouseRoofArea
 
 
-def getDailyElectricitySalesperArea():
-    # todo do later if necessary
-    return 0
-
-def getMonthlyElectricitySalesperArea(dailyJopvoutperArea, yearOfeachDay, monthOfeachDay):
-    '''
-
-    :param dailyJopvoutperArea:
-    :param yearOfeachDay:
-    :param monthOfeachDay:
-    :return:
-    '''
-    monthlyElectricityYieldperArea = OPVFilm.getMonthlyElectricityProductionFromDailyData(dailyJopvoutperArea, yearOfeachDay, monthOfeachDay)
-    # print "monthlyElectricityYieldperArea:{}".format(monthlyElectricityYieldperArea)
-
-    # import the electricity sales price file
-    fileName = "electricityPurchasePriceData.csv"
-    # import the file removing the header
-    fileData = util.readData(fileName, relativePath="", skip_header=1, d='\t')
-    # print "fileData:{}".format(fileData)
-
-    # print "monthlyElectricityYieldperArea.shape[0]:{}".format(monthlyElectricityYieldperArea.shape[0])
-    year = np.zeros(monthlyElectricityYieldperArea.shape[0])
-    month = np.zeros(monthlyElectricityYieldperArea.shape[0])
-    monthlyResidentialElectricityPrice = np.zeros(monthlyElectricityYieldperArea.shape[0])
-
-    index = 0
-    for monthlyData in fileData:
-        # exclude the data out of the set start month and end month
-        if datetime.date(int(monthlyData[0]), int(monthlyData[1]), 1) + relativedelta(months=1) <= util.getStartDateDateType() or \
-                datetime.date(int(monthlyData[0]), int(monthlyData[1]), 1) > util.getEndDateDateType():
-            continue
-        year[index] = monthlyData[0]
-        month[index] = monthlyData[1]
-        monthlyResidentialElectricityPrice[index] = monthlyData[2]
-        # print "monthlyData:{}".format(monthlyData)
-        index += 1
-
-    # unit exchange: [J/m^2] -> [wh/m^2]
-    monthlyWhopvoutperArea =util.convertFromJouleToWattHour(monthlyElectricityYieldperArea)
-    # unit exchange: [wh/m^2] -> [kwh/m^2]
-    monthlyKWhopvoutperArea =util.convertWhTokWh(monthlyWhopvoutperArea)
-    # [USD/month/m^2]
-    monthlyElectricitySalesperArea = OPVFilm.getMonthlyElectricitySalesperArea(monthlyKWhopvoutperArea, monthlyResidentialElectricityPrice)
-    # print "monthlyElectricitySalesperArea:{}".format(monthlyElectricitySalesperArea)
-
-    return monthlyElectricitySalesperArea
 
 
-def getMonthlyElectricitySales(OPVCoverage, monthlyElectricitySalesperArea, greenhouseRoofArea = None):
-    '''
-    return the monthly electricity saled given a cetain OPV coverage ratio
-
-    :param OPVCoverageList:
-    :param monthlyElectricitySalesperArea:
-    :return:
-    '''
-    if greenhouseRoofArea is None:
-        return monthlyElectricitySalesperArea * OPVCoverage * constant.greenhouseRoofArea
-    else:
-        return monthlyElectricitySalesperArea * OPVCoverage * greenhouseRoofArea
-
-def getElectricitySalesperAreaEachOPVRatio():
-    return 0
-
-def getElectricityCostperArea():
-    return 0
-
-
-def getResourseUseEfficiency():
-    # TODO do later
-    return 0
-
-
-def getPlantSalesperSquareMeter(year, dailyHarvestedFreshWeightListperAreaKg, TotalDLItoPlants):
-    """
-    return the sales price of lettuce per square meter
-    :return:
-    """
-    # print "dailyHarvestedFreshWeightListperAreaKg:{}".format(dailyHarvestedFreshWeightListperAreaKg)
-    # print "dailyHarvestedFreshWeightListperAreaKg.shape:{}".format(dailyHarvestedFreshWeightListperAreaKg.shape)
-
-    # the price of lettuce per hundredweight [cwt]
-    priceperCwtEachHour = Lettuce.getLettucePricepercwt(year)
-
-    priceperKgEachHour = priceperCwtEachHour / constant.kgpercwt * constant.plantPriceDiscountRatio_justForSimulation
-    # print "harvestedFreshWeightListperAreaKg:{}".format(harvestedFreshWeightListperAreaKg)
-    # print "dailyHarvestedFreshWeightListperAreaKg.shape:{}".format(dailyHarvestedFreshWeightListperAreaKg.shape)
-    # print "priceperKg:{}".format(priceperKg)
-
-    # convert the price each hour to the price each day
-    priceperKgEachDay = priceperKgEachHour[::24]
-    # print "priceperKgEachDay:{}".format(priceperKgEachDay)
-    # print "priceperKgEachDay.shape:{}".format(priceperKgEachDay.shape)
-
-    plantSalesperSquareMeter = dailyHarvestedFreshWeightListperAreaKg * priceperKgEachDay
-    # print "plantSalesperSquareMeter:{}".format(plantSalesperSquareMeter)
-    # Tipburn discount
-    # TODO: will need to refine more
-    plantSalesperSquareMeterTipburnDiscount = Lettuce.discountPlantSalesperSquareMeterByTipburn(plantSalesperSquareMeter, TotalDLItoPlants)
-
-    return plantSalesperSquareMeterTipburnDiscount
-
-def getPlantCostperSquareMeter(simulationDays):
-    '''
-    calculate the cost for plant cultivation for given period
-    :param year:
-    :return:
-    '''
-    # [USD/m^2]
-    return constant.plantcostperSquaremeterperYear * simulationDays / constant.dayperYear
-
-################################################# old code below################################
-
-def calcOptimizedOPVAreaMaximizingtotalEconomicProfit(OPVAreaVector, totalEconomicProfitperYearVector):
-    '''
-    determine the best OPVArea maximizing the economic profit
-    param:
-        OPVAreaVector
-        totalEconomicProfitperYearVector
-    return:
-        none
-    '''
-    maxtotalEconomicProfitperYear = np.max(totalEconomicProfitperYearVector)
-    bestOPVArea = OPVAreaVector[np.argmax(totalEconomicProfitperYearVector)]
-    print "The OPV area maximizing the economic profit is {}m^2 the max economic profit is {}USD/year ".format(bestOPVArea, maxtotalEconomicProfitperYear)

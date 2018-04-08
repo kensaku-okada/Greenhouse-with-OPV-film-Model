@@ -464,7 +464,7 @@ def calcDirectBeamSolarRadiationNormalToTiltedOPVKacira2003(hourlySolarAltitudeA
 
     return directBeamSolarRadiationNormalToTiltedOPV
 
-def calcOPVElectricEnergyperArea (hourlyOPVTemperature, Popvin):
+def calcOPVElectricEnergyperArea (hourlyOPVTemperature, solarRadiationToOPV):
     '''
     calculate the electric energy per OPV area during the defined days [J/day/m^2]
     :param hourlyOPVTemperature:
@@ -478,7 +478,7 @@ def calcOPVElectricEnergyperArea (hourlyOPVTemperature, Popvin):
         # unit: [W/m^2] -> [J/m^2] per day
         dailyJopvout[day] = calcOPVElectricEnergyperAreaperDay(\
             hourlyOPVTemperature[day*constant.hourperDay : (day+1)*constant.hourperDay], \
-            Popvin[day*constant.hourperDay : (day+1)*constant.hourperDay])
+            solarRadiationToOPV[day*constant.hourperDay : (day+1)*constant.hourperDay])
 
     # print "dailyJopvout:{}".format(dailyJopvout)
 
@@ -503,21 +503,20 @@ def calcOPVElectricEnergyperAreaperDay(hourlyOPVTemperature, Popvin):
     #print"int(constant.hourperDay):{}".format(int(constant.hourperDay))
     #calculate the electric energy per OPV area (watt/m^2)
     for hour in range (0, int(constant.hourperDay)):
-        #TODO this equation was made based on my assumption. make sure which is correct by the experiment
+        #TODO this equation was made based on my assumption. make sure this is correct once the experiment data is obtained.
         # Jopvout += constant.OPVEfficiencyRatioSTC * constant.degradeCoefficientFromIdealtoReal * \
         #            (1.0 + constant.TempCoeffitientVmpp * (hourlyOPVTemperature[hour] - constant.STCtemperature)) * \
         #            (1.0 + constant.TempCoeffitientImpp * (hourlyOPVTemperature[hour] - constant.STCtemperature)) * \
         #            Popvin [hour]
         JopvoutAday += constant.OPVEfficiencyRatioSTC * constant.degradeCoefficientFromIdealtoReal * \
-                   (1.0 + constant.TempCoeffitientPmpp * (hourlyOPVTemperature[hour] - constant.STCtemperature)) * \
-                   Popvin[hour]
+                   (1.0 + constant.TempCoeffitientPmpp * (hourlyOPVTemperature[hour] - constant.STCtemperature)) * Popvin[hour]
 
     #print "Jopvout:{} (J/m^2)".format(Wopvout)
     return JopvoutAday
 
 def getMonthlyElectricityProductionFromDailyData (dailyJopvoutperArea, yearOfeachDay, monthOfeachDay):
     '''
-
+    summing the daily electricity produce to monthly produce
     :param dailyJopvoutperArea:
     :param yearOfeachDay:
     :param monthOfeachDay:
@@ -596,7 +595,7 @@ def getDirectSolarIrradianceToPlants(simulatorClass):
 
     # make the list of OPV coverage ratio at each hour changing during summer
     OPVAreaCoverageRatioChangingInSummer = getDifferentOPVCoverageRatioInSummerPeriod(OPVAreaCoverageRatio, simulatorClass)
-    print("OPVAreaCoverageRatioChangingInSummer:{}".format(OPVAreaCoverageRatioChangingInSummer))
+    # print("OPVAreaCoverageRatioChangingInSummer:{}".format(OPVAreaCoverageRatioChangingInSummer))
 
     #consider the transmission ratio of OPV film
     hourlyDirectSolarRadiationAfterOPVAndRoof = hourlyDirectSolarRadiationAfterMultiSpanRoof * (1 - OPVAreaCoverageRatioChangingInSummer) \

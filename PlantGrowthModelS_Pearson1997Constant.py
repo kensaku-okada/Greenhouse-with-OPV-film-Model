@@ -21,7 +21,7 @@ T_OS = 30.0
 
 #TODO there is no source about the value k. In my model, this was changed in my own way so that the model exibits an appropriate transition of head weight. So, need to validate it.
 # k = 6.9 * 10.0**(-2)
-k = 6.9 * 10.0**(-2) / 3.0
+k = 6.9 * 10.0**(-2) / 4.0
 # Factor to convert CO 2  to plant dry weight [-]
 psi = 30.0/44.0
 # Distance between plants [m]

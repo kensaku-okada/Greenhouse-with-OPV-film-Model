@@ -49,9 +49,23 @@ ifLoadWeight = True
 ########### RL constants end##################
 ##############################################
 
+#####################################################
+############ filepath and file name start ###########
+#####################################################
+environmentData = "20130101-20170101" + ".csv"
+
+romaineLettceRetailPriceFileName = "romaineLettuceRetailPrice.csv"
+romaineLettceRetailPriceFilePath = ""
+
+electricityPurchasePriceData = "electricityPurchasePriceData.csv"
+
+###################################################
+############ filepath and file name end ###########
+###################################################
+
 
 ###############################################################
-####################### If branch start #######################
+####################### If statement flag start ###############
 ###############################################################
 # True: use the real data (the imported data whose source is the local weather station "https://midcdmz.nrel.gov/ua_oasis/),
 # False: use the
@@ -63,9 +77,18 @@ ifExportMeasuredHorizontalAndExtimatedData = True
 
 #If True, export measured horizontal and estimated data only on 15th day each month.
 ifGet15thDayData = False
+
+# if consider the photo inhibition by too strong sunlight, True, if not, False
+# IfConsiderPhotoInhibition = True
+IfConsiderPhotoInhibition = False
+
+# if consider the price discount by tipburn , True, if not, False
+IfConsiderDiscountByTipburn = False
 #############################################################
-####################### If branch end #######################
+####################### If statement flag end################
 #############################################################
+
+
 
 ########################################
 ##########other constant start##########
@@ -91,7 +114,7 @@ STCtemperature = 25.0
 # do not include after 8/18/2016 because the dates after 8/18/2016 do not correctly log the body temperature.
 SimulationStartDate="20150101"
 # SimulationEndDate = "20151231"
-SimulationEndDate = "20150301"
+SimulationEndDate = "20150215"
 # one cultivation cycle
 # SimulationEndDate = "20150204"
 
@@ -224,6 +247,7 @@ greenhouseHeightSideWall = 1.8288 # = 6[feet]
 greenhouseSideWallArea = 2.0 * (greenhouseWidth + greenhouseDepth) * greenhouseHeightSideWall
 #center height of greenhouse (m)
 greenhouseHeightRoofTop = 4.8768 # = 16[feet]
+
 #width of the rooftop. calculate from the Pythagorean theorem. assumed that the shape of rooftop is straight (not curved), and the top height and roof angels are same at each span.
 greenhouseRoofWidth = math.sqrt((greenhouseWidth/(numOfSpans*2.0))**2.0 + (greenhouseHeightRoofTop-greenhouseHeightSideWall)**2.0)
 print ("greenhouseRoofWidth [m]: {}".format(greenhouseRoofWidth))
@@ -241,7 +265,12 @@ roofAngleEastOrNorth = greenhouseRoofAngle
 roofAngleWestOrSouth = greenhouseRoofAngle
 # area of the rooftop [m^2]. summing the left and right side of rooftops from the center.
 greenhouseTotalRoofArea = greenhouseRoofWidth * greenhouseDepth * numOfSpans * 2.0
-print ("greenhouseRoofArea[m^2]: {}".format(greenhouseTotalRoofArea))
+print ("greenhouseTotalRoofArea[m^2]: {}".format(greenhouseTotalRoofArea))
+
+greenhouseRoofTotalAreaEastOrNorth = greenhouseRoofWidthEastOrNorth * greenhouseDepth * numOfSpans
+print ("greenhouseRoofTotalAreaEastOrNorth[m^2]: {}".format(greenhouseRoofTotalAreaEastOrNorth))
+greenhouseRoofTotalAreaWestOrSouth = greenhouseRoofWidthWestOrSouth * greenhouseDepth * numOfSpans
+print ("greenhouseRoofTotalAreaWestOrSouth[m^2]: {}".format(greenhouseRoofTotalAreaWestOrSouth))
 #########################################################
 
 #the proportion of shade made by the structure, actuator (e.g. sensors and fog cooling systems) and farming equipments (e.g. gutters) (-)
@@ -308,32 +337,31 @@ OPVAreaCoverageRatioSummerPeriod = 0.5
 # OPVAreaCoverageRatioSummerPeriod = 0.25
 # OPVAreaCoverageRatioSummerPeriod = 0.0
 
-
 #the area of OPV on the roofTop.
 OPVArea = OPVAreaCoverageRatio * greenhouseTotalRoofArea
-#print "OPVArea:{}".format(OPVArea)
+print("OPVArea:{}".format(OPVArea))
+
+# the PV module area facing each angle
+OPVAreaFacingEastOrNorthfacingRoof = OPVArea * greenhouseRoofTotalAreaEastOrNorth/greenhouseTotalRoofArea
+OPVAreaFacingWestOrSouthfacingRoof = OPVArea * greenhouseRoofTotalAreaWestOrSouth/greenhouseTotalRoofArea
+
 
 #the ratio of degradation per day (/day)
-#TODO: search the function later
-OPVdegradationRatio = 0.001
-
-#conversion efficiency from ligtht energy to electricity
-#The efficiency of solar panels is based on standard testing conditions (STC),
-#under which all solar panel manufacturers must test their modules. STC specifies a temperature of 25°C (77 F),
-#solar irradiance of 1000 W/m2 and an air mass 1.5 (AM1.5) spectrums.
-#The STC efficiency of a 240-watt module measuring 1.65 square meters is calculated as follows:
-#240 watts ÷ (1.65m2 (module area) x 1000 W/m2) = 14.54%.
-#source: http://www.solartown.com/learning/solar-panels/solar-panel-efficiency-have-you-checked-your-eta-lately/
-OPVEfficiencyRatioSTC = 0.033
-#what is an air mass??
-#エアマスとは太陽光の分光放射分布を表すパラメーター、標準状態の大気（標準気圧１０１３ｈＰａ）に垂直に入射（太陽高度角９０°）した
-# 太陽直達光が通過する路程の長さをＡＭ１．０として、それに対する比で表わされます。
-#source: http://www.solartech.jp/module_char/standard.html
+# TODO: find a paper describing the general degradation ratio of OPV module
+#the specification document of our PV module says that the guaranteed quality period is 1 year.
+# reference (degradation ratio of PV module): https://www.nrel.gov/docs/fy12osti/51664.pdf
+OPVdegradationRatio = 0.0005
 
 # the coefficient converting the ideal (given by manufacturers) cell efficiency to the real efficiency under actual conditions
-degradeCoefficientFromIdealtoReal = 0.85
+# degradeCoefficientFromIdealtoReal = 0.85
+# this website (https://franklinaid.com/2013/02/06/solar-power-for-subs-the-panels/) says "In real-life conditions, the actual values will be somewhat more or less than listed by the manufacturer."
+# So it was assumed the manufacture's spec sheet correctly shows the actual power
+degradeCoefficientFromIdealtoReal = 1.00
 
 
+########################################################################################################################
+# the following information should be taken from the spec sheet provided by a PV module manufacturer
+########################################################################################################################
 #unit[/K]. The proportion of a change of voltage which the OPV film generates under STC condition (25°C),
 # mentioned in # Table 1-2-1
 TempCoeffitientVmpp =  -0.0019
@@ -344,12 +372,42 @@ TempCoeffitientImpp =  0.0008
 
 #unit[/K]. The proportion of a change of power which the OPV film generates under STC condition (25°C),
 # mentioned in Table 1-2-
-
 TempCoeffitientPmpp =  0.0002
 
 #transmission ratio of VISIBLE sunlight through OPV film.
 #OPVPARTransmittance = 0.6
 OPVPARTransmittance = 0.3
+
+# unit: [A]
+shortCircuitCurrent = 0.72
+# unit [V]
+openCIrcuitVoltage = 24.0
+# unit: [A]
+currentAtMaximumPowerPoint = 0.48
+# unit [V]
+voltageAtMaximumPowerPoint = 16.0
+# unit: [watt]
+maximumPower = currentAtMaximumPowerPoint * voltageAtMaximumPowerPoint
+
+# unit: [m^2]. This is the area per sheet, not roll (having 8 sheets concatenated). This area excludes the margin space of the OPV sheet. THe margin space are made from transparent laminated film with connectors.
+OPVAreaPerSheet = 0.849 * 0.66
+
+#conversion efficiency from ligtht energy to electricity
+#The efficiency of solar panels is based on standard testing conditions (STC),
+#under which all solar panel manufacturers must test their modules. STC specifies a temperature of 25°C (77 F),
+#solar irradiance of 1000 W/m2 and an air mass 1.5 (AM1.5) spectrums.
+#The STC efficiency of a 240-watt module measuring 1.65 square meters is calculated as follows:
+#240 watts ÷ (1.65m2 (module area) x 1000 W/m2) = 14.54%.
+#source: http://www.solartown.com/learning/solar-panels/solar-panel-efficiency-have-you-checked-your-eta-lately/
+# http://www.isu.edu/~rodrrene/Calculating%20the%20Efficiency%20of%20the%20Solar%20Cell.doc
+OPVEfficiencyRatioSTC = maximumPower / OPVAreaPerSheet / 1000.0 * 100.0
+#what is an air mass??
+#エアマスとは太陽光の分光放射分布を表すパラメーター、標準状態の大気（標準気圧１０１３ｈＰａ）に垂直に入射（太陽高度角９０°）した
+# 太陽直達光が通過する路程の長さをＡＭ１．０として、それに対する比で表わされます。
+#source: http://www.solartech.jp/module_char/standard.html
+
+########################################################################################################################
+
 
 #source: http://energy.gov/sites/prod/files/2014/01/f7/pvmrw13_ps5_3m_nachtigal.pdf (3M Ultra-Barrier Solar Film spec.pdf)
 
@@ -371,9 +429,10 @@ print("OPVPricePerAreaUSD:{}".format(OPVPricePerAreaUSD))
 
 
 # True == consider the OPV cost, False == ignore the OPV cost
-ifConsiderOPVCost = False
+ifConsiderOPVCost = True
 # if you set this 730, you assume the purchase cost of is OPV zero because at the simulator class, this number divides the integer number, which gives zero.
-OPVDepreciationPeriodDays = 730.0
+# OPVDepreciationPeriodDays = 730.0
+OPVDepreciationPeriodDays = 365.0
 
 OPVDepreciationMethod = "StraightLine"
 ###################################################################
@@ -433,8 +492,12 @@ plantProductionCostperSquareMeterPerYear = 1.096405
 
 numberOfRidge = 5.0
 
-#unit: m
+#unit: m. plant density can be derived from this.
 distanceBetweenPlants = 0.2
+
+# plant density (num of heads per area) [head/m^2]
+plantDensity = 1.0/(distanceBetweenPlants**2.0)
+
 
 #number of heads
 numberOFheads = int(greenhouseCultivationFloorDepth/distanceBetweenPlants * numberOfRidge)
@@ -466,12 +529,8 @@ plantGrowthModel = E_J_VanHenten1994
 lettuceBaseTemperature = 0.0
 DryMassToFreshMass = 1.0/0.045
 
-# [heads/m^2]
-numOfHeadsPerArea = 45.0
-# numOfHeadsPerArea = 25.0
-
 # the weight to harvest [g]
-harvestWeight = 200.0 / DryMassToFreshMass
+harvestDryWeight = 200.0 / DryMassToFreshMass
 
 # operation cost of plants [USD/m^2/year]
 plantcostperSquaremeterperYear = 1.096405
@@ -485,9 +544,6 @@ tipburnDiscountRatio = 0.2
 # make this number 1.0 in the end. change this only for simulation experiment
 plantPriceDiscountRatio_justForSimulation = 1.0
 
-# if consider the photo inhibition by too strong sunlight, True, if not, False
-IfConsiderPhotoInhibition = True
-
 # the set point temperature during day time [Celusius]
 # reference: A.J. Both, TEN YEARS OF HYDROPONIC LETTUCE RESEARCH: https://www.researchgate.net/publication/266453402_TEN_YEARS_OF_HYDROPONIC_LETTUCE_RESEARCH
 setPointTemperatureDayTime = 24.0
@@ -498,7 +554,6 @@ setPointTemperatureDayTime = 24.0
 setPointTemperatureNightTime = 19.0
 # setPointTemperatureNightTime = 16.8
 
-
 # the flags indicating daytime or nighttime at each time step
 daytime = "daytime"
 nighttime = "nighttime"
@@ -506,6 +561,25 @@ nighttime = "nighttime"
 ###################################################
 ##########Specification of the plants end##########
 ###################################################
+
+###################################################
+##########Specification of labor cost start########
+###################################################
+# source: https://onlinelibrary.wiley.com/doi/abs/10.1111/cjag.12161
+# unit: people/10000kg yield
+necessaryLaborPer10000kgYield = 0.315
+
+# source:https://www.bls.gov/regions/west/news-release/occupationalemploymentandwages_tucson.htm
+# unit:USD/person/hour
+hourlyWagePerPerson = 12.79
+
+# unit: hour/day
+workingHourPerDay = 8.0
+
+###################################################
+##########Specification of labor cost end########
+###################################################
+
 
 #########################################################################
 ###########################Global variable end###########################

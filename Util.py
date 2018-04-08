@@ -170,7 +170,7 @@ def dateFormConversionYyyyMmDdToMnSlashddSlashYyyy(yyyymmdd):
 
     return mmSlashddSlashyyyy
 
-def readData(fileName, relativePath = "exportFile", skip_header=0, d=','):
+def readData(fileName, relativePath = "", skip_header=0, d=','):
     '''
     retrieve the data from the file named fileName
     you may have to modify the path below in other OSs.
@@ -536,7 +536,7 @@ def convertUnitShootFreshMassToShootFreshMassperArea(shootFreshMassList):
     :return:
     '''
     # unit convert [g/head] -> [g/m^2]
-    shootFreshMassListperArea = shootFreshMassList * constant.numOfHeadsPerArea
+    shootFreshMassListperArea = shootFreshMassList * constant.plantDensity
     return shootFreshMassListperArea
 
 def convertcwtToKg(cwt):
@@ -553,6 +553,10 @@ def convertHourlyTemperatureToDailyAverageTemperature(hourlyTemperature):
     dailyAverageTemperature[i] = np.average(hourlyTemperature[i*constant.hourperDay : (i+1)*constant.hourperDay])
 
   return dailyAverageTemperature
+
+
+def convertPoundToKg(pound):
+  return pound * (1.0 / 0.45359237)
 
 
 def saveFigure (filename):
