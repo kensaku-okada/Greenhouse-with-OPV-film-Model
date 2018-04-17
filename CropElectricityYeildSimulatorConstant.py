@@ -368,8 +368,10 @@ OPVAreaFacingWestOrSouthfacingRoof = OPVArea * (greenhouseRoofTotalAreaWestOrSou
 #the ratio of degradation per day (/day)
 # TODO: find a paper describing the general degradation ratio of OPV module
 #the specification document of our PV module says that the guaranteed quality period is 1 year.
-# reference (degradation ratio of PV module): https://www.nrel.gov/docs/fy12osti/51664.pdf
-OPVdegradationRatio = 0.0005
+# reference (degradation ratio of PV module): https://www.nrel.gov/docs/fy12osti/51664.pdf, https://www.solar-partners.jp/pv-eco-informations-41958.html
+# It was assumed that inorganic PV module expiration date is 20 years and its yearly degradation rate is 0.5% (from the first reference page 6), which indicates the OPV film degrades faster by 20 times.
+PVDegradationRatioPerHour =  20.0 * 0.005 / dayperYear / hourperDay
+
 
 # the coefficient converting the ideal (given by manufacturers) cell efficiency to the real efficiency under actual conditions
 # degradeCoefficientFromIdealtoReal = 0.85

@@ -475,19 +475,23 @@ def calcOPVElectricEnergyperArea (hourlyOPVTemperature, solarRadiationToOPV):
     '''
     dailyJopvout = np.zeros(util.calcSimulationDaysInt())
 
+    print("at OPVfilm.py, hourlyOPVTemperature.shape".format(hourlyOPVTemperature.shape))
+
+		# the PV module degradation ratio by time
+    PVDegradationRatio = np.array([1.0 - constant.PVDegradationRatioPerHour * i for i in range (0, hourlyOPVTemperature.shape[0])])
+
     for day in range (0, util.calcSimulationDaysInt()):
         # print "day:{}, Popvin[day*constant.hourperDay : (day+1)*constant.hourperDay]:{}".format(day, Popvin[day*constant.hourperDay : (day+1)*constant.hourperDay])
         # unit: [W/m^2] -> [J/m^2] per day
         dailyJopvout[day] = calcOPVElectricEnergyperAreaperDay(\
             hourlyOPVTemperature[day*constant.hourperDay : (day+1)*constant.hourperDay], \
-            solarRadiationToOPV[day*constant.hourperDay : (day+1)*constant.hourperDay])
+            solarRadiationToOPV[day*constant.hourperDay : (day+1)*constant.hourperDay], PVDegradationRatio[day*constant.hourperDay : (day+1)*constant.hourperDay])
 
     # print "dailyJopvout:{}".format(dailyJopvout)
 
     return dailyJopvout
 
-
-def calcOPVElectricEnergyperAreaperDay(hourlyOPVTemperature, Popvin):
+def calcOPVElectricEnergyperAreaperDay(hourlyOPVTemperature, Popvin, PVDegradationRatio):
     '''
     calculate the electric energy per OPV area only for a  day [J/day/m^2]
     [the electric energy per OPV area per day]
@@ -510,7 +514,7 @@ def calcOPVElectricEnergyperAreaperDay(hourlyOPVTemperature, Popvin):
         #            (1.0 + constant.TempCoeffitientVmpp * (hourlyOPVTemperature[hour] - constant.STCtemperature)) * \
         #            (1.0 + constant.TempCoeffitientImpp * (hourlyOPVTemperature[hour] - constant.STCtemperature)) * \
         #            Popvin [hour]
-        JopvoutAday += constant.OPVEfficiencyRatioSTC * constant.degradeCoefficientFromIdealtoReal * \
+        JopvoutAday += constant.OPVEfficiencyRatioSTC * constant.degradeCoefficientFromIdealtoReal * PVDegradationRatio[hour] * \
                    (1.0 + constant.TempCoeffitientPmpp * (hourlyOPVTemperature[hour] - constant.STCtemperature)) * Popvin[hour]
 
     #print "Jopvout:{} (J/m^2)".format(Wopvout)
