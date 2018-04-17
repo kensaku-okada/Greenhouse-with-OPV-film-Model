@@ -536,8 +536,8 @@ def convertUnitShootFreshMassToShootFreshMassperArea(shootFreshMassList):
     :return:
     '''
     # unit convert [g/head] -> [g/m^2]
-    shootFreshMassListperArea = shootFreshMassList * constant.plantDensity
-    return shootFreshMassListperArea
+    shootFreshMassListPerCultivationFloorArea = shootFreshMassList * constant.plantDensity
+    return shootFreshMassListPerCultivationFloorArea
 
 def convertcwtToKg(cwt):
     # unit convert [cwt] -> [kg]
@@ -577,7 +577,7 @@ def saveFigure (filename):
 
     plt.savefig(figure_path + filename)
 
-def plotMultipleData(x, yList, yLabelList, title = "data", xAxisLabel = "x", yAxisLabel = "y"):
+def plotMultipleData(x, yList, yLabelList, title = "data", xAxisLabel = "x", yAxisLabel = "y",  yMin = None, yMax = None):
     '''
     Plot single input feature x data with multiple corresponding response values a scatter plot
     :param x:
@@ -611,6 +611,11 @@ def plotMultipleData(x, yList, yLabelList, title = "data", xAxisLabel = "x", yAx
     plt.ylabel(yAxisLabel)
     # add title
     plt.title(title)
+
+    if yMin is not None:
+      plt.ylim(ymin = yMin)
+    if yMax is not None:
+      plt.ylim(ymax = yMax)
     # ax.set_title("\n".join(wrap(title + "OPVPricePerArea: " + str(OPVPricePerAreaUSD), 60)))
     plt.pause(.1)  # required on some systems so that rendering can happen
 
@@ -724,7 +729,7 @@ def plotCvResults(cv_loss, train_loss, cv_loss_title, figw=800, figh=420, mydpi=
 
   plt.figure(figsize=(figw / mydpi, figh / mydpi), dpi=mydpi)
 
-  print '>>>>> cv_loss.shape', cv_loss.shape
+  print ('>>>>> cv_loss.shape', cv_loss.shape)
 
   x = np.arange(0, cv_loss.shape[0])
   # cv_loss = np.mean(cv_loss, 0)
@@ -736,7 +741,7 @@ def plotCvResults(cv_loss, train_loss, cv_loss_title, figw=800, figh=420, mydpi=
   max_ylim = max(list(cv_loss) + list(train_loss))
   max_ylim = int(np.ceil(max_ylim))
 
-  print 'min_ylim={0}, max_ylim={1}'.format(min_ylim, max_ylim)
+  print ('min_ylim={0}, max_ylim={1}'.format(min_ylim, max_ylim))
 
   plt.subplot(121)
   plt.plot(x, cv_loss, linewidth=2)
@@ -821,6 +826,8 @@ def sigma(m, n, func, s=0):
     :return:
     '''
     # print("m:{}, n:{}, s:{}".format(m, n, s))
+
+
     if m > n: return s
     return sigma(m + 1, n, func, s + func(m))
 

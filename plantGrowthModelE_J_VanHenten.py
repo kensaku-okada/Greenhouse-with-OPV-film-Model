@@ -38,7 +38,20 @@ def calcUnitDailyFreshWeightE_J_VanHenten1994(simulatorClass):
     '''
     # According to Van Henten (1994), 'With data logging system connected to the greenhouse climate computer, half-hour mean values of the indoor climate data were recorded.'
 
+    # get the simulation days
     simulationDaysInt = util.getSimulationDaysInt()
+
+    # take date and time
+    year = simulatorClass.getYear()
+    month = simulatorClass.getMonth()
+    day = simulatorClass.getDay()
+
+    # get the summer period hours
+    summerPeriodDays = datetime.date(year=year[0], month=constant.SummerPeriodEndMM, day=constant.SummerPeriodEndDD) - \
+                       datetime.date(year=year[0], month=constant.SummerPeriodStartMM, day=constant.SummerPeriodStartDD)
+    # change the data type and unit
+    summerPeriodHours = summerPeriodDays.days * constant.hourperDay
+    # print("summerPeriodHours:{}".format(summerPeriodHours))
 
     # [head/m^2]
     plantDensity = constant.plantDensity
@@ -85,9 +98,28 @@ def calcUnitDailyFreshWeightE_J_VanHenten1994(simulatorClass):
     # DWPerHead[0] = DW[0] / plantDensity
     # FWPerHead[0] = DWPerHead[0] * constant.DryMassToFreshMass
 
+    # 1 loop == 1 hour
     i = 1
     while i  < simulationDaysInt * constant.hourperDay:
         # for i in range (1, constant.cultivationDaysperHarvest):
+
+        # if you do not grow plant during the summer period, then skip the period
+        if simulatorClass.getIfGrowForSummerPeriod() is False and \
+            datetime.date(year[i], month[i], day[i]) >= datetime.date(year[i], constant.SummerPeriodStartMM, constant.SummerPeriodStartDD) and \
+            datetime.date(year[i], month[i], day[i]) <= datetime.date(year[i], constant.SummerPeriodEndMM, constant.SummerPeriodEndDD):
+
+            # skip the summer period cultivation cycle
+            # It was assumed to take 3 days to the next cultivation cycle assuming "transplanting  shock  prevented growth during the first 48 h", and it takes one day for preparation.
+            i += summerPeriodHours + 3 * constant.hourperDay
+
+            # initialize the plant weight for the cultivation soon after the summer period
+            Xsdw[i - 2 * constant.hourperDay:i], \
+            Xnsdw[i - 2 * constant.hourperDay:i], \
+            DW[i - 2 * constant.hourperDay:i] = resetInitialWeights(i, Xsdw[0], Xnsdw[0])
+            # print("i:{}, Xsdw[i - 2 * constant.hourperDay:i]:{}, Xnsdw[i - 2 * constant.hourperDay:i]:{}, DW[i - 2 * constant.hourperDay:i]:{}".\
+            #     format(i, Xsdw[i - 2 * constant.hourperDay:i], Xnsdw[i - 2 * constant.hourperDay:i], DW[i - 2 * constant.hourperDay:i]))
+
+            continue
 
         ####################### parameters for calculating f_photo_max start #######################
         # the carboxylation conductance
@@ -146,31 +178,40 @@ def calcUnitDailyFreshWeightE_J_VanHenten1994(simulatorClass):
             i += 3 * constant.hourperDay
             if (i >= simulationDaysInt * constant.hourperDay): break
 
-            # reset the weights
-            Xsdw[i - 2 * constant.hourperDay :i] = Xsdw[0] * np.ones(2 * constant.hourperDay)
-            Xnsdw[i - 2 * constant.hourperDay :i] = Xnsdw[0] * np.ones(2 * constant.hourperDay)
-
             # The plant dry weight (excluding roots) W
-            DW[i - 2 * constant.hourperDay :i] = Xsdw[i - 2 * constant.hourperDay :i] + Xnsdw[i - 2 * constant.hourperDay :i]
+            Xsdw[i - 2 * constant.hourperDay:i], \
+            Xnsdw[i - 2 * constant.hourperDay:i],\
+            DW[i - 2 * constant.hourperDay:i] = resetInitialWeights(i, Xsdw[0], Xnsdw[0])
 
         else:
             # increment the counter for one hour
             i += 1
-
 
     # the plant weight per head
     # Ydw = (Xsdw + Xnsdw) / float(constant.numOfHeadsPerArea)
 
     DWPerHead = DW / plantDensity
     # print("DWPerHead:{}".format(DWPerHead))
-    FWPerHead = DWPerHead * constant.DryMassToFreshMass
 
-    # get the fresh weight increase
+    FWPerHead = DWPerHead * constant.DryMassToFreshMass
+    # get the fresh weight increase per head
     WFreshWeightIncrease = Lettuce.getFreshWeightIncrease(FWPerHead)
-    # get the accumulated fresh weight during the simulation period
+    # get the accumulated fresh weight per head during the simulation period
     WAccumulatedFreshWeightIncrease = Lettuce.getAccumulatedFreshWeightIncrease(FWPerHead)
-    # get the harvested weight
+    # get the harvested weight per head
     WHarvestedFreshWeight = Lettuce.getHarvestedFreshWeight(FWPerHead)
+
+    # print("FWPerHead.shape:{}".format(FWPerHead.shape))
+    # print("WFreshWeightIncrease.shape:{}".format(WFreshWeightIncrease.shape))
+    # print("WAccumulatedFreshWeightIncrease.shape:{}".format(WAccumulatedFreshWeightIncrease.shape))
+    # print("WHarvestedFreshWeight.shape:{}".format(WHarvestedFreshWeight.shape))
+
+    # np.set_printoptions(threshold=np.inf)
+    # print("FWPerHead:{}".format(FWPerHead))
+    # print("WHarvestedFreshWeight:{}".format(WHarvestedFreshWeight))
+    # np.set_printoptions(threshold=1000)
+
+    return FWPerHead, WFreshWeightIncrease, WAccumulatedFreshWeightIncrease, WHarvestedFreshWeight
 
     # np.set_printoptions(threshold=np.inf)
     # print("Xsdw:{}".format(Xsdw))
@@ -179,4 +220,11 @@ def calcUnitDailyFreshWeightE_J_VanHenten1994(simulatorClass):
     # print("FWPerHead:{}".format(FWPerHead))
     # np.set_printoptions(threshold=100)
 
-    return FWPerHead, WFreshWeightIncrease, WAccumulatedFreshWeightIncrease, WHarvestedFreshWeight
+    ###################################################
+    # From here, we consider the summer period ########
+    ###################################################
+
+def resetInitialWeights(i, initialXsdw, initialXnsdw):
+    # reset the weights
+    return initialXsdw * np.ones(2 * constant.hourperDay), initialXnsdw * np.ones(2 * constant.hourperDay),\
+            initialXsdw * np.ones(2 * constant.hourperDay) + initialXnsdw * np.ones(2 * constant.hourperDay)

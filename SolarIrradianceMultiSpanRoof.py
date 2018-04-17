@@ -70,6 +70,7 @@ def getTransmittanceForPerpendicularIrrThroughMultiSpanRoofFacingEastOrNorth(sim
     # transmittance through multispan roof
     T_matPerpendicular = np.zeros(directSolarRadiationToOPVEastDirection.shape[0])
     # T_matParallel = np.zeros(directSolarRadiationToOPVEastDirection.shape[0])
+    # print("num of iteration at getTransmittanceForPerpendicularIrrThroughMultiSpanRoofFacingEastOrNorth:{}".format(directSolarRadiationToOPVEastDirection.shape[0]))
 
     ##############################################################################################################################
     # calculate the transmittance of perpendicular direction from the EAST facing roof after penetrating multi-span roof per hour
@@ -89,8 +90,8 @@ def getTransmittanceForPerpendicularIrrThroughMultiSpanRoofFacingEastOrNorth(sim
             # print ("call case A1")
 
             # the number of intercepting spans, which can very depending on E.
-            m = int(1.0 / 2.0 * (1 + math.tan(alpha) / math.tan(EPerpendicularEastOrNorthFacingRoof[i])))
-            # print("m:{}".format(m))
+            m = getNumOfInterceptingSPans(alpha, EPerpendicularEastOrNorthFacingRoof[i])
+            # print("case A1 i:{}, m:{}, sys.getrecursionlimit():{}".format(i, m,sys.getrecursionlimit()))
 
             # fraction (percentage) of light which does not pass through the first span [-]
             l_a = m * L_1 * math.sin(alpha + EPerpendicularEastOrNorthFacingRoof[i]) - (m + 1) * L_2 * math.sin(beta - EPerpendicularEastOrNorthFacingRoof[i])
@@ -132,8 +133,8 @@ def getTransmittanceForPerpendicularIrrThroughMultiSpanRoofFacingEastOrNorth(sim
 
             # the number of intercepting spans, which can very depending on E.
             x = abs(2.0 * alpha - EPerpendicularEastOrNorthFacingRoof[i])
-            m = int(1.0 / 2.0 * (1 + math.tan(alpha) / math.tan(x)))
-            # print("x:{}, 1 + math.tan(alpha) / math.tan(x):{}".format(x, 1 + math.tan(alpha) / math.tan(x)))
+            m = getNumOfInterceptingSPans(alpha, x)
+            # print("case A2.1 i:{}, m:{}, sys.getrecursionlimit():{}".format(i, m,sys.getrecursionlimit()))
 
 
             # l_a: fraction (percentage) of reflected light which does not pass through the first span [-], equation (A14)
@@ -142,6 +143,7 @@ def getTransmittanceForPerpendicularIrrThroughMultiSpanRoofFacingEastOrNorth(sim
 
             T_matPerpendicular[i] = getTransmittanceOfReflectedLightThroughMultiSpanCoveringCaseA2_1ForEastOrNorthFacingRoof(l_a, l_b, m, T_r11[i], T_r12[i], F_r11[i], F_r12[i], F_1[i], l_1, l_2) +\
                                                 + T_12[i]
+
             # print("T_matPerpendicular[i]:{}".format(T_matPerpendicular[i]))
 
         # case A2.2: if the angle E is greater than the roof angle of the north side beta (2*beta < E < 3*beta)
@@ -164,7 +166,7 @@ def getTransmittanceForPerpendicularIrrThroughMultiSpanRoofFacingEastOrNorth(sim
 
             # the number of intercepting spans, which can very depending on E.
             x = abs(2.0 * alpha - EPerpendicularEastOrNorthFacingRoof[i])
-            m = int(1.0 / 2.0 * (1 + math.tan(alpha) / math.tan(x)))
+            m = getNumOfInterceptingSPans(alpha, x)
 
             # l_a: fraction (percentage) of reflected light which does not pass through the first span [-], equation (A14)
             # l_b: fraction (percentage) of reflected light which crosses the first span before continuing on towards the others [-], equation (A15)
@@ -251,8 +253,7 @@ def getTransmittanceForPerpendicularIrrThroughMultiSpanRoofFacingWestOrSouth(sim
 
             # print("EPerpendicularWestOrSouthFacingRoof_CaseA1[i]:{}".format(EPerpendicularWestOrSouthFacingRoof[i]))
             # the number of intercepting spans, which can very depending on E.
-            m = int(1.0 / 2.0 * (1 + math.tan(alpha) / math.tan(EPerpendicularWestOrSouthFacingRoof[i])))
-            # print("m:{}".format(m))
+            m = getNumOfInterceptingSPans(alpha, EPerpendicularWestOrSouthFacingRoof[i])
 
             # fraction (percentage) of light which does not pass through the first span [-]
             l_a = m * L_1 * math.sin(alpha + EPerpendicularWestOrSouthFacingRoof[i]) - (m + 1) * L_2 * math.sin(beta - EPerpendicularWestOrSouthFacingRoof[i])
@@ -296,8 +297,7 @@ def getTransmittanceForPerpendicularIrrThroughMultiSpanRoofFacingWestOrSouth(sim
 
             # the number of intercepting spans, which can very depending on E.
             x = abs(2.0 * alpha - EPerpendicularWestOrSouthFacingRoof[i])
-            m = int(1.0 / 2.0 * (1 + math.tan(alpha) / math.tan(x)))
-            # print("x:{}, 1 + math.tan(alpha) / math.tan(x):{}".format(x, 1 + math.tan(alpha) / math.tan(x)))
+            m = getNumOfInterceptingSPans(alpha, x)
 
             # l_a: fraction (percentage) of reflected light which does not pass through the first span [-], equation (A14)
             # l_b: fraction (percentage) of reflected light which crosses the first span before continuing on towards the others [-], equation (A15)
@@ -333,8 +333,7 @@ def getTransmittanceForPerpendicularIrrThroughMultiSpanRoofFacingWestOrSouth(sim
 
             # the number of intercepting spans, which can very depending on E.
             x = abs(2.0 * alpha - EPerpendicularWestOrSouthFacingRoof[i])
-            m = int(1.0 / 2.0 * (1 + math.tan(alpha) / math.tan(x)))
-            # print("x:{}, 1 + math.tan(alpha) / math.tan(x):{}".format(x, 1 + math.tan(alpha) / math.tan(x)))
+            m = getNumOfInterceptingSPans(alpha, x)
 
             # fraction (percentage) of light which does not pass through the first span [-], equation (A16)
             l_a = L_2 * (1-m) * math.sin(EPerpendicularWestOrSouthFacingRoof[i] - beta) + L_1 * m * math.sin(alpha + 2.0 * beta - EPerpendicularWestOrSouthFacingRoof[i])
@@ -366,6 +365,17 @@ def getTransmittanceForPerpendicularIrrThroughMultiSpanRoofFacingWestOrSouth(sim
 
     return T_matPerpendicular
 
+
+def getNumOfInterceptingSPans(alpha, EPerpendicularWestOrSouthFacingRoof):
+    '''
+    # the number of intercepting spans, which can very depending on E.
+    '''
+    m = int(1.0 / 2.0 * (1 + math.tan(alpha) / math.tan(EPerpendicularWestOrSouthFacingRoof)))
+    # print("WestOrSouth case A1 i:{}, m:{}, math.tan(alpha):{}, math.tan(EPerpendicularEastOrNorthFacingRoof[i]):{}".format(i, m, math.tan(alpha), math.tan(EPerpendicularEastOrNorthFacingRoof[i])))
+    # if the angle between the incident light and the horizontal axis is too small, the m can be too large, which cause a system error at Util.sigma by iterating too much. Thus, the upper limit was set
+    if m > constant.mMax: m = constant.mMax
+
+    return m
 
 def getTransmittanceForParallelIrrThroughMultiSpanRoof(simulatorClass, EParallelEastOrNorthFacingRoof):
     '''
@@ -464,6 +474,8 @@ def getTransmittanceThroughMultiSpanCoveringCaseA1ForEastOrNorthFacingRoof(l_a, 
     '''
     the equation number in the reference: (A8), page 252
     '''
+    # print("l_a:{}, l_b:{}, m:{},  T_1:{}, F_1:{}, T_2:{}, F_2:{}".format(l_a, l_b, m, T_1, F_1, T_2, F_2))
+
     transmittanceThroughMultiSpanCoveringCaseA1ForEastOrNorthFacingRoof = (l_a*T_2*(F_1*util.sigma(0, m-2, lambda s: (T_1*T_2)**s,0) + (T_1*T_2)**(m-1)) + \
             l_b*T_2*(F_1*util.sigma(0, m-1, lambda s: (T_1*T_2)**s,0) + (T_1*T_2)**m)) / (l_a + l_b)
     # print("transmittanceThroughMultiSpanCoveringCaseA1ForEastOrNorthFacingRoof:{}".format(transmittanceThroughMultiSpanCoveringCaseA1ForEastOrNorthFacingRoof))
@@ -508,7 +520,7 @@ def getTransmittanceOfReflectedLightThroughMultiSpanCoveringCaseA2_1ForEastOrNor
     '''
     the equation number in the reference: (A13)
     '''
-    # print("T_r11:{}, T_r12:{}, F_r11:{}, F_r12:{}, F_1:{}, l_1:{}, l_2:{}".format(T_r11, T_r12, F_r11, F_r12, F_1, l_1, l_2))
+    # print("called from CaseA2_1: l_a:{}, l_b:{}, m:{},  T_r11:{}, T_r12:{}, F_r11:{}, F_r12:{}, F_1:{}, l_1:{}, l_2:{}".format(l_a, l_b, m, T_r11, T_r12, F_r11, F_r12, F_1, l_1, l_2))
 
     transmittanceOfReflectedLight = (F_1*l_a*T_r11*(F_r12*util.sigma(2, m-2, lambda s: (T_r11*T_r12)**s,0.0) + (T_r11*T_r12)**(m-1)) + \
         F_1*l_b*T_r11*(F_r12*util.sigma(0, m-3, lambda s: util.sigma(0, s, lambda n: (T_r11*T_r12)**n,0),0.0) + \

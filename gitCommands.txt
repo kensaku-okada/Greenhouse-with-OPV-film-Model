@@ -8,8 +8,11 @@ git add -u
 # add all of new files
 git add .
 
-
 # commit
 git commit -m “any message”
 
+#push
+git push
+	kensaku-okada
+	heaven246
 

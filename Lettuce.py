@@ -103,9 +103,9 @@ def calcUnitDailyFreshWeightBoth2003TaylorExpantionWithVaryingDLIDetail(innerDLI
   return: hervestDay[days]: days after seeeding
   '''
 
-  # if you continue to grow plant during the fallow period, then this is true
-  ifGrowForFallowPeriod = cropElectricityYieldSimulator1.getIfGrowForFallowPeriod()
-  # print ("ifGrowForFallowPeriod:{}".format(ifGrowForFallowPeriod))
+  # if you continue to grow plant during the summer period, then this is true
+  ifGrowForSummerPeriod = cropElectricityYieldSimulator1.getIfGrowForSummerPeriod()
+  # print ("ifGrowForSummerPeriod:{}".format(ifGrowForSummerPeriod))
 
   # take date and time
   year = cropElectricityYieldSimulator1.getYear()
@@ -153,24 +153,24 @@ def calcUnitDailyFreshWeightBoth2003TaylorExpantionWithVaryingDLIDetail(innerDLI
   while i  < util.getSimulationDaysInt():
 
     DaysperCycle = datetime.timedelta(days = cultivationDaysperHarvest)
-    # if ifGrowForFallowPeriod is False the end of the cultivation at a cycle is within the fallow period (constant.FallowPeriodStart*), then skip the cycle (= plus 35 days to index)
-    if ifGrowForFallowPeriod is False and i % cultivationDaysperHarvest == 0 and \
-        datetime.date(yearEachDay[i], monthEachDay[i], dayEachDay[i]) + DaysperCycle >= datetime.date(yearEachDay[i], constant.FallowPeriodStartMM, constant.FallowPeriodStartDD) and \
-        datetime.date(yearEachDay[i], monthEachDay[i], dayEachDay[i]) + DaysperCycle <= datetime.date(yearEachDay[i], constant.FallowPeriodEndMM, constant.FallowPeriodEndDD):
+    # if ifGrowForSummerPeriod is False the end of the cultivation at a cycle is within the summer period, then skip the cycle (= plus 35 days to index)
+    if ifGrowForSummerPeriod is False and i % cultivationDaysperHarvest == 0 and \
+        datetime.date(yearEachDay[i], monthEachDay[i], dayEachDay[i]) + DaysperCycle >= datetime.date(yearEachDay[i], constant.SummerPeriodStartMM, constant.SummerPeriodStartDD) and \
+        datetime.date(yearEachDay[i], monthEachDay[i], dayEachDay[i]) + DaysperCycle <= datetime.date(yearEachDay[i], constant.SummerPeriodEndMM, constant.SummerPeriodEndDD):
       # skip the cultivation cycle
       i += cultivationDaysperHarvest
       continue
 
-    # if ifGrowForFallowPeriod is False, and the end of the cultivation at a cycle is not within the fallow period (constant.FallowPeriodStart*), but the first day is within the fallow period, then shift the first day to
-    # the next day of the fallow period, and shift all of the cultivation days in harvestDaysList
-    elif ifGrowForFallowPeriod is False and i % cultivationDaysperHarvest == 0 and \
-        datetime.date(yearEachDay[i], monthEachDay[i], dayEachDay[i]) >= datetime.date(yearEachDay[i], constant.FallowPeriodStartMM, constant.FallowPeriodStartDD) and \
-        datetime.date(yearEachDay[i], monthEachDay[i], dayEachDay[i]) <= datetime.date(yearEachDay[i], constant.FallowPeriodEndMM, constant.FallowPeriodEndDD):
-      # shift the first day to the next day of the fallow period
-      dateDiff = datetime.date(yearEachDay[i], constant.FallowPeriodEndMM, constant.FallowPeriodEndDD) - datetime.date(yearEachDay[i], monthEachDay[i], dayEachDay[i])
+    # if ifGrowForSummerPeriod is False, and the end of the cultivation at a cycle is not within the summer period, but the first day is within the summer period, then shift the first day to
+    # the next day of the summer period, and shift all of the cultivation days in harvestDaysList
+    elif ifGrowForSummerPeriod is False and i % cultivationDaysperHarvest == 0 and \
+        datetime.date(yearEachDay[i], monthEachDay[i], dayEachDay[i]) >= datetime.date(yearEachDay[i], constant.SummerPeriodStartMM, constant.SummerPeriodStartDD) and \
+        datetime.date(yearEachDay[i], monthEachDay[i], dayEachDay[i]) <= datetime.date(yearEachDay[i], constant.SummerPeriodEndMM, constant.SummerPeriodEndDD):
+      # shift the first day to the next day of the summer period
+      dateDiff = datetime.date(yearEachDay[i], constant.SummerPeriodEndMM, constant.SummerPeriodEndDD) - datetime.date(yearEachDay[i], monthEachDay[i], dayEachDay[i])
       i += dateDiff.days + 1
 
-      # shift each harvest period by dateDiff to keep the harvest period cultivationDaysperHarvest even after atarting the cultivation next to the fallow period.
+      # shift each harvest period by dateDiff to keep the harvest period cultivationDaysperHarvest even after atarting the cultivation next to the summer period.
       harvestDaysList += dateDiff.days + 1
 
       continue
@@ -386,7 +386,6 @@ def calcUnitDailyFreshWeightIncreaseBoth2003TaylorNotForRL(innerDLIToPlants, sho
 #
 #   return unitDailyFreshWeightIncrease
 
-
 def getLettucePricepercwt(year):
     '''
     return the lettuce price per cwt based on the year of sales
@@ -402,7 +401,7 @@ def getRetailPricePerArea(simulatorClass):
 
     # unit: kg/m^2/day
     harvestedShootFreshMassPerAreaKgPerDay = simulatorClass.harvestedShootFreshMassPerAreaKgPerDay
-    print("harvestedShootFreshMassPerAreaKgPerDay:{}".format(harvestedShootFreshMassPerAreaKgPerDay))
+    # print("harvestedShootFreshMassPerAreaKgPerDay:{}".format(harvestedShootFreshMassPerAreaKgPerDay))
 
     # unit: USD/m^2/day
     harvestedFreshMassPricePerAreaPerDay = np.zeros(harvestedShootFreshMassPerAreaKgPerDay.shape[0])
@@ -575,14 +574,24 @@ def getHarvestedFreshWeight(WFresh):
   # get the harvested fresh weight
 
   # record the fresh weight harvested at each harvest day or hour
-  harvestedFreshWeight = np.array([WFresh[i] if WFresh[i] > 0.0 and WFresh[i+1] == 0.0 else 0.0 for i in range (0, WFresh.shape[0]-1)])
+  # harvestedFreshWeight = np.array([WFresh[i] if WFresh[i] > 0.0 and WFresh[i+1] == 0.0 else 0.0 for i in range (0, WFresh.shape[0])])
+  harvestedFreshWeight = np.zeros(WFresh.shape[0])
+  for i in range (0, WFresh.shape[0]-1):
+    # print("i:{}, WFresh[i]:{}".format(i, WFresh[i]))
+
+    if WFresh[i] > 0.0 and WFresh[i+1] == 0.0:
+      harvestedFreshWeight[i] = WFresh[i]
+    else:
+      harvestedFreshWeight[i] = 0.0
+
   # print("0 harvestedFreshWeight.shape[0]:{}".format(harvestedFreshWeight.shape[0]))
 
   # if the last hour of the last day is the harvest date
   if WFresh[-1] > constant.harvestDryWeight*constant.DryMassToFreshMass:
-    harvestedFreshWeight = np.append(harvestedFreshWeight, [WFresh[-1]])
+    # harvestedFreshWeight = np.append(harvestedFreshWeight, [WFresh[-1]])
+    harvestedFreshWeight[-1] = WFresh[-1]
   else:
-    harvestedFreshWeight = np.append(harvestedFreshWeight, [0.0])
+    harvestedFreshWeight[-1] = WFresh[-1]
 
   return harvestedFreshWeight
 

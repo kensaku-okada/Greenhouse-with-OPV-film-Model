@@ -84,6 +84,16 @@ IfConsiderPhotoInhibition = False
 
 # if consider the price discount by tipburn , True, if not, False
 IfConsiderDiscountByTipburn = False
+
+# make this false when running optimization algorithm
+exportCSVFiles = True
+# exportCSVFiles = False
+
+# if you want to export CVS file and figures, then true
+ifExportCSVFile = True
+ifExportFigures = True
+
+
 #############################################################
 ####################### If statement flag end################
 #############################################################
@@ -114,7 +124,7 @@ STCtemperature = 25.0
 # do not include after 8/18/2016 because the dates after 8/18/2016 do not correctly log the body temperature.
 SimulationStartDate="20150101"
 # SimulationEndDate = "20151231"
-SimulationEndDate = "20150215"
+SimulationEndDate = "20151231"
 # one cultivation cycle
 # SimulationEndDate = "20150204"
 
@@ -162,10 +172,10 @@ SummerPeriodStartMM = 6
 SummerPeriodStartDD = 1
 SummerPeriodEndMM = 9
 SummerPeriodEndDD = 15
+
 ######################################
 ##########other constant end##########
 ######################################
-
 
 #########################################################
 ##########Specification of the greenhouse start##########
@@ -289,6 +299,13 @@ print("OptimumPPFDForButterHeadLettuceWithNoTipburn (PPFD):{}".format(OptimumPPF
 # the amount of PPFD to deploy shading curtain
 shadingCurtainDeployPPFD = OptimumPPFDForButterHeadLettuceWithNoTipburn * 1.5
 print("shadingCurtainDeployPPFD:{}".format(shadingCurtainDeployPPFD))
+
+# The maximum value of m: the number of spans that incident light penetrating in the model. This value is used at SolarIrradianceMultiSpanRoof.py.
+# if the angle between the incident light and the horizontal axis is too small, the m can be too large, which cause a system error at Util.sigma by iterating too much and make the simulation slow.
+# Thus, the upper limit was set.
+mMax = numOfSpans
+# defaultIterationLimit = 495
+
 #######################################################
 ##########Specification of the greenhouse end##########
 #######################################################
@@ -329,6 +346,8 @@ OPVAngle = greenhouseRoofAngle
 
 # the coverage ratio of OPV module on the greenhouse roof [-]
 OPVAreaCoverageRatio = 0.25
+# OPVAreaCoverageRatio = 0.62
+
 # OPVAreaCoverageRatio = 0.0
 
 # the coverage ratio of OPV module on the greenhouse roof [-]. If you set this value same as OPVAreaCoverageRatio, it assumed that the OPV coverage ratio does not change during the whole period
@@ -342,8 +361,8 @@ OPVArea = OPVAreaCoverageRatio * greenhouseTotalRoofArea
 print("OPVArea:{}".format(OPVArea))
 
 # the PV module area facing each angle
-OPVAreaFacingEastOrNorthfacingRoof = OPVArea * greenhouseRoofTotalAreaEastOrNorth/greenhouseTotalRoofArea
-OPVAreaFacingWestOrSouthfacingRoof = OPVArea * greenhouseRoofTotalAreaWestOrSouth/greenhouseTotalRoofArea
+OPVAreaFacingEastOrNorthfacingRoof = OPVArea * (greenhouseRoofTotalAreaEastOrNorth/greenhouseTotalRoofArea)
+OPVAreaFacingWestOrSouthfacingRoof = OPVArea * (greenhouseRoofTotalAreaWestOrSouth/greenhouseTotalRoofArea)
 
 
 #the ratio of degradation per day (/day)
@@ -388,7 +407,7 @@ currentAtMaximumPowerPoint = 0.48
 voltageAtMaximumPowerPoint = 16.0
 # unit: [watt]
 maximumPower = currentAtMaximumPowerPoint * voltageAtMaximumPowerPoint
-
+print("maximumPower:{}".format(maximumPower))
 # unit: [m^2]. This is the area per sheet, not roll (having 8 sheets concatenated). This area excludes the margin space of the OPV sheet. THe margin space are made from transparent laminated film with connectors.
 OPVAreaPerSheet = 0.849 * 0.66
 
@@ -400,14 +419,15 @@ OPVAreaPerSheet = 0.849 * 0.66
 #240 watts ÷ (1.65m2 (module area) x 1000 W/m2) = 14.54%.
 #source: http://www.solartown.com/learning/solar-panels/solar-panel-efficiency-have-you-checked-your-eta-lately/
 # http://www.isu.edu/~rodrrene/Calculating%20the%20Efficiency%20of%20the%20Solar%20Cell.doc
-OPVEfficiencyRatioSTC = maximumPower / OPVAreaPerSheet / 1000.0 * 100.0
+# unit: - per m^2
+OPVEfficiencyRatioSTC = maximumPower / OPVAreaPerSheet / 1000.0
+print("OPVCellEfficiencyRatioSTC:{}".format(OPVEfficiencyRatioSTC))
 #what is an air mass??
 #エアマスとは太陽光の分光放射分布を表すパラメーター、標準状態の大気（標準気圧１０１３ｈＰａ）に垂直に入射（太陽高度角９０°）した
 # 太陽直達光が通過する路程の長さをＡＭ１．０として、それに対する比で表わされます。
 #source: http://www.solartech.jp/module_char/standard.html
 
 ########################################################################################################################
-
 
 #source: http://energy.gov/sites/prod/files/2014/01/f7/pvmrw13_ps5_3m_nachtigal.pdf (3M Ultra-Barrier Solar Film spec.pdf)
 
@@ -424,7 +444,8 @@ OPVPriceperAreaEUR = OPVPriceEUR / OPVSizePurchased
 #as of 11Nov/2016 [USD/EUR]
 CurrencyConversionRatioUSDEUR= 1/1.0850
 #the price of OPV per area [USD/m^2]
-OPVPricePerAreaUSD = OPVPriceperAreaEUR*CurrencyConversionRatioUSDEUR
+# OPVPricePerAreaUSD = OPVPriceperAreaEUR*CurrencyConversionRatioUSDEUR
+OPVPricePerAreaUSD = 50.0
 print("OPVPricePerAreaUSD:{}".format(OPVPricePerAreaUSD))
 
 

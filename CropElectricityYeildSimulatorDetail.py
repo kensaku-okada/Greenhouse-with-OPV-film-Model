@@ -14,7 +14,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import math
 import CropElectricityYeildSimulatorConstant as constant
-import Util as util
+import Util
 import OPVFilm
 import Lettuce
 import PlantGrowthModelE_J_VanHenten
@@ -51,10 +51,11 @@ def calcOPVmoduleSolarIrradianceGHRoof(simulatorClass, roofDirectionNotation=con
     # print "hourlyDeclinationAngle:{}".format(hourlyDeclinationAngle)
 
     # [rad] symbol: omega
-    # hourlySolarHourAngle = OPVFilm.getSolarHourAngleKacira2003(hour)
+    hourlySolarHourAngle = OPVFilm.getSolarHourAngleKacira2003(hour)
     # print ("hourlySolarHourAngle by Kacira2003:{}".format(np.degrees(hourlySolarHourAngle)))
 
-    hourlySolarHourAngle = OPVFilm.getSolarHourAngleYano2009(hour)
+    # # [rad] symbol: omega
+    # hourlySolarHourAngle = OPVFilm.getSolarHourAngleYano2009(hour)
     # print ("hourlySolarHourAngle by Yano2009:{}".format(np.degrees(hourlySolarHourAngle)))
 
     # [rad] symbol: alpha. elevation angle = altitude angle
@@ -122,7 +123,8 @@ def calcOPVmoduleSolarIrradianceGHRoof(simulatorClass, roofDirectionNotation=con
     simulatorClass.hourlySolarIncidenceAngleWestDirection = hourlySolarIncidenceAngleWestDirection
 
     # np.set_printoptions(threshold=np.inf)
-    # print "hourlySolarIncidenceAngle:{}".format(np.degrees(hourlySolarIncidenceAngle))
+    # print("hourlySolarIncidenceAngleEastDirection:{}".format(hourlySolarIncidenceAngleEastDirection))
+    # print("hourlySolarIncidenceAngleWestDirection:{}".format(hourlySolarIncidenceAngleWestDirection))
     # np.set_printoptions(threshold=1000)
 
     # estimated horizontal solar irradiances [W m^-2]. these values are used only when estimating solar radiations.
@@ -141,12 +143,16 @@ def calcOPVmoduleSolarIrradianceGHRoof(simulatorClass, roofDirectionNotation=con
 
     # tilted surface  solar radiation [W m^-2], real / estimated value branch is calculated in this functions
     # symbol: I_TD (= H_b at Kacira 2004). direct beam radiation on the tilted surface
-    print ("call getDirectTitledSolarRadiation for east direction OPV")
+    # print ("call getDirectTitledSolarRadiation for east direction OPV")
     directTiltedSolarRadiationEastDirection = OPVFilm.getDirectTitledSolarRadiation(simulatorClass, hourlySolarAltitudeAngle, hourlySolarIncidenceAngleEastDirection, \
                                                                                     hourlyHorizontalDirectOuterSolarIrradiance)
-    print ("call getDirectTitledSolarRadiation for west direction OPV")
+    # print ("call getDirectTitledSolarRadiation for west direction OPV")
     directTiltedSolarRadiationWestDirection = OPVFilm.getDirectTitledSolarRadiation(simulatorClass, hourlySolarAltitudeAngle, hourlySolarIncidenceAngleWestDirection, \
                                                                                     hourlyHorizontalDirectOuterSolarIrradiance)
+
+    # print("directTiltedSolarRadiationEastDirection:{}".format(directTiltedSolarRadiationEastDirection))
+    # print("directTiltedSolarRadiationWestDirection:{}".format(directTiltedSolarRadiationWestDirection))
+
 
     # symbol: I_TS  (= H_d_p at Kacira 2004). diffused radiation on the tilted surface.
     diffuseTiltedSolarRadiation = OPVFilm.getDiffuseTitledSolarRadiation(simulatorClass, hourlySolarAltitudeAngle, diffuseHorizontalSolarRadiation, \
@@ -209,9 +215,11 @@ def getDirectSolarIrradianceThroughMultiSpanRoof(simulatorClass):
     # angle between the incident ray and the horizontal axis perpendicular to the greenhouse span. This angle is symbolized with E in the reference paper [rad]
     EPerpendicularEastOrNorthFacingRoof = SolarIrradianceMultiSpanRoof.getAngleBetweenIncientRayAndHorizontalAxisPerpendicularToGHSpan(simulatorClass, hourlyModuleAzimuthAngleEast)
     EPerpendicularWestOrSouthFacingRoof = SolarIrradianceMultiSpanRoof.getAngleBetweenIncientRayAndHorizontalAxisPerpendicularToGHSpan(simulatorClass, hourlyModuleAzimuthAngleWest)
+
+    # np.set_printoptions(threshold=np.inf)
     # print("EPerpendicularEastOrNorthFacingRoof: {}".format(EPerpendicularEastOrNorthFacingRoof))
     # print("EPerpendicularWestOrSouthFacingRoof: {}".format(EPerpendicularWestOrSouthFacingRoof))
-
+    # np.set_printoptions(threshold=1000)
 
     # # Referring to Soriano. et al, (2004), it was found that we can get the direct solar irradiance to horizontal surface inside multi-span greenhouse just by
     # # multiplying the outer solar irradiance to horizontal surface with
@@ -233,26 +241,36 @@ def getDirectSolarIrradianceThroughMultiSpanRoof(simulatorClass):
     hourlySolarIncidenceAngleEastDirection = simulatorClass.hourlySolarIncidenceAngleEastDirection
     hourlySolarIncidenceAngleWestDirection = simulatorClass.hourlySolarIncidenceAngleWestDirection
 
+
+
+
     # get the direct solar irradiance on each axis
     directSolarIrradiancePerpendicularToOPVEastDirection = directSolarRadiationToOPVEastFacingRoof * np.cos(hourlySolarIncidenceAngleEastDirection)
     directSolarIrradianceParallelToOPVEastDirection = directSolarRadiationToOPVEastFacingRoof * np.sin(hourlySolarIncidenceAngleEastDirection)
     directSolarIrradiancePerpendicularToOPVWestDirection = directSolarRadiationToOPVWestFacingRoof * np.cos(hourlySolarIncidenceAngleWestDirection)
     directSolarIrradianceParallelToOPVWestDirection = directSolarRadiationToOPVWestFacingRoof * np.sin(hourlySolarIncidenceAngleWestDirection)
+
+    # np.set_printoptions(threshold=np.inf)
     # print("directSolarIrradiancePerpendicularToOPVEastDirection: {}".format(directSolarIrradiancePerpendicularToOPVEastDirection))
     # print("directSolarIrradianceParallelToOPVEastDirection: {}".format(directSolarIrradianceParallelToOPVEastDirection))
     # print("directSolarIrradiancePerpendicularToOPVWestDirection: {}".format(directSolarIrradiancePerpendicularToOPVWestDirection))
     # print("directSolarIrradianceParallelToOPVWestDirection: {}".format(directSolarIrradianceParallelToOPVWestDirection))
-
+    # np.set_printoptions(threshold=1000)
 
     # the the T_mat for parpendicular irradiance
-    # print("getTransmittanceForPerpendicularIrrThroughMultiSpanRoofFacingEastOrNorth start: {}")
+    # print("getTransmittanceForPerpendicularIrrThroughMultiSpanRoofFacingEastOrNorth start")
+
+    # to avoide the error "RuntimeError: maximum recursion depth exceeded", the maximum recursion limitation is increased.
+    # sys.setrecursionlimit(constant.mMax)
+    # print("sys.getrecursionlimit():{}".format(sys.getrecursionlimit()))
     T_matForPerpendicularIrrEastOrNorthFacingRoof = SolarIrradianceMultiSpanRoof.getTransmittanceForPerpendicularIrrThroughMultiSpanRoofFacingEastOrNorth(\
                                                                 simulatorClass, directSolarIrradiancePerpendicularToOPVEastDirection, EPerpendicularEastOrNorthFacingRoof)
     # print("getTransmittanceForPerpendicularIrrThroughMultiSpanRoofFacingWestOrSouth start: {}")
     T_matForPerpendicularIrrWestOrSouthFacingRoof = SolarIrradianceMultiSpanRoof.getTransmittanceForPerpendicularIrrThroughMultiSpanRoofFacingWestOrSouth(\
                                                                 simulatorClass, directSolarIrradiancePerpendicularToOPVWestDirection, EPerpendicularWestOrSouthFacingRoof)
-    # print("T_matForPerpendicularIrrEastOrNorthFacingRoof: {}".format(T_matForPerpendicularIrrEastOrNorthFacingRoof))
-    # print("T_matForPerpendicularIrrWestOrSouthFacingRoof: {}".format(T_matForPerpendicularIrrWestOrSouthFacingRoof))
+    # roll back the recursive limitation setting. The default number should be changed according to each local env.
+    # sys.setrecursionlimit(constant.defaultIterationLimit)
+
     # set the data
     simulatorClass.T_matForPerpendicularIrrEastOrNorthFacingRoof  = T_matForPerpendicularIrrEastOrNorthFacingRoof
     simulatorClass.T_matForPerpendicularIrrWestOrSouthFacingRoof  = T_matForPerpendicularIrrWestOrSouthFacingRoof
@@ -261,7 +279,12 @@ def getDirectSolarIrradianceThroughMultiSpanRoof(simulatorClass):
     integratedT_mat = SolarIrradianceMultiSpanRoof.getIntegratedT_matFromBothRoofs(T_matForPerpendicularIrrEastOrNorthFacingRoof, T_matForPerpendicularIrrWestOrSouthFacingRoof)
     # set the data
     simulatorClass.integratedT_mat = integratedT_mat
-    print("integratedT_mat:{}".format(integratedT_mat))
+
+    # np.set_printoptions(threshold=np.inf)
+    # print("T_matForPerpendicularIrrEastOrNorthFacingRoof: {}".format(T_matForPerpendicularIrrEastOrNorthFacingRoof))
+    # print("T_matForPerpendicularIrrWestOrSouthFacingRoof: {}".format(T_matForPerpendicularIrrWestOrSouthFacingRoof))
+    # print("integratedT_mat:{}".format(integratedT_mat))
+    # np.set_printoptions(threshold=1000)
 
     # get the solar irradiance inside
     if constant.ifUseOnlyRealData == True:
@@ -274,12 +297,12 @@ def getDirectSolarIrradianceThroughMultiSpanRoof(simulatorClass):
     simulatorClass.setHourlyDirectSolarRadiationAfterMultiSpanRoof(hourlyDirectSolarRadiationAfterMultiSpanRoof)
 
     # unit change of the imported outer solar radiation: [W m^-2] -> [umol m^-2 s^-1] == PPFD
-    hourlyDirectPPFDTAfterMultiSpanRoof = util.convertFromWattperSecSquareMeterToPPFD(hourlyDirectSolarRadiationAfterMultiSpanRoof)
+    hourlyDirectPPFDTAfterMultiSpanRoof = Util.convertFromWattperSecSquareMeterToPPFD(hourlyDirectSolarRadiationAfterMultiSpanRoof)
     # set the solar irradiance [umol m^-2 s^-1] == PPFD
     simulatorClass.setHourlyDirectPPFDAfterMultiSpanRoof(hourlyDirectPPFDTAfterMultiSpanRoof)
 
     # convert the unit into PPFD snd DLI
-    directDLIAfterMultiSpanRoof = util.convertFromHourlyPPFDWholeDayToDLI(hourlyDirectPPFDTAfterMultiSpanRoof)
+    directDLIAfterMultiSpanRoof = Util.convertFromHourlyPPFDWholeDayToDLI(hourlyDirectPPFDTAfterMultiSpanRoof)
     simulatorClass.setHourlyDirectPPFDAfterMultiSpanRoof(directDLIAfterMultiSpanRoof)
 
 
@@ -304,24 +327,23 @@ def setSolarIrradianceToPlants(simulatorClass):
     # #############
 
     # unit change of the imported outer solar radiation: [W m^-2] -> [umol m^-2 s^-1] == PPFD
-    directPPFDToPlants = util.convertFromWattperSecSquareMeterToPPFD(directSolarIrradianceToPlants)
-    diffusePPFDToPlants = util.convertFromWattperSecSquareMeterToPPFD(diffuseSolarIrradianceToPlants)
+    directPPFDToPlants = Util.convertFromWattperSecSquareMeterToPPFD(directSolarIrradianceToPlants)
+    diffusePPFDToPlants = Util.convertFromWattperSecSquareMeterToPPFD(diffuseSolarIrradianceToPlants)
     # set the solar irradiance [umol m^-2 s^-1] == PPFD
     simulatorClass.directPPFDToPlants = directPPFDToPlants
     simulatorClass.diffusePPFDToPlants = diffusePPFDToPlants
 
     # convert the unit into PPFD snd DLI
-    directDLIToPlants = util.convertFromHourlyPPFDWholeDayToDLI(directPPFDToPlants)
-    diffuseDLIToPlants = util.convertFromHourlyPPFDWholeDayToDLI(diffusePPFDToPlants)
+    directDLIToPlants = Util.convertFromHourlyPPFDWholeDayToDLI(directPPFDToPlants)
+    diffuseDLIToPlants = Util.convertFromHourlyPPFDWholeDayToDLI(diffusePPFDToPlants)
     simulatorClass.directDLIToPlants = directDLIToPlants
     simulatorClass.diffuseDLIToPlants = diffuseDLIToPlants
     #############command to print out all array data
     np.set_printoptions(threshold=np.inf)
-    print("directDLIToPlants:{}".format(directDLIToPlants))
-    print("diffuseDLIToPlants:{}".format(diffuseDLIToPlants))
+    # print("directDLIToPlants:{}".format(directDLIToPlants))
+    # print("diffuseDLIToPlants:{}".format(diffuseDLIToPlants))
     np.set_printoptions(threshold=1000)
     #############
-
 
 # def setThermalTimeToPlants(simulatorClass):
 #   '''
@@ -375,7 +397,7 @@ def getPlantYieldSimulation(simulatorClass):
     if plantGrowthModel == constant.A_J_Both_Modified_TaylorExpantionWithFluctuatingDLI:
         #unit  [g/head]
         shootFreshMassList, unitDailyFreshWeightIncrease, accumulatedUnitDailyFreshWeightIncrease, unitHarvestedFreshWeight = \
-            Lettuce.calcUnitDailyFreshWeightBoth2003TaylorExpantionWithVaryingDLI(hourlyInnerPPFDToPlants, cultivationDaysperHarvest, simulatorClass)
+            Lettuce.calcUnitDailyFreshWeightBoth2003TaylorExpantionWithVaryingDLI(simulatorClass.directPPFDToPlants + simulatorClass.diffusePPFDToPlants, cultivationDaysperHarvest, simulatorClass)
         # print "shootFreshMassList.shape:{}".format(shootFreshMassList.shape)
 
     # the simulated cultivar is Berlo and Norden
@@ -386,19 +408,25 @@ def getPlantYieldSimulation(simulatorClass):
         accumulatedUnitDailyFreshWeightIncrease, \
         unitHarvestedFreshWeight = \
             PlantGrowthModelE_J_VanHenten.calcUnitDailyFreshWeightE_J_VanHenten1994(simulatorClass)
-
-        print("shootFreshMassList.shape[0]:{}".format(shootFreshMassList.shape[0]))
-        print("unitDailyFreshWeightIncrease.shape[0]:{}".format(unitDailyFreshWeightIncrease.shape[0]))
-        print("accumulatedUnitDailyFreshWeightIncrease.shape[0]:{}".format(accumulatedUnitDailyFreshWeightIncrease.shape[0]))
-        print("unitHarvestedFreshWeight.shape[0]:{}".format(unitHarvestedFreshWeight.shape[0]))
+        # print("shootFreshMassList.shape[0]:{}".format(shootFreshMassList.shape[0]))
+        # print("unitDailyFreshWeightIncrease.shape[0]:{}".format(unitDailyFreshWeightIncrease.shape[0]))
+        # print("accumulatedUnitDailyFreshWeightIncrease.shape[0]:{}".format(accumulatedUnitDailyFreshWeightIncrease.shape[0]))
+        # print("unitHarvestedFreshWeight.shape[0]:{}".format(unitHarvestedFreshWeight.shape[0]))
 
         # Be careful! this model returns hourly weight, not daily weight. so convert the hourly value into daily value.
         dailyShootFreshMassList = shootFreshMassList[23::constant.hourperDay]
+        # print("dailyShootFreshMassList:{}".format(dailyShootFreshMassList))
+
+
         # dailyUnitDailyFreshWeightIncrease = np.array(sum[ unitDailyFreshWeightIncrease[constant.hourperDay*(i-1):constant.hourperDay*i]] \
         #                                              for i in range (0, unitDailyFreshWeightIncrease.shape[0]/constant.hourperDay ))
         dailyUnitDailyFreshWeightIncrease = Lettuce.getFreshWeightIncrease(dailyShootFreshMassList)
         dailyAccumulatedUnitDailyFreshWeightIncrease = Lettuce.getAccumulatedFreshWeightIncrease(dailyShootFreshMassList)
         dailyUnitHarvestedFreshWeight = Lettuce.getHarvestedFreshWeight(dailyShootFreshMassList)
+        # print("dailyUnitDailyFreshWeightIncrease.shape:{}".format(dailyUnitDailyFreshWeightIncrease.shape))
+        # print("dailyAccumulatedUnitDailyFreshWeightIncrease.shape:{}".format(dailyAccumulatedUnitDailyFreshWeightIncrease.shape))
+        # print("dailyUnitHarvestedFreshWeight.shape:{}".format(dailyUnitHarvestedFreshWeight.shape))
+
 
     # this model was coded, but the result was not better than constant.E_J_VanHenten1994
     elif plantGrowthModel == constant.S_Pearson1997:
@@ -446,7 +474,7 @@ def getTotalDLIToPlants(OPVAreaCoverageRatio, directPPFDToOPV, diffusePPFDToOPV,
         OPVAreaCoverageRatio, constant.OPVPARTransmittance, hasShadingCurtain,ShadingCurtainDeployPPFD, cropElectricityYieldSimulator1)
 
     # convert PPFD to DLI
-    innerDLIToPlants = util.convertFromHourlyPPFDWholeDayToDLI(hourlyInnerPPFDToPlants)
+    innerDLIToPlants = Util.convertFromHourlyPPFDWholeDayToDLI(hourlyInnerPPFDToPlants)
     # print "innerDLIToPlants:{}".format(innerDLIToPlants)
 
     return innerDLIToPlants
@@ -554,13 +582,14 @@ def getMonthlyElectricitySalesperArea(dailyJopvoutperArea, yearOfeachDay, monthO
     :param monthOfeachDay:
     :return:
     '''
+    # unit: J/m^2/month
     monthlyElectricityYieldperArea = OPVFilm.getMonthlyElectricityProductionFromDailyData(dailyJopvoutperArea, yearOfeachDay, monthOfeachDay)
-    # print "monthlyElectricityYieldperArea:{}".format(monthlyElectricityYieldperArea)
+    # print("monthlyElectricityYieldperArea:{}".format(monthlyElectricityYieldperArea))
 
     # import the electricity sales price file
     fileName = constant.electricityPurchasePriceData
     # import the file removing the header
-    fileData = util.readData(fileName, relativePath="", skip_header=1, d='\t')
+    fileData = Util.readData(fileName, relativePath="", skip_header=1, d='\t')
     # print "fileData:{}".format(fileData)
 
     # print "monthlyElectricityYieldperArea.shape[0]:{}".format(monthlyElectricityYieldperArea.shape[0])
@@ -571,8 +600,8 @@ def getMonthlyElectricitySalesperArea(dailyJopvoutperArea, yearOfeachDay, monthO
     index = 0
     for monthlyData in fileData:
         # exclude the data out of the set start month and end month
-        if datetime.date(int(monthlyData[0]), int(monthlyData[1]), 1) + relativedelta(months=1) <= util.getStartDateDateType() or \
-                datetime.date(int(monthlyData[0]), int(monthlyData[1]), 1) > util.getEndDateDateType():
+        if datetime.date(int(monthlyData[0]), int(monthlyData[1]), 1) + relativedelta(months=1) <= Util.getStartDateDateType() or \
+                datetime.date(int(monthlyData[0]), int(monthlyData[1]), 1) > Util.getEndDateDateType():
             continue
         year[index] = monthlyData[0]
         month[index] = monthlyData[1]
@@ -580,10 +609,13 @@ def getMonthlyElectricitySalesperArea(dailyJopvoutperArea, yearOfeachDay, monthO
         # print "monthlyData:{}".format(monthlyData)
         index += 1
 
+    # print("monthlyResidentialElectricityPrice[Cents/kwh]:{}".format(monthlyResidentialElectricityPrice))
+
     # unit exchange: [J/m^2] -> [wh/m^2]
-    monthlyWhopvoutperArea =util.convertFromJouleToWattHour(monthlyElectricityYieldperArea)
+    monthlyWhopvoutperArea =Util.convertFromJouleToWattHour(monthlyElectricityYieldperArea)
     # unit exchange: [wh/m^2] -> [kwh/m^2]
-    monthlyKWhopvoutperArea =util.convertWhTokWh(monthlyWhopvoutperArea)
+    monthlyKWhopvoutperArea =Util.convertWhTokWh(monthlyWhopvoutperArea)
+    # print("monthlyKWhopvoutperArea[kwh/m^2]:{}".format(monthlyKWhopvoutperArea))
     # [USD/month/m^2]
     monthlyElectricitySalesperArea = OPVFilm.getMonthlyElectricitySalesperArea(monthlyKWhopvoutperArea, monthlyResidentialElectricityPrice)
     # print "monthlyElectricitySalesperArea:{}".format(monthlyElectricitySalesperArea)
@@ -637,7 +669,7 @@ def getPlantSalesperSquareMeter(simulatorClass):
     # get the retail price of lettuce harvested at each cycle
     # unit: USD/m^2/day
     plantSalesPerSquareMeter = Lettuce.getRetailPricePerArea(simulatorClass)
-    print ("plantSalesPerSquareMeter:{}".format(plantSalesPerSquareMeter))
+    # print ("plantSalesPerSquareMeter:{}".format(plantSalesPerSquareMeter))
 
     if constant.IfConsiderDiscountByTipburn  == True:
       # Tipburn discount
@@ -656,7 +688,7 @@ def getLaborCost(simulatorClass):
     harvestedShootFreshMassPerAreaKgPerDay = simulatorClass.harvestedShootFreshMassPerAreaKgPerDay
     # unit:kg
     totalHarvestedShootFreshMass = sum(harvestedShootFreshMassPerAreaKgPerDay) * constant.greenhouseCultivationFloorArea
-    print("totalHarvestedShootFreshMass:{}".format(totalHarvestedShootFreshMass))
+    # print("totalHarvestedShootFreshMass:{}".format(totalHarvestedShootFreshMass))
 
     # source: https://onlinelibrary.wiley.com/doi/abs/10.1111/cjag.12161
     # unit: [labors/10000 kg yield]
@@ -669,8 +701,8 @@ def getLaborCost(simulatorClass):
     # unit:hour/day
     workingHourPerDay = constant.workingHourPerDay
 
-    totalLaborCost = (totalHarvestedShootFreshMass / 10000.0) * necessaryLaborPer10000kgYield * workingHourPerDay * hourlyWagePerPerson * util.getSimulationDaysInt()
-    print("totalLaborCost:{}".format(totalLaborCost))
+    totalLaborCost = (totalHarvestedShootFreshMass / 10000.0) * necessaryLaborPer10000kgYield * workingHourPerDay * hourlyWagePerPerson * Util.getSimulationDaysInt()
+    # print("totalLaborCost:{}".format(totalLaborCost))
 
     return totalLaborCost
 
@@ -702,7 +734,7 @@ def calcOptimizedOPVAreaMaximizingtotalEconomicProfit(OPVAreaVector, totalEconom
     '''
     maxtotalEconomicProfitperYear = np.max(totalEconomicProfitperYearVector)
     bestOPVArea = OPVAreaVector[np.argmax(totalEconomicProfitperYearVector)]
-    print "The OPV area maximizing the economic profit is {}m^2 the max economic profit is {}USD/year ".format(bestOPVArea, maxtotalEconomicProfitperYear)
+    print ("The OPV area maximizing the economic profit is {}m^2 the max economic profit is {}USD/year ".format(bestOPVArea, maxtotalEconomicProfitperYear))
 
 
 def trainWeightsRLShadingCurtainDayStep(hasShadingCurtain, qLearningAgentsShadingCurtain=None, cropElectricityYieldSimulator1 = None):
@@ -719,7 +751,7 @@ def trainWeightsRLShadingCurtainDayStep(hasShadingCurtain, qLearningAgentsShadin
     # # for dLIEachdayThroughInnerStructure on a certain day
     # hourlyInnerLightIntensityPPFDThroughInnerStructure = cropElectricityYieldSimulator1.getHourlyInnerLightIntensityPPFDThroughInnerStructure()
     # # set dLIThroughInnerStructure to the object
-    # dLIThroughInnerStructure = util.convertFromHourlyPPFDWholeDayToDLI(hourlyInnerLightIntensityPPFDThroughInnerStructure)
+    # dLIThroughInnerStructure = Util.convertFromHourlyPPFDWholeDayToDLI(hourlyInnerLightIntensityPPFDThroughInnerStructure)
     # qLearningAgentsShadingCurtain.setDLIThroughInnerStructure(dLIThroughInnerStructure)
 
     print ("training parameters: epsilon={}, gamma={}, alpha={}, period:{}".format(\
@@ -732,7 +764,7 @@ def trainWeightsRLShadingCurtainDayStep(hasShadingCurtain, qLearningAgentsShadin
           trainingIteration, qLearningAgentsShadingCurtain.weights, datetime.datetime.now()))
 
       # training the q value function
-      for day in range (0, util.getSimulationDaysInt()):
+      for day in range (0, Util.getSimulationDaysInt()):
 
         state = day
 
@@ -745,7 +777,7 @@ def trainWeightsRLShadingCurtainDayStep(hasShadingCurtain, qLearningAgentsShadin
         # qLearningAgentsShadingCurtain.setDLIEachDayThroughInnerStructure(dLIThroughInnerStructure[state])
 
         #set num of days from Jan 1st.
-        daysFromJan1st = util.getNumOfDaysFromJan1st(util.getStartDateDateType() + datetime.timedelta(days=day))
+        daysFromJan1st = Util.getNumOfDaysFromJan1st(Util.getStartDateDateType() + datetime.timedelta(days=day))
         # date on a certain day
         qLearningAgentsShadingCurtain.setDaysFromJan1st(daysFromJan1st)
 
@@ -767,7 +799,7 @@ def trainWeightsRLShadingCurtainDayStep(hasShadingCurtain, qLearningAgentsShadin
         # approximateMaxQvalueNextState = max[approximatedQvalueNextState]
 
         # get the maximum q value in the next state
-        if (state+1) == util.getSimulationDaysInt():
+        if (state+1) == Util.getSimulationDaysInt():
           approximateMaxQvalueNextState = 0.0
         else:
           approximateMaxQvalueNextState = qLearningAgentsShadingCurtain.getApproximateValue(state + 1)
@@ -811,7 +843,7 @@ def testWeightsRLShadingCurtainDayStep(hasShadingCurtain, qLearningAgentsShading
 
     # get values necessary for RL training, which was done at
     # hourlyInnerLightIntensityPPFDThroughInnerStructure = cropElectricityYieldSimulator1.getHourlyInnerLightIntensityPPFDThroughInnerStructure()
-    # dLIThroughInnerStructure = util.convertFromHourlyPPFDWholeDayToDLI(hourlyInnerLightIntensityPPFDThroughInnerStructure)
+    # dLIThroughInnerStructure = Util.convertFromHourlyPPFDWholeDayToDLI(hourlyInnerLightIntensityPPFDThroughInnerStructure)
     # set dLIThroughInnerStructure to the object
     # qLearningAgentsShadingCurtain.setDLIThroughInnerStructure(dLIThroughInnerStructure)
 
@@ -819,7 +851,7 @@ def testWeightsRLShadingCurtainDayStep(hasShadingCurtain, qLearningAgentsShading
         testingIteration, qLearningAgentsShadingCurtain.weights, datetime.datetime.now(), constant.SimulationStartDate + "-" + constant.SimulationEndDate ))
 
       # training the q value function
-      for day in range(0, util.getSimulationDaysInt()):
+      for day in range(0, Util.getSimulationDaysInt()):
 
         state = day
         #########################################################################
@@ -831,7 +863,7 @@ def testWeightsRLShadingCurtainDayStep(hasShadingCurtain, qLearningAgentsShading
         # qLearningAgentsShadingCurtain.setDLIEachDayThroughInnerStructure(dLIThroughInnerStructure[state])
 
         # set num of days from Jan 1st.
-        daysFromJan1st = util.getNumOfDaysFromJan1st(util.getStartDateDateType() + datetime.timedelta(days=day))
+        daysFromJan1st = Util.getNumOfDaysFromJan1st(Util.getStartDateDateType() + datetime.timedelta(days=day))
         # date on a certain day
         qLearningAgentsShadingCurtain.setDaysFromJan1st(daysFromJan1st)
 
@@ -881,9 +913,9 @@ def testWeightsRLShadingCurtainDayStep(hasShadingCurtain, qLearningAgentsShading
 
 
       # unit conversion; get the daily plant yield per given period per area: [g/unit] -> [g/m^2]
-      unitPlantWeightperArea = util.convertUnitShootFreshMassToShootFreshMassperArea(unitPlantWeight)
+      unitPlantWeightperArea = Util.convertUnitShootFreshMassToShootFreshMassperArea(unitPlantWeight)
       # unit conversion:  [g/m^2] -> [kg/m^2]1
-      unitPlantWeightperAreaKg = util.convertFromgramTokilogram(unitPlantWeightperArea)
+      unitPlantWeightperAreaKg = Util.convertFromgramTokilogram(unitPlantWeightperArea)
       # get the sales price of plant [USD/m^2]
       # if the average DLI during each harvest term is more than 17 mol/m^2/day, discount the price
       # TODO may need to improve the affect of Tipburn

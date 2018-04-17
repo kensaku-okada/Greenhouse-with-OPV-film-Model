@@ -104,6 +104,11 @@ class SimulatorClass:
     self._directHorizontalSolarRadiation = None
     self._dailyWhopvoutperAreaEastRoof = None
     self._dailyWhopvoutperAreaWestRoof = None
+    self._dailykWhopvoutperAreaEastRoof = None
+    self._dailykWhopvoutperAreaWestRoof = None
+    self._totalkWhopvoutPerday = None
+    self._totalkWhopvoutPerAreaPerday = None
+    self._totalkWhopvoutPerAreaPerday = None
 
     self._dailyShootFreshMass = None
     self._dailyUnitDailyFreshWeightIncrease = None
@@ -540,11 +545,11 @@ class SimulatorClass:
     self._totalkWhopvoutPerday = totalkWhopvoutPerday
 
   @property
-  def totalkWhopvoutPerMeterPerday(self):
-    return self._totalkWhopvoutPerMeterPerday
-  @totalkWhopvoutPerMeterPerday.setter
-  def totalkWhopvoutPerMeterPerday(self, totalkWhopvoutPerMeterPerday):
-    self._totalkWhopvoutPerMeterPerday = totalkWhopvoutPerMeterPerday
+  def totalkWhopvoutPerAreaPerday(self):
+    return self._totalkWhopvoutPerAreaPerday
+  @totalkWhopvoutPerAreaPerday.setter
+  def totalkWhopvoutPerAreaPerday(self, totalkWhopvoutPerAreaPerday):
+    self._totalkWhopvoutPerAreaPerday = totalkWhopvoutPerAreaPerday
   ######################### solar radiation to tilted OPV (roof) end #########################
 
   def setIfGrowForSummerPeriod(self, ifGrowForSummerPeriod):
