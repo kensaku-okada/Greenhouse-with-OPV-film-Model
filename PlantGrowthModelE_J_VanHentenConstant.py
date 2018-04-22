@@ -51,25 +51,15 @@ canopyTemp = {'celsius': 17.5 }
 # canopyTemp = {'celsius': 5 }
 
 carboxilationConductatnce = c_car1 * canopyTemp['celsius']**2 + c_car1 * canopyTemp['celsius'] + c_car3
-
-print (carboxilationConductatnce)
+# print (carboxilationConductatnce)
 
 
 canopyTemp = {'celsius': 40 }
 carboxilationConductatnce = c_car1 * canopyTemp['celsius']**2 + c_car1 * canopyTemp['celsius'] + c_car3
-print (carboxilationConductatnce)
+# print (carboxilationConductatnce)
 
 
 canopyTemp = {'celsius': 5 }
 carboxilationConductatnce = c_car1 * canopyTemp['celsius']**2 + c_car1 * canopyTemp['celsius'] + c_car3
-print (carboxilationConductatnce)
-
-
-
-
-
-
-
-
-
+# print (carboxilationConductatnce)
 

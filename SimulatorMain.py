@@ -25,7 +25,6 @@ case = "OptimizeOnlyOPVCoverageRatio"
 # case = "MINLPc"
 # case = "ShadingCurtainReinforcementLearning"
 
-
 if case == "OneCaseSimulation":
   print("run OneCaseSimulation")
 
@@ -235,9 +234,10 @@ elif case == "OptimizeOnlyOPVCoverageRatio":
 
     # plant profit per square meter with each OPV film coverage: [USD/m^2]
     totalPlantProfitsPerGHFloorArea[i] = totalPlantSalesesPerGHFloorArea[i] - totalPlantCostsPerGHFloorArea[i]
+    totalPlantProfits[i] = totalPlantProfitsPerGHFloorArea[i] * constant.greenhouseFloorArea
 
     # plant profit with each OPV film coverage: [USD/m^2]
-    totalPlantProfits[i] = totalElectricityProfits[i] + totalPlantProfitsPerGHFloorArea[i]
+    totalEconomicProfits[i] = totalElectricityProfits[i] + totalPlantProfitsPerGHFloorArea[i] * constant.greenhouseFloorArea
 
   ######################################################
   ##### display the optimization results start #########
@@ -324,11 +324,11 @@ elif case == "OptimizeOnlyOPVCoverageRatio":
   # data export
   Util.exportCSVFile(
     np.array([OPVCoverages, totalkWhopvouts, totalkWhopvoutsPerGHFloorArea, totalGrowthFreshWeightsPerCultivationFloorArea * constant.greenhouseCultivationFloorArea,\
-              totalGrowthFreshWeightsPerGHFloorArea,totalHarvestedShootFreshMassPerCultivationFloorAreaKgPerDay]).T, \
+              totalGrowthFreshWeightsPerGHFloorArea,totalHarvestedShootFreshMassPerCultivationFloorAreaKgPerDay ]).T, \
     "PlantAndElectricityYieldWholeAndPerFootPrint")
   Util.exportCSVFile(
     np.array([OPVCoverages, totalElectricitySalesPerGHFloorArea, totalElectricityCostsPerGHFloorArea, totalPlantSalesesPerGHFloorArea, \
-              totalPlantCostsPerGHFloorArea,]).T, \
+              totalPlantCostsPerGHFloorArea,totalEconomicProfits]).T, \
     "SalesAndCostPerFootPrint")
 
   # plotting this graph is the coal of this simulation!!!
@@ -336,7 +336,7 @@ elif case == "OptimizeOnlyOPVCoverageRatio":
   title = "whole economic profit with a given area vs OPV film"
   xAxisLabel = "OPV Coverage Ratio [-]: " + constant.SimulationStartDate + "-" + constant.SimulationEndDate
   yAxisLabel = "economic profit for a given period [USD]"
-  Util.plotData(OPVCoverages, totalPlantProfits, title, xAxisLabel, yAxisLabel)
+  Util.plotData(OPVCoverages, totalEconomicProfits, title, xAxisLabel, yAxisLabel)
   Util.saveFigure(title + " " + constant.SimulationStartDate + "-" + constant.SimulationEndDate)
   # #######################################################################
 

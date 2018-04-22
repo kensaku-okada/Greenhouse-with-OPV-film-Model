@@ -5,9 +5,11 @@
 # last edit date: 15 Jun 2017
 #######################################################
 
+# ####################################################################################################
 # np.set_printoptions(threshold=np.inf)
 # print "hourlySolarIncidenceAngle:{}".format(np.degrees(hourlySolarIncidenceAngle))
 # np.set_printoptions(threshold=1000)
+# ####################################################################################################
 
 # ####################################################################################################
 # # Stop execution here...
@@ -40,11 +42,13 @@ def calcUnitDailyFreshWeightE_J_VanHenten1994(simulatorClass):
 
     # get the simulation days
     simulationDaysInt = util.getSimulationDaysInt()
+    # print("simulationDaysInt:{}".format(simulationDaysInt))
 
     # take date and time
     year = simulatorClass.getYear()
     month = simulatorClass.getMonth()
     day = simulatorClass.getDay()
+    # print("year[0]:{}".format(year[0]))
 
     # get the summer period hours
     summerPeriodDays = datetime.date(year=year[0], month=constant.SummerPeriodEndMM, day=constant.SummerPeriodEndDD) - \
@@ -59,6 +63,9 @@ def calcUnitDailyFreshWeightE_J_VanHenten1994(simulatorClass):
 
     # it was assumed that the canopy temperature is instantaneously adjusted to the setpoint temperature at each hour.
     U_T = Lettuce.getGreenhouseTemperatureEachHour(simulatorClass)
+    # the following definition of U_T is used for validation
+    # U_T = simulatorClass.GHAirTemperatureValidationData
+
     # print("U_T:{}".format(U_T))
     # print("U_T.shape:{}".format(U_T.shape))
 
@@ -104,8 +111,9 @@ def calcUnitDailyFreshWeightE_J_VanHenten1994(simulatorClass):
         # for i in range (1, constant.cultivationDaysperHarvest):
 
         # if you do not grow plant during the summer period, then skip the period
-        if simulatorClass.getIfGrowForSummerPeriod() is False and \
-            datetime.date(year[i], month[i], day[i]) >= datetime.date(year[i], constant.SummerPeriodStartMM, constant.SummerPeriodStartDD) and \
+        # if simulatorClass.getIfGrowForSummerPeriod() is False and \
+        if constant.ifGrowForSummerPeriod is False and \
+                datetime.date(year[i], month[i], day[i]) >= datetime.date(year[i], constant.SummerPeriodStartMM, constant.SummerPeriodStartDD) and \
             datetime.date(year[i], month[i], day[i]) <= datetime.date(year[i], constant.SummerPeriodEndMM, constant.SummerPeriodEndDD):
 
             # skip the summer period cultivation cycle

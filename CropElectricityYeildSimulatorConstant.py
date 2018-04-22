@@ -9,45 +9,45 @@
 import numpy as np
 import math
 
-#########################################################################
-########### Reinforcement Learning (RL) constants start##################
-#########################################################################
-# labels of weights for features
-w_0 = "bias(w_0)"
-##### 1 DLI to plants with the state and action
-w_1 = "DLIEachDayToPlants(w_1)"
-##### 2 plant weight increase with the state and action
-w_2 = "unitDailyFreshWeightIncrease(w_2)"
-##### 3 plant weight at the state
-w_3 = "accumulatedUnitDailyFreshWeightIncrease(w_3)"
-##### 4 averageDLITillTheDay
-w_4 = "averageDLITillHarvestDay(w_4)"
-##### 5 season effects (winter) representing dates.
-w_5 = "isSpring(w_5)"
-##### 6 season effects (spring) representing dates.
-w_6 = "isSummer(w_6)"
-##### 7 season effects (summer) representing dates.
-w_7 = "isAutumn(w_7)"
-##### 8 season effects (autumn) representing dates.
-w_8 = "isWinter(w_8)"
-
-# starts from middle of Feb
-daysFromJanStartApril = 45
-# starts from May first
-daysFromJanStartSummer = 121
-# starts from middle of September
-daysFromJanStartAutumn = 259
-# starts from middle of Winter
-daysFromJanStartWinter = 320
-
-fileNameQLearningTrainedWeight = "qLearningTraintedWeights"
-
-ifRunTraining = True
-ifSaveCalculatedWeight = True
-ifLoadWeight = True
-##############################################
-########### RL constants end##################
-##############################################
+# #########################################################################
+# ########### Reinforcement Learning (RL) constants start##################
+# #########################################################################
+# # labels of weights for features
+# w_0 = "bias(w_0)"
+# ##### 1 DLI to plants with the state and action
+# w_1 = "DLIEachDayToPlants(w_1)"
+# ##### 2 plant weight increase with the state and action
+# w_2 = "unitDailyFreshWeightIncrease(w_2)"
+# ##### 3 plant weight at the state
+# w_3 = "accumulatedUnitDailyFreshWeightIncrease(w_3)"
+# ##### 4 averageDLITillTheDay
+# w_4 = "averageDLITillHarvestDay(w_4)"
+# ##### 5 season effects (winter) representing dates.
+# w_5 = "isSpring(w_5)"
+# ##### 6 season effects (spring) representing dates.
+# w_6 = "isSummer(w_6)"
+# ##### 7 season effects (summer) representing dates.
+# w_7 = "isAutumn(w_7)"
+# ##### 8 season effects (autumn) representing dates.
+# w_8 = "isWinter(w_8)"
+#
+# # starts from middle of Feb
+# daysFromJanStartApril = 45
+# # starts from May first
+# daysFromJanStartSummer = 121
+# # starts from middle of September
+# daysFromJanStartAutumn = 259
+# # starts from middle of Winter
+# daysFromJanStartWinter = 320
+#
+# fileNameQLearningTrainedWeight = "qLearningTraintedWeights"
+#
+# ifRunTraining = True
+# ifSaveCalculatedWeight = True
+# ifLoadWeight = True
+# ##############################################
+# ########### RL constants end##################
+# ##############################################
 
 #####################################################
 ############ filepath and file name start ###########
@@ -55,9 +55,11 @@ ifLoadWeight = True
 environmentData = "20130101-20170101" + ".csv"
 
 romaineLettceRetailPriceFileName = "romaineLettuceRetailPrice.csv"
-romaineLettceRetailPriceFilePath = ""
 
 electricityPurchasePriceData = "electricityPurchasePriceData.csv"
+romaineLettceRetailPriceFilePath = ""
+
+plantGrowthModelValidationData = "plantGrowthModelValidationData.csv"
 
 ###################################################
 ############ filepath and file name end ###########
@@ -73,9 +75,10 @@ ifUseOnlyRealData = False
 # ifUseOnlyRealData = True
 
 #If True,  export measured horizontal and estimated data when the simulation day is one day.
-ifExportMeasuredHorizontalAndExtimatedData = True
+# ifExportMeasuredHorizontalAndExtimatedData = True
 
 #If True, export measured horizontal and estimated data only on 15th day each month.
+# ifGet15thDayData = True
 ifGet15thDayData = False
 
 # if consider the photo inhibition by too strong sunlight, True, if not, False
@@ -91,8 +94,7 @@ exportCSVFiles = True
 
 # if you want to export CVS file and figures, then true
 ifExportCSVFile = True
-ifExportFigures = True
-
+ifExportFigures = False
 
 #############################################################
 ####################### If statement flag end################
@@ -122,13 +124,15 @@ STCtemperature = 25.0
 # do not choose "20140201 to 20160101" specifically. somehow it does not work.
 # do not include 1/19/2014 as start date because 1/19/2014 partially misses its hourly data
 # do not include after 8/18/2016 because the dates after 8/18/2016 do not correctly log the body temperature.
+# SimulationStartDate="20150101"
 SimulationStartDate="20150101"
-# SimulationEndDate = "20151231"
+# SimulationStartDate="20150115"
 SimulationEndDate = "20151231"
 # one cultivation cycle
-# SimulationEndDate = "20150204"
+# SimulationEndDate = "20150115"
 
 sunnyDaysList = ["20150115", "20150217", "20150316", "20150413", "20150517", "20150615", "20150711", "20150815", "20150918", "20151013", "20151117", "20151215"]
+print("SimulationStartDate:{}, SimulationEndDate:{}".format(SimulationStartDate, SimulationEndDate))
 
 # latitude at Tucson == 32.2800408 N
 Latitude = math.radians(32.2800408)
@@ -166,13 +170,13 @@ kgpercwt = 45.36
 
 # if this is true, then continue to grow plants during the Summer period. the default value is False in the object(instance)
 ifGrowForSummerPeriod = False
+print("ifGrowForSummerPeriod:{}".format(ifGrowForSummerPeriod))
 
 # Summer period
 SummerPeriodStartMM = 6
 SummerPeriodStartDD = 1
 SummerPeriodEndMM = 9
 SummerPeriodEndDD = 15
-
 ######################################
 ##########other constant end##########
 ######################################
@@ -268,6 +272,7 @@ greenhouseRoofWidthWestOrSouth = greenhouseRoofWidth
 
 #angle of the rooftop (theta θ). [rad]
 greenhouseRoofAngle = math.acos(((greenhouseWidth/(numOfSpans*2.0)) / greenhouseRoofWidth))
+# greenhouseRoofAngle = 0.0
 print ("greenhouseRoofAngle (rad) : {}".format(greenhouseRoofAngle))
 # the angle of the roof facing north or east [rad]
 roofAngleEastOrNorth = greenhouseRoofAngle
@@ -347,14 +352,17 @@ OPVAngle = greenhouseRoofAngle
 # the coverage ratio of OPV module on the greenhouse roof [-]
 OPVAreaCoverageRatio = 0.25
 # OPVAreaCoverageRatio = 0.62
-
 # OPVAreaCoverageRatio = 0.0
+print("OPVAreaCoverageRatio:{}".format(OPVAreaCoverageRatio))
+
 
 # the coverage ratio of OPV module on the greenhouse roof [-]. If you set this value same as OPVAreaCoverageRatio, it assumed that the OPV coverage ratio does not change during the whole period
-# OPVAreaCoverageRatioSummerPeriod = 1.0
-OPVAreaCoverageRatioSummerPeriod = 0.5
+OPVAreaCoverageRatioSummerPeriod = 1.0
+# OPVAreaCoverageRatioSummerPeriod = 0.5
 # OPVAreaCoverageRatioSummerPeriod = 0.25
 # OPVAreaCoverageRatioSummerPeriod = 0.0
+print("OPVAreaCoverageRatioSummerPeriod:{}".format(OPVAreaCoverageRatioSummerPeriod))
+
 
 #the area of OPV on the roofTop.
 OPVArea = OPVAreaCoverageRatio * greenhouseTotalRoofArea
@@ -421,8 +429,10 @@ OPVAreaPerSheet = 0.849 * 0.66
 #240 watts ÷ (1.65m2 (module area) x 1000 W/m2) = 14.54%.
 #source: http://www.solartown.com/learning/solar-panels/solar-panel-efficiency-have-you-checked-your-eta-lately/
 # http://www.isu.edu/~rodrrene/Calculating%20the%20Efficiency%20of%20the%20Solar%20Cell.doc
-# unit: - per m^2
-OPVEfficiencyRatioSTC = maximumPower / OPVAreaPerSheet / 1000.0
+# unit: -
+# OPVEfficiencyRatioSTC = maximumPower / OPVAreaPerSheet / 1000.0
+OPVEfficiencyRatioSTC = 0.0137
+
 print("OPVCellEfficiencyRatioSTC:{}".format(OPVEfficiencyRatioSTC))
 #what is an air mass??
 #エアマスとは太陽光の分光放射分布を表すパラメーター、標準状態の大気（標準気圧１０１３ｈＰａ）に垂直に入射（太陽高度角９０°）した
@@ -554,6 +564,7 @@ DryMassToFreshMass = 1.0/0.045
 
 # the weight to harvest [g]
 harvestDryWeight = 200.0 / DryMassToFreshMass
+# harvestDryWeight = 999.0 / DryMassToFreshMass
 
 # operation cost of plants [USD/m^2/year]
 plantcostperSquaremeterperYear = 1.096405

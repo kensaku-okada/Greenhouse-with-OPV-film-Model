@@ -104,7 +104,9 @@ def calcUnitDailyFreshWeightBoth2003TaylorExpantionWithVaryingDLIDetail(innerDLI
   '''
 
   # if you continue to grow plant during the summer period, then this is true
-  ifGrowForSummerPeriod = cropElectricityYieldSimulator1.getIfGrowForSummerPeriod()
+  # ifGrowForSummerPeriod = cropElectricityYieldSimulator1.getIfGrowForSummerPeriod()
+  ifGrowForSummerPeriod = constant.ifGrowForSummerPeriod
+
   # print ("ifGrowForSummerPeriod:{}".format(ifGrowForSummerPeriod))
 
   # take date and time

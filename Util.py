@@ -425,6 +425,9 @@ def getArraysFromData(fileName, simulatorClass):
 
 
 def deriveOtherArraysFromImportedData(simulatorClass):
+	# Other data can be added in the future
+
+
   # set the the flag indicating daytime or nighttime
   hourlyHorizontalDirectOuterSolarIrradiance = simulatorClass.getImportedHourlyHorizontalDirectSolarRadiation()
   hourlyDayOrNightFlag = np.array([constant.daytime if i > 0.0 else constant.nighttime for i in hourlyHorizontalDirectOuterSolarIrradiance])

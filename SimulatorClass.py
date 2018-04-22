@@ -7,6 +7,7 @@ class SimulatorClass:
 
     self._OPVAreaCoverageRatio = constant.OPVAreaCoverageRatio
     self._OPVCoverageRatioSummerPeriod = constant.OPVAreaCoverageRatioSummerPeriod
+    self._OPVCoverageRatiosConsiderSummerRatio = None
     self._plantGrowthModel = constant.plantGrowthModel
     self._cultivationDaysperHarvest = constant.cultivationDaysperHarvest
     self._hasShadingCurtain = constant.hasShadingCurtain
@@ -72,8 +73,6 @@ class SimulatorClass:
     self._estimatedDirectSolarRadiationToOPVWestDirection = None
     self._estimatedDiffuseSolarRadiationToOPV = None
     self._estimatedAlbedoSolarRadiationToOPV = None
-
-    # the following variables do not have got/set methods, but have properties
     self._hourlySolarIncidenceAngleEastDirection = None
     self._hourlySolarIncidenceAngleWestDirection = None
     self._directSolarIrradianceToPlants = None
@@ -89,10 +88,12 @@ class SimulatorClass:
     self._hourlyHorizontalDirectOuterSolarIrradiance = None
     self._hourlyHorizontalTotalBeamMeterBodyTemperature = None
     self._hourlyAirTemperature = None
+    # self._ifGrowForSummerPeriod = False
+    self._ifGrowForSummerPeriod = None
 
-    self._ifGrowForSummerPeriod = False
     # if you want to calculate the estimated data which does not require the measured data, set this variable True.
     self._estimateSolarRadiationMode = False
+
     self._ifHasShadingCurtain = None
     self._hourlySolarAltitudeAngle = None
     self._hourlySolarAzimuthAngle = None
@@ -115,6 +116,10 @@ class SimulatorClass:
     self._dailyAccumulatedUnitDailyFreshWeightIncrease = None
     self._dailyUnitHarvestedFreshWeight = None
 
+    # variables for validation
+    GHSolarIrradianceValidationData = None
+    GHAirTemperatureValidationData = None
+
   def setOPVAreaCoverageRatio(self, OPVAreaCoverageRatio):
     self._OPVAreaCoverageRatio = OPVAreaCoverageRatio
   def getOPVAreaCoverageRatio(self):
@@ -124,6 +129,13 @@ class SimulatorClass:
     self._OPVCoverageRatioSummerPeriod = OPVCoverageRatioSummerPeriod
   def getOPVCoverageRatioSummerPeriod(self):
     return self._OPVCoverageRatioSummerPeriod
+
+  @property
+  def OPVCoverageRatiosConsiderSummerRatio(self):
+    return self._OPVCoverageRatiosConsiderSummerRatio
+  @OPVCoverageRatiosConsiderSummerRatio.setter
+  def OPVCoverageRatiosConsiderSummerRatio(self, OPVCoverageRatiosConsiderSummerRatio):
+    self._OPVCoverageRatiosConsiderSummerRatio = OPVCoverageRatiosConsiderSummerRatio
 
   def setPlantGrowthModel(self, plantGrowthModel):
     self._plantGrowthModel = plantGrowthModel
@@ -789,9 +801,17 @@ class SimulatorClass:
   def harvestedShootFreshMassPerAreaKgPerDay(self, harvestedShootFreshMassPerAreaKgPerDay):
     self._harvestedShootFreshMassPerAreaKgPerDay = harvestedShootFreshMassPerAreaKgPerDay
 
+  @property
+  def GHSolarIrradianceValidationData(self):
+    return self._GHSolarIrradianceValidationData
+  @GHSolarIrradianceValidationData.setter
+  def GHSolarIrradianceValidationData(self, GHSolarIrradianceValidationData):
+    self._GHSolarIrradianceValidationData = GHSolarIrradianceValidationData
 
-
-
-
-
+  @property
+  def GHAirTemperatureValidationData(self):
+    return self._GHAirTemperatureValidationData
+  @GHAirTemperatureValidationData.setter
+  def GHAirTemperatureValidationData(self, GHAirTemperatureValidationData):
+    self._GHAirTemperatureValidationData = GHAirTemperatureValidationData
 

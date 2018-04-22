@@ -171,7 +171,7 @@ def calcOPVmoduleSolarIrradianceGHRoof(simulatorClass, roofDirectionNotation=con
     # # Move the above line to different parts of the assignment as you implement more of the functionality.
     # ####################################################################################################
 
-def getDailyElectricityYieldperArea(hourlyOPVTemperature, directSolarRadiationToOPV, diffuseSolarRadiationToOPV,groundReflectedSolarradiationToOPV):
+def getDailyElectricityYieldperArea(simulatorClass,hourlyOPVTemperature, directSolarRadiationToOPV, diffuseSolarRadiationToOPV,groundReflectedSolarradiationToOPV):
     '''
     calculate the daily electricity yield per area (m^2).
     :param hourlyOPVTemperature: [celsius]
@@ -183,7 +183,7 @@ def getDailyElectricityYieldperArea(hourlyOPVTemperature, directSolarRadiationTo
     # print "total solar irradiance:{}".format(directSolarRadiationToOPV+diffuseSolarRadiationToOPV+groundReflectedSolarradiationToOPV)
 
     # [W/m^2] == [J/s/m^2] -> [J/m^2] per day
-    dailyJopvoutperArea = OPVFilm.calcOPVElectricEnergyperArea(hourlyOPVTemperature, directSolarRadiationToOPV+diffuseSolarRadiationToOPV+groundReflectedSolarradiationToOPV)
+    dailyJopvoutperArea = OPVFilm.calcOPVElectricEnergyperArea(simulatorClass, hourlyOPVTemperature, directSolarRadiationToOPV+diffuseSolarRadiationToOPV+groundReflectedSolarradiationToOPV)
     # print "dailyJopvout:{}".format(dailyJopvout)
 
     return dailyJopvoutperArea
@@ -487,9 +487,6 @@ def penalizeUnitDailyHarvestedFreshWeight(unitDailyHarvestedFreshWeight, cropEle
 
     the parameters were derived with the solver of Excel 2007, the process is written in "penalizePlantYieldBySolarRadiation.xlsx"
 
-    TODO: the cultivar of the data was for Loose  green leaf  lettuce, not Magenta or butterhead, which will probably cause the difference of peak light intensity and plant yield weight.
-    We will need some data in each case and tune the parameters for better model.
-
     :param totalDLItoPlants:
     :param unitDailyHarvestedFreshWeight:
     :param cropElectricityYieldSimulator1:
@@ -544,6 +541,8 @@ def getPenalizedUnitFreshWeight(lightIntensityDLI):
     b = 8.3199
     c = 54.26
     return a * lightIntensityDLI**2 + b * lightIntensityDLI + c
+
+
 
 def getWholeElectricityYieldEachOPVRatio(OPVAreaCoverageRatio, dailyJopvout, cropElectricityYieldSimulator1, greenhouseRoofArea = None):
     '''

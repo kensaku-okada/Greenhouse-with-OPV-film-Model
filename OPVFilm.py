@@ -466,18 +466,21 @@ def calcDirectBeamSolarRadiationNormalToTiltedOPVKacira2003(hourlySolarAltitudeA
 
     return directBeamSolarRadiationNormalToTiltedOPV
 
-def calcOPVElectricEnergyperArea (hourlyOPVTemperature, solarRadiationToOPV):
+def calcOPVElectricEnergyperArea(simulatorClass, hourlyOPVTemperature, solarRadiationToOPV):
     '''
     calculate the electric energy per OPV area during the defined days [J/day/m^2]
     :param hourlyOPVTemperature:
     :param Popvin:
     :return:
     '''
+    # print("at OPVfilm.py, hourlyOPVTemperature.shape:{}".format(hourlyOPVTemperature.shape))
+
     dailyJopvout = np.zeros(util.calcSimulationDaysInt())
 
-    print("at OPVfilm.py, hourlyOPVTemperature.shape".format(hourlyOPVTemperature.shape))
+    # make the list of OPV coverage ratio at each hour changing during summer
+    # OPVAreaCoverageRatioChangingInSummer = getDifferentOPVCoverageRatioInSummerPeriod(constant.OPVAreaCoverageRatio, simulatorClass)
 
-		# the PV module degradation ratio by time
+    # the PV module degradation ratio by time
     PVDegradationRatio = np.array([1.0 - constant.PVDegradationRatioPerHour * i for i in range (0, hourlyOPVTemperature.shape[0])])
 
     for day in range (0, util.calcSimulationDaysInt()):
@@ -509,7 +512,6 @@ def calcOPVElectricEnergyperAreaperDay(hourlyOPVTemperature, Popvin, PVDegradati
     #print"int(constant.hourperDay):{}".format(int(constant.hourperDay))
     #calculate the electric energy per OPV area (watt/m^2)
     for hour in range (0, int(constant.hourperDay)):
-        #TODO this equation was made based on my assumption. make sure this is correct once the experiment data is obtained.
         # Jopvout += constant.OPVEfficiencyRatioSTC * constant.degradeCoefficientFromIdealtoReal * \
         #            (1.0 + constant.TempCoeffitientVmpp * (hourlyOPVTemperature[hour] - constant.STCtemperature)) * \
         #            (1.0 + constant.TempCoeffitientImpp * (hourlyOPVTemperature[hour] - constant.STCtemperature)) * \
@@ -694,7 +696,7 @@ def calcHourlyInnerLightIntensityPPFD(HourlyOuterLightIntensityPPFD, OPVAreaCove
     # make the list of OPV coverage ratio at each hour fixing the ratio during summer
     oPVAreaCoverageRatioFixingInSummer = getDifferentOPVCoverageRatioInSummerPeriod(OPVAreaCoverageRatio, cropElectricityYieldSimulator1)
 
-    # TODO the light intensity decrease by OPV film will be considered in calculating the solar iiradiance to multispan roof. move this calculation to CropElecricityYieldSimulationDetail.getSolarIrradianceToMultiSpanRoof
+    # TODO the light intensity decrease by OPV film will be considered in calculating the solar iiradiance to multispan roof. move this calculation to CropElecricityYieldSimulationDetail.getSolarIrradianceToMultiSpanRoof in the future.
     #consider the transmission ratio of OPV film
     HourlyInnerLightIntensityPPFDThroughOPV = InnerLightIntensityPPFDThroughGlazing * (1 - oPVAreaCoverageRatioFixingInSummer) + InnerLightIntensityPPFDThroughGlazing * oPVAreaCoverageRatioFixingInSummer * OPVPARTransmissionRatio
     # print "OPVAreaCoverageRatio:{}, HourlyInnerLightIntensityPPFDThroughOPV:{}".format(OPVAreaCoverageRatio, HourlyInnerLightIntensityPPFDThroughOPV)
@@ -765,7 +767,7 @@ def calcHourlyInnerLightIntensityPPFD(HourlyOuterLightIntensityPPFD, OPVAreaCove
     return hourlyInnerLightIntensityPPFDThroughInnerStructure
 
 
-def getDifferentOPVCoverageRatioInSummerPeriod(OPVAreaCoverageRatio, cropElectricityYieldSimulator1):
+def getDifferentOPVCoverageRatioInSummerPeriod(OPVAreaCoverageRatio, simulatorClass):
     '''
     this function changes the opv coverage ratio during the summer period into the constant ratio defined at the constant class.,
 
@@ -775,9 +777,9 @@ def getDifferentOPVCoverageRatioInSummerPeriod(OPVAreaCoverageRatio, cropElectri
     '''
 
     # take date and time
-    year = cropElectricityYieldSimulator1.getYear()
-    month = cropElectricityYieldSimulator1.getMonth()
-    day = cropElectricityYieldSimulator1.getDay()
+    year = simulatorClass.getYear()
+    month = simulatorClass.getMonth()
+    day = simulatorClass.getDay()
 
     OPVCoverageRatio = np.zeros(year.shape[0])
 
@@ -788,5 +790,8 @@ def getDifferentOPVCoverageRatioInSummerPeriod(OPVAreaCoverageRatio, cropElectri
             OPVCoverageRatio[i] = constant.OPVAreaCoverageRatioSummerPeriod
         else:
             OPVCoverageRatio[i] = OPVAreaCoverageRatio
+
+    # set the array to the  objec
+    simulatorClass.OPVCoverageRatiosConsiderSummerRatio = OPVCoverageRatio
 
     return OPVCoverageRatio
