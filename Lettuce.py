@@ -434,6 +434,7 @@ def getRetailPricePerArea(simulatorClass):
       harvestedFreshMassPricePerAreaPerDay[i] = harvestedShootFreshMassPerAreaKgPerDay[i] * unitRetailPricePerKg
 
 
+
     return harvestedFreshMassPricePerAreaPerDay
 
 def getUnitRomainLettucePrice(month, year, priceInfoList):

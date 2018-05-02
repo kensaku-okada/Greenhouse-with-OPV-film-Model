@@ -28,6 +28,7 @@ import Util as util
 import datetime
 import Lettuce
 import PlantGrowthModelE_J_VanHentenConstant as VanHentenConstant
+import PlantGrowthPenaltyByPhotoinhibition as Photoinhibition
 
 
 def calcUnitDailyFreshWeightE_J_VanHenten1994(simulatorClass):
@@ -175,9 +176,20 @@ def calcUnitDailyFreshWeightE_J_VanHenten1994(simulatorClass):
         # print("d_structuralDryWeight:{}".format(d_structuralDryWeight))
         # print("d_nonStructuralDryWeight:{}".format(d_nonStructuralDryWeight))
 
+        # increase the plant weight
         Xsdw[i] = Xsdw[i-1] + d_structuralDryWeight
         Xnsdw[i] = Xnsdw[i-1] + d_nonStructuralDryWeight
         DW[i] = Xsdw[i] +  Xnsdw[i]
+
+        #####################################################################################################
+        # get the penalized plant fresh weight with too strong sunlight [g/unit]
+        if constant.IfConsiderPhotoInhibition is True:
+            1==1
+
+        #####################################################################################################
+
+
+
 
         # if the dry weight exceeds the weight for cultimvation, then reset the dryweight
         if DW[i] > constant.harvestDryWeight * plantDensity:

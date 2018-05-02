@@ -19,9 +19,9 @@ import Util
 import CropElectricityYeildSimulatorConstant as constant
 # import importlib
 
-# case = "OneCaseSimulation"
+case = "OneCaseSimulation"
 # case == "LeastSquareMethod"
-case = "OptimizeOnlyOPVCoverageRatio"
+# case = "OptimizeOnlyOPVCoverageRatio"
 # case = "MINLPc"
 # case = "ShadingCurtainReinforcementLearning"
 
@@ -31,6 +31,8 @@ if case == "OneCaseSimulation":
   # get the 2-D data for least square method
   simulatorClass = Simulator1.simulateCropElectricityYieldProfit1()
   # print "profitVSOPVCoverageData:{}".format(profitVSOPVCoverageData)
+
+  print("OneCaseSimulation finished")
 
   # ####################################################################################################
   # Stop execution here...

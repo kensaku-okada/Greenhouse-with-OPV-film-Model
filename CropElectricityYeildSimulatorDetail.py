@@ -426,7 +426,7 @@ def getPlantYieldSimulation(simulatorClass):
         # print("dailyUnitDailyFreshWeightIncrease.shape:{}".format(dailyUnitDailyFreshWeightIncrease.shape))
         # print("dailyAccumulatedUnitDailyFreshWeightIncrease.shape:{}".format(dailyAccumulatedUnitDailyFreshWeightIncrease.shape))
         # print("dailyUnitHarvestedFreshWeight.shape:{}".format(dailyUnitHarvestedFreshWeight.shape))
-
+        # print("dailyUnitHarvestedFreshWeight:{}".format(dailyUnitHarvestedFreshWeight))
 
     # this model was coded, but the result was not better than constant.E_J_VanHenten1994
     elif plantGrowthModel == constant.S_Pearson1997:
@@ -569,10 +569,6 @@ def getWholeElectricityYieldEachOPVRatio(OPVAreaCoverageRatio, dailyJopvout, cro
     #     return totalJopvout * unfixedOPVCoverageRatio * greenhouseRoofArea
 
 
-def getDailyElectricitySalesperArea():
-    # todo do later if necessary
-    return 0
-
 def getMonthlyElectricitySalesperArea(dailyJopvoutperArea, yearOfeachDay, monthOfeachDay):
     '''
 
@@ -585,11 +581,11 @@ def getMonthlyElectricitySalesperArea(dailyJopvoutperArea, yearOfeachDay, monthO
     monthlyElectricityYieldperArea = OPVFilm.getMonthlyElectricityProductionFromDailyData(dailyJopvoutperArea, yearOfeachDay, monthOfeachDay)
     # print("monthlyElectricityYieldperArea:{}".format(monthlyElectricityYieldperArea))
 
-    # import the electricity sales price file
-    fileName = constant.electricityPurchasePriceData
+    # import the electricity sales price file: source (download the CSV file): http://www.eia.gov/electricity/data/browser/#/topic/7?agg=2,0,1&geo=g&freq=M
+    fileName = constant.averageRetailPriceOfElectricityMonthly
     # import the file removing the header
     fileData = Util.readData(fileName, relativePath="", skip_header=1, d='\t')
-    # print "fileData:{}".format(fileData)
+    print ("fileData:{}".format(fileData))
 
     # print "monthlyElectricityYieldperArea.shape[0]:{}".format(monthlyElectricityYieldperArea.shape[0])
     year = np.zeros(monthlyElectricityYieldperArea.shape[0])
@@ -599,11 +595,14 @@ def getMonthlyElectricitySalesperArea(dailyJopvoutperArea, yearOfeachDay, monthO
     index = 0
     for monthlyData in fileData:
         # exclude the data out of the set start month and end month
-        if datetime.date(int(monthlyData[0]), int(monthlyData[1]), 1) + relativedelta(months=1) <= Util.getStartDateDateType() or \
-                datetime.date(int(monthlyData[0]), int(monthlyData[1]), 1) > Util.getEndDateDateType():
+        # print("monthlyData:{}".format(monthlyData))
+        if datetime.date(int(monthlyData[1]), int(monthlyData[0]), 1) + relativedelta(months=1) <= Util.getStartDateDateType() or \
+                datetime.date(int(monthlyData[1]), int(monthlyData[0]), 1) > Util.getEndDateDateType():
             continue
-        year[index] = monthlyData[0]
-        month[index] = monthlyData[1]
+
+        year[index] = monthlyData[1]
+        month[index] = monthlyData[0]
+        # take the residential electricity retail price
         monthlyResidentialElectricityPrice[index] = monthlyData[2]
         # print "monthlyData:{}".format(monthlyData)
         index += 1

@@ -115,6 +115,9 @@ class SimulatorClass:
     self._dailyUnitDailyFreshWeightIncrease = None
     self._dailyAccumulatedUnitDailyFreshWeightIncrease = None
     self._dailyUnitHarvestedFreshWeight = None
+    self._shootFreshMassPerAreaKgPerDay = None
+    self._harvestedShootFreshMassPerAreaKgPerDay = None
+    self._totalHarvestedShootFreshMass = None
 
     # variables for validation
     GHSolarIrradianceValidationData = None
@@ -800,6 +803,13 @@ class SimulatorClass:
   @harvestedShootFreshMassPerAreaKgPerDay.setter
   def harvestedShootFreshMassPerAreaKgPerDay(self, harvestedShootFreshMassPerAreaKgPerDay):
     self._harvestedShootFreshMassPerAreaKgPerDay = harvestedShootFreshMassPerAreaKgPerDay
+
+  @property
+  def totalHarvestedShootFreshMass(self):
+    return self._totalHarvestedShootFreshMass
+  @totalHarvestedShootFreshMass.setter
+  def totalHarvestedShootFreshMass(self, totalHarvestedShootFreshMass):
+    self._totalHarvestedShootFreshMass = totalHarvestedShootFreshMass
 
   @property
   def GHSolarIrradianceValidationData(self):

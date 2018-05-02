@@ -448,7 +448,7 @@ def simulateCropElectricityYieldProfit1():
     simulatorClass.totalElectricitySalesPerMonth = totalElectricitySalesPerMonth
     simulatorClass.totalElectricitySales = sum(totalElectricitySalesPerMonth)
     # print("totalElectricitySalesPerMonth:{}".format(totalElectricitySalesPerMonth))
-    print("totalElectricitySales:{}".format(sum(totalElectricitySalesPerMonth)))
+    # print("totalElectricitySales:{}".format(sum(totalElectricitySalesPerMonth)))
     ###########################################################################################
     ################## calculate the daily electricity sales  per area end#####################
     ###########################################################################################
@@ -625,17 +625,21 @@ def simulateCropElectricityYieldProfit1():
     # unit conversion; get the plant yield per day per area: [g/head/day] -> [g/m^2/day]
     shootFreshMassPerCultivationFloorAreaPerDay = util.convertUnitShootFreshMassToShootFreshMassperArea(shootFreshMassList)
     # print("shootFreshMassPerAreaPerDay:{}".format(shootFreshMassPerAreaPerDay))
+    # unit [g/head] -> [g/m^2]
     harvestedShootFreshMassPerCultivationFloorAreaPerDay = util.convertUnitShootFreshMassToShootFreshMassperArea(unitDailyHarvestedFreshWeight)
-    # print("harvestedShootFreshMassPerAreaPerDay:{}".format(harvestedShootFreshMassPerAreaPerDay))
+    # print("harvestedShootFreshMassPerCultivationFloorAreaPerDay:{}".format(harvestedShootFreshMassPerCultivationFloorAreaPerDay))
     # unit conversion:  [g/m^2/day] -> [kg/m^2/day]
     shootFreshMassPerCultivationFloorAreaKgPerDay = util.convertFromgramTokilogram(shootFreshMassPerCultivationFloorAreaPerDay)
     harvestedShootFreshMassPerCultivationFloorAreaKgPerDay = util.convertFromgramTokilogram(harvestedShootFreshMassPerCultivationFloorAreaPerDay)
+    # print("harvestedShootFreshMassPerCultivationFloorAreaKgPerDay:{}".format(harvestedShootFreshMassPerCultivationFloorAreaKgPerDay))
 
     # set the value to the object
     simulatorClass.shootFreshMassPerAreaKgPerDay = shootFreshMassPerCultivationFloorAreaKgPerDay
     simulatorClass.harvestedShootFreshMassPerAreaKgPerDay = harvestedShootFreshMassPerCultivationFloorAreaKgPerDay
-    # print("shootFreshMassPerAreaKgPerDay:{}".format(shootFreshMassPerAreaKgPerDay))
-    # print("harvestedShootFreshMassPerAreaKgPerDay:{}".format(harvestedShootFreshMassPerAreaKgPerDay))
+    simulatorClass.totalHarvestedShootFreshMass = sum(harvestedShootFreshMassPerCultivationFloorAreaKgPerDay) * constant.greenhouseCultivationFloorArea
+    # print("shootFreshMassPerAreaKgPerDay:{}".format(shootFreshMassPerCultivationFloorAreaKgPerDay))
+    # print("harvestedShootFreshMassPerCultivationFloorAreaKgPerDay:{}".format(harvestedShootFreshMassPerCultivationFloorAreaKgPerDay))
+    print("simulatorClass.totalHarvestedShootFreshMass:{}".format(simulatorClass.totalHarvestedShootFreshMass))
 
 
     if constant.ifExportFigures:
@@ -754,9 +758,15 @@ def simulateCropElectricityYieldProfit1():
     ##############################################################################
 
     # data export
-    util.exportCSVFile(np.array([[simulatorClass.totalElectricitySales], [simulatorClass.totalOPVCostUSDForDepreciation], \
+    # util.exportCSVFile(np.array([[simulatorClass.totalHarvestedShootFreshMass, simulatorClass.totalElectricitySales], [simulatorClass.totalOPVCostUSDForDepreciation], \
+    #         [totalplantSales], [totalPlantSalesPerGHFloorArea], [totalPlantProductionCost], [totalPlantProductionCostPerGHFloorArea], \
+    #         [economicProfit], [economicProfitPerGHFloorArea]]).T, "yieldProfitSalesCost")
+
+    # print("simulatorClass.totalHarvestedShootFreshMass:{}".format(simulatorClass.totalHarvestedShootFreshMass))
+
+    util.exportCSVFile(np.array([[simulatorClass.totalHarvestedShootFreshMass], [simulatorClass.totalElectricitySales], [simulatorClass.totalOPVCostUSDForDepreciation], \
             [totalplantSales], [totalPlantSalesPerGHFloorArea], [totalPlantProductionCost], [totalPlantProductionCostPerGHFloorArea], \
-            [economicProfit], [economicProfitPerGHFloorArea]]).T, "profitSalesCost")
+            [economicProfit], [economicProfitPerGHFloorArea]]).T, "yieldProfitSalesCost")
 
 
     return simulatorClass

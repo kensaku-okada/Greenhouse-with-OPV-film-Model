@@ -56,7 +56,7 @@ environmentData = "20130101-20170101" + ".csv"
 
 romaineLettceRetailPriceFileName = "romaineLettuceRetailPrice.csv"
 
-electricityPurchasePriceData = "electricityPurchasePriceData.csv"
+averageRetailPriceOfElectricityMonthly = "averageRetailPriceOfElectricityMonthly.csv"
 romaineLettceRetailPriceFilePath = ""
 
 plantGrowthModelValidationData = "plantGrowthModelValidationData.csv"
@@ -530,7 +530,7 @@ distanceBetweenPlants = 0.2
 
 # plant density (num of heads per area) [head/m^2]
 plantDensity = 1.0/(distanceBetweenPlants**2.0)
-
+print("plantDensity:{}".format(plantDensity))
 
 #number of heads
 numberOFheads = int(greenhouseCultivationFloorDepth/distanceBetweenPlants * numberOfRidge)
