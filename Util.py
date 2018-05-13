@@ -112,6 +112,12 @@ def getDaysFirstMonth():
     # print "month_day:{}".format(month_day)
     return daysFirstMonth
 
+def getDaysLastMonth():
+    lastDate = getEndDateDateType()
+    _, daysLastMonth = calendar.monthrange(lastDate.year, lastDate.month)
+    # print "month_day:{}".format(month_day)
+    return daysLastMonth
+
 def getDaysFirstMonthForGivenPeriod():
     daysFirstMonth = getDaysFirstMonth()
     startDate = getStartDateDateType()
@@ -425,7 +431,7 @@ def getArraysFromData(fileName, simulatorClass):
 
 
 def deriveOtherArraysFromImportedData(simulatorClass):
-	# Other data can be added in the future
+  # Other data can be added in the future
 
 
   # set the the flag indicating daytime or nighttime

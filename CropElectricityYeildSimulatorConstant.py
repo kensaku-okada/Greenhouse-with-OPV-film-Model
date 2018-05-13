@@ -8,6 +8,8 @@
 ##########import package files##########
 import numpy as np
 import math
+import datetime
+
 
 # #########################################################################
 # ########### Reinforcement Learning (RL) constants start##################
@@ -172,11 +174,6 @@ kgpercwt = 45.36
 ifGrowForSummerPeriod = False
 print("ifGrowForSummerPeriod:{}".format(ifGrowForSummerPeriod))
 
-# Summer period
-SummerPeriodStartMM = 6
-SummerPeriodStartDD = 1
-SummerPeriodEndMM = 9
-SummerPeriodEndDD = 15
 ######################################
 ##########other constant end##########
 ######################################
@@ -206,8 +203,8 @@ SummerPeriodEndDD = 15
 # greenhouseCultivationFloorArea = greenhouseCultivationFloorWidth * greenhouseCultivationFloorDepth
 # # greenhouseCultivationFloorArea = greenhouseWidth * greenhouseDepth * 0.9
 # # print("greenhouseCultivationFloorArea[m^2]:{}".format(greenhouseCultivationFloorArea))
-# # number of spans. If this is 1, the greenhouse is a single span greenhouse. If >1, multi-span greenhouse
-# numOfSpans = 1
+# # number of roofs. If this is 1, the greenhouse is a single roof greenhouse. If >1, multi-roof greenhouse
+# numOfRoofs = 1
 # # the type of roof direction
 # roofDirectionNotation = "EastWestDirectionRoof"
 # #side wall height of greenhouse (m)
@@ -232,38 +229,58 @@ SummerPeriodEndDD = 15
 
 
 #########################################################
-# Virtual greenhouse specification, the multi-span greenhouse virtually connected 10 of our real greenhouses.
+# Virtual greenhouse specification, the multi-roof greenhouse virtually connected 10 of our real greenhouses.
 # You can change these numbers according to your greenhouse design and specification
 #greenhouse roof type
 greenhouseRoofType = "SimplifiedAFlame"
-#width of the greenhouse (m)
-greenhouseWidth = 91.44 #
+# #width of the greenhouse (m)
+# greenhouseWidth = 91.44 #
+# #depth of the greenhouse (m)
+# greenhouseDepth = 14.6
+
+# the greenhouse floor area was replaced with the following, referring to a common business size greenhouse
+
+# number of roofs (-). If this is 1, the greenhouse is a single roof greenhouse. If >1, multi-roof greenhouse.
+numOfRoofs = 10.0
+# source: https://www.interempresas.net/FeriaVirtual/Catalogos_y_documentos/1381/Multispan-greenhouse-ULMA-Agricola.pdf,
+# source: https://www.alibaba.com/product-detail/Multi-roof-Poly-Film-Tunnel-Greenhouse_60184626287.html
+# this should be cahnged depending on the type of greenhouse simulated. (m)
+widthPerRoof = 9.6
+#total width of the greenhouse (m)
+# greenhouseWidth = 91.44
+greenhouseWidth = numOfRoofs * widthPerRoof
+
+# source of greenhouse depth : file:///C:/Users/kensa/Downloads/FanandPadgreenhouseevaporativecoolingsystemscirc1135bucklin.pdf,
+# https://www.researchgate.net/publication/235665387_Fan_and_Pad_Greenhouse_Evaporative_Cooling_Systems
 #depth of the greenhouse (m)
-greenhouseDepth = 14.6
+greenhouseDepth = 45.72 # = 150 feet
+
 #area of the greenhouse (m**2)
 greenhouseFloorArea = greenhouseWidth * greenhouseDepth
 print("greenhouseFloorArea[m^2]:{}".format(greenhouseFloorArea))
-#width of the greenhouse cultivation area (m)
-greenhouseCultivationFloorWidth = 73.3
-#depth of the greenhouse cultivation area(m)
-greenhouseCultivationFloorDepth = 10.89
-#floor area of greenhouse cultivation area(m**2)
-greenhouseCultivationFloorArea = greenhouseCultivationFloorWidth * greenhouseCultivationFloorDepth
-# greenhouseCultivationFloorArea = greenhouseWidth * greenhouseDepth * 0.9
+# # the following calculation gives the real cultivation area of our research greenhouse. However, since it has too large vacant space which is unrealistic for business greenhouse, this number was not used.
+# #width of the greenhouse cultivation area (m)
+# greenhouseCultivationFloorWidth = 73.3
+# #depth of the greenhouse cultivation area(m)
+# greenhouseCultivationFloorDepth = 10.89
+# #floor area of greenhouse cultivation area(m**2)
+# greenhouseCultivationFloorArea = greenhouseCultivationFloorWidth * greenhouseCultivationFloorDepth
+# Instead, it was assumed the cultivation area is 0.9 time of the total greenhouse floor area
+greenhouseCultivationFloorArea = greenhouseFloorArea * 0.9
 print("greenhouseCultivationFloorArea[m^2]:{}".format(greenhouseCultivationFloorArea))
-# number of spans. If this is 1, the greenhouse is a single span greenhouse. If >1, multi-span greenhouse
-numOfSpans = 10.0
 # the type of roof direction
 roofDirectionNotation = "EastWestDirectionRoof"
 #side wall height of greenhouse (m)
 greenhouseHeightSideWall = 1.8288 # = 6[feet]
 # the total sidewall area
 greenhouseSideWallArea = 2.0 * (greenhouseWidth + greenhouseDepth) * greenhouseHeightSideWall
+print("greenhouseSideWallArea[m^2]:{}".format(greenhouseSideWallArea))
+
 #center height of greenhouse (m)
 greenhouseHeightRoofTop = 4.8768 # = 16[feet]
 
-#width of the rooftop. calculate from the Pythagorean theorem. assumed that the shape of rooftop is straight (not curved), and the top height and roof angels are same at each span.
-greenhouseRoofWidth = math.sqrt((greenhouseWidth/(numOfSpans*2.0))**2.0 + (greenhouseHeightRoofTop-greenhouseHeightSideWall)**2.0)
+#width of the rooftop. calculate from the Pythagorean theorem. assumed that the shape of rooftop is straight (not curved), and the top height and roof angels are same at each roof.
+greenhouseRoofWidth = math.sqrt((greenhouseWidth/(numOfRoofs*2.0))**2.0 + (greenhouseHeightRoofTop-greenhouseHeightSideWall)**2.0)
 print ("greenhouseRoofWidth [m]: {}".format(greenhouseRoofWidth))
 # the length of the roof facing east or north
 greenhouseRoofWidthEastOrNorth = greenhouseRoofWidth
@@ -271,7 +288,7 @@ greenhouseRoofWidthEastOrNorth = greenhouseRoofWidth
 greenhouseRoofWidthWestOrSouth = greenhouseRoofWidth
 
 #angle of the rooftop (theta θ). [rad]
-greenhouseRoofAngle = math.acos(((greenhouseWidth/(numOfSpans*2.0)) / greenhouseRoofWidth))
+greenhouseRoofAngle = math.acos(((greenhouseWidth/(numOfRoofs*2.0)) / greenhouseRoofWidth))
 # greenhouseRoofAngle = 0.0
 print ("greenhouseRoofAngle (rad) : {}".format(greenhouseRoofAngle))
 # the angle of the roof facing north or east [rad]
@@ -279,12 +296,12 @@ roofAngleEastOrNorth = greenhouseRoofAngle
 # the angle of the roof facing south or west [rad]. This should be modified if the roof angle is different from the other side.
 roofAngleWestOrSouth = greenhouseRoofAngle
 # area of the rooftop [m^2]. summing the left and right side of rooftops from the center.
-greenhouseTotalRoofArea = greenhouseRoofWidth * greenhouseDepth * numOfSpans * 2.0
+greenhouseTotalRoofArea = greenhouseRoofWidth * greenhouseDepth * numOfRoofs * 2.0
 print ("greenhouseTotalRoofArea[m^2]: {}".format(greenhouseTotalRoofArea))
 
-greenhouseRoofTotalAreaEastOrNorth = greenhouseRoofWidthEastOrNorth * greenhouseDepth * numOfSpans
+greenhouseRoofTotalAreaEastOrNorth = greenhouseRoofWidthEastOrNorth * greenhouseDepth * numOfRoofs
 print ("greenhouseRoofTotalAreaEastOrNorth[m^2]: {}".format(greenhouseRoofTotalAreaEastOrNorth))
-greenhouseRoofTotalAreaWestOrSouth = greenhouseRoofWidthWestOrSouth * greenhouseDepth * numOfSpans
+greenhouseRoofTotalAreaWestOrSouth = greenhouseRoofWidthWestOrSouth * greenhouseDepth * numOfRoofs
 print ("greenhouseRoofTotalAreaWestOrSouth[m^2]: {}".format(greenhouseRoofTotalAreaWestOrSouth))
 #########################################################
 
@@ -305,10 +322,10 @@ print("OptimumPPFDForButterHeadLettuceWithNoTipburn (PPFD):{}".format(OptimumPPF
 shadingCurtainDeployPPFD = OptimumPPFDForButterHeadLettuceWithNoTipburn * 1.5
 print("shadingCurtainDeployPPFD:{}".format(shadingCurtainDeployPPFD))
 
-# The maximum value of m: the number of spans that incident light penetrating in the model. This value is used at SolarIrradianceMultiSpanRoof.py.
+# The maximum value of m: the number of roofs that incident light penetrating in the model. This value is used at SolarIrradianceMultiroofRoof.py.
 # if the angle between the incident light and the horizontal axis is too small, the m can be too large, which cause a system error at Util.sigma by iterating too much and make the simulation slow.
 # Thus, the upper limit was set.
-mMax = numOfSpans
+mMax = numOfRoofs
 # defaultIterationLimit = 495
 
 #######################################################
@@ -325,8 +342,6 @@ greenhouseGlazingType = "polyethylene (PE) DoubleLayer"
 # singlePEPERTransmittance = 0.875
 singlePERTransmittance = 0.85
 dobulePERTransmittance = singlePERTransmittance ** 2.0
-roofCoveringTrasmittance = singlePERTransmittance
-
 # reference: https://www.filmetrics.com/refractive-index-database/Polyethylene/PE-Polyethene
 PEFilmRefractiveIndex = 1.5
 # reference: https://en.wikipedia.org/wiki/Refractive_index
@@ -335,6 +350,8 @@ AirRefractiveIndex = 1.000293
 # Source of reference https://www.amazon.com/Tomato-Greenhouse-Roadmap-Guide-Production-ebook/dp/B00O4CPO42
 singlePolycarbonateTransmittance = 0.91
 doublePolycarbonateTransmittance = singlePolycarbonateTransmittance ** 2.0
+
+roofCoveringTransmittance = singlePERTransmittance
 sideWallTransmittance = singlePERTransmittance
 
 ################################################################
@@ -357,9 +374,9 @@ print("OPVAreaCoverageRatio:{}".format(OPVAreaCoverageRatio))
 
 
 # the coverage ratio of OPV module on the greenhouse roof [-]. If you set this value same as OPVAreaCoverageRatio, it assumed that the OPV coverage ratio does not change during the whole period
-OPVAreaCoverageRatioSummerPeriod = 1.0
+# OPVAreaCoverageRatioSummerPeriod = 1.0
 # OPVAreaCoverageRatioSummerPeriod = 0.5
-# OPVAreaCoverageRatioSummerPeriod = 0.25
+OPVAreaCoverageRatioSummerPeriod = OPVAreaCoverageRatio
 # OPVAreaCoverageRatioSummerPeriod = 0.0
 print("OPVAreaCoverageRatioSummerPeriod:{}".format(OPVAreaCoverageRatioSummerPeriod))
 
@@ -498,10 +515,24 @@ ShadingCurtainDeployStartDDFall =16
 ShadingCurtainDeployEndMMFall =10
 ShadingCurtainDeployEndDDFall =31
 
+# Summer period. This should happend soon after ending the shading curtain deployment period.
+SummerPeriodStartDate = datetime.date(int(SimulationStartDate[0:4]), ShadingCurtainDeployEndMMSpring, ShadingCurtainDeployEndDDSpring) + datetime.timedelta(days=1)
+SummerPeriodEndDate = datetime.date(int(SimulationStartDate[0:4]), ShadingCurtainDeployStartMMFall, ShadingCurtainDeployStartDDFall) - datetime.timedelta(days=1)
+
+SummerPeriodStartMM = int(SummerPeriodStartDate.month)
+# print("SummerPeriodStartMM:{}".format(SummerPeriodStartMM))
+SummerPeriodStartDD = int(SummerPeriodStartDate.day)
+# print("SummerPeriodStartDD:{}".format(SummerPeriodStartDD))
+SummerPeriodEndMM = int(SummerPeriodEndDate.month)
+# print("SummerPeriodEndMM:{}".format(SummerPeriodEndMM))
+SummerPeriodEndDD = int(SummerPeriodEndDate.day)
+# print("SummerPeriodEndDD:{}".format(SummerPeriodEndDD))
+
 # this is gonna be True when you want to deploy shading curtains only from  ShadigCuratinDeployStartHH to ShadigCuratinDeployEndHH
 IsShadingCurtainDeployOnlyDayTime = True
 ShadigCuratinDeployStartHH = 10
 ShadigCuratinDeployEndHH = 14
+IsDifferentShadingCurtainDeployTimeEachMonth = True
 
 # this is gonna be true when you want to control shading curtain opening and closing every hour
 IsHourlyShadingCurtainDeploy = False
@@ -513,11 +544,10 @@ IsHourlyShadingCurtainDeploy = False
 #################################################
 ##########Specification of plants start##########
 #################################################
-#unit selling price (USD/kg), which should be the daily retail/wholesale unit price
+#unit selling price (USD/kg)
 # original price
-plantUnitPriceUSDperKilogram = 0.977861162
-# adjusted price
-# plantUnitPriceUSDperKilogram = 0.677861162
+# source: USDA, Agricultural, Marketing, Service, National Retail Report - Specialty Crops page 9 and others: https://www.ams.usda.gov/mnreports/fvwretail.pdf
+plantUnitPriceUSDperKilogram = 1.99
 
 #Cost of plant production. the unit is USD/m^2
 # the conversion rate was calculated from from University of California Cooperative Extension (UCEC) UC Small farm program (http://sfp.ucdavis.edu/crops/coststudieshtml/lettuce/LettuceTable1/)
@@ -533,7 +563,8 @@ plantDensity = 1.0/(distanceBetweenPlants**2.0)
 print("plantDensity:{}".format(plantDensity))
 
 #number of heads
-numberOFheads = int(greenhouseCultivationFloorDepth/distanceBetweenPlants * numberOfRidge)
+# numberOFheads = int(greenhouseCultivationFloorDepth/distanceBetweenPlants * numberOfRidge)
+numberOFheads = int (plantDensity * greenhouseCultivationFloorArea)
 print("numberOFheads:{}".format(numberOFheads))
 
 # number of head per cultivation area [heads/m^2]
@@ -570,7 +601,8 @@ harvestDryWeight = 200.0 / DryMassToFreshMass
 plantcostperSquaremeterperYear = 1.096405
 
 # the DLI upper limitation causing some tipburn
-DLIforTipBurn = 17.0
+DLIforTipBurn = DLIForButterHeadLettuceWithNoTipburn
+
 
 # the discount ratio when there are some tipburn observed
 tipburnDiscountRatio = 0.2

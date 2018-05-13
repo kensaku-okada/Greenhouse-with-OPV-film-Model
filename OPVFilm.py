@@ -4,12 +4,14 @@
 from scipy import stats
 import sys
 import datetime
+import calendar
 import os as os
 import numpy as np
 import matplotlib.pyplot as plt
 import math
 import CropElectricityYeildSimulatorConstant as constant
 import Util as util
+import ShadingCurtain
 #######################################################
 
 # command to show all array data
@@ -586,29 +588,35 @@ def calcCostofElectricityProduction(OPVArea):
     return OPVArea * constant.OPVPricePerAreaUSD
 
 
-def getDirectSolarIrradianceToPlants(simulatorClass):
+def getDirectSolarIrradianceBeforeShadingCurtain(simulatorClass):
 
     # get the direct solar irradiance after penetrating multi span roof [W/m^2]
     hourlyDirectSolarRadiationAfterMultiSpanRoof = simulatorClass.getHourlyDirectSolarRadiationAfterMultiSpanRoof()
 
     # OPVAreaCoverageRatio = simulatorClass.getOPVAreaCoverageRatio()
     OPVAreaCoverageRatio = constant.OPVAreaCoverageRatio
-    hasShadingCurtain = simulatorClass.getIfHasShadingCurtain()
-    ShadingCurtainDeployPPFD = simulatorClass.getShadingCurtainDeployPPFD()
+    # ShadingCurtainDeployPPFD = simulatorClass.getShadingCurtainDeployPPFD()
     OPVPARTransmittance = constant.OPVPARTransmittance
 
     # make the list of OPV coverage ratio at each hour changing during summer
     OPVAreaCoverageRatioChangingInSummer = getDifferentOPVCoverageRatioInSummerPeriod(OPVAreaCoverageRatio, simulatorClass)
     # print("OPVAreaCoverageRatioChangingInSummer:{}".format(OPVAreaCoverageRatioChangingInSummer))
 
-    #consider the transmission ratio of OPV film
+    # consider the transmission ratio of OPV film
     hourlyDirectSolarRadiationAfterOPVAndRoof = hourlyDirectSolarRadiationAfterMultiSpanRoof * (1 - OPVAreaCoverageRatioChangingInSummer) \
-                                              + hourlyDirectSolarRadiationAfterMultiSpanRoof * OPVAreaCoverageRatioChangingInSummer * OPVPARTransmittance
+                                                + hourlyDirectSolarRadiationAfterMultiSpanRoof * OPVAreaCoverageRatioChangingInSummer * OPVPARTransmittance
     # print "OPVAreaCoverageRatio:{}, HourlyInnerLightIntensityPPFDThroughOPV:{}".format(OPVAreaCoverageRatio, HourlyInnerLightIntensityPPFDThroughOPV)
 
-    #consider the light reduction by greenhouse inner structures and equipments like pipes, poles and gutters
+    # consider the light reduction by greenhouse inner structures and equipments like pipes, poles and gutters
     hourlyDirectSolarRadiationAfterInnerStructure = (1 - constant.GreenhouseShadeProportion) * hourlyDirectSolarRadiationAfterOPVAndRoof
     # print "hourlyInnerLightIntensityPPFDThroughInnerStructure:{}".format(hourlyInnerLightIntensityPPFDThroughInnerStructure)
+
+    return hourlyDirectSolarRadiationAfterInnerStructure
+
+
+def getDirectSolarIrradianceToPlants(simulatorClass, hourlyDirectSolarRadiationAfterInnerStructure):
+
+    hasShadingCurtain = simulatorClass.getIfHasShadingCurtain()
 
     # take date and time
     year = simulatorClass.getYear()
@@ -637,7 +645,8 @@ def getDirectSolarIrradianceToPlants(simulatorClass):
                     hourlyDirectSolarRadiationAfterShadingCurtain[i] = hourlyDirectSolarRadiationAfterInnerStructure[i]
 
         # if we assume the shading curtain is deployed only for a certain hot time in a day, use this
-        elif constant.IsShadingCurtainDeployOnlyDayTime == True:
+        elif constant.IsShadingCurtainDeployOnlyDayTime == True and constant.IsDifferentShadingCurtainDeployTimeEachMonth == False:
+
             for i in range(0, hour.shape[0]):
                 if (datetime.date(year[i], month[i], day[i]) >=  datetime.date(year[i], constant.ShadingCurtainDeployStartMMSpring, constant.ShadingCurtainDeployStartDDSpring ) and \
                     datetime.date(year[i], month[i], day[i]) <= datetime.date(year[i], constant.ShadingCurtainDeployEndMMSpring, constant.ShadingCurtainDeployEndDDSpring) and \
@@ -652,23 +661,49 @@ def getDirectSolarIrradianceToPlants(simulatorClass):
                     # not deploy the curtain
                     hourlyDirectSolarRadiationAfterShadingCurtain[i] = hourlyDirectSolarRadiationAfterInnerStructure[i]
 
+        elif constant.IsShadingCurtainDeployOnlyDayTime == True and constant.IsDifferentShadingCurtainDeployTimeEachMonth == True:
+
+            # having shading curtain transmittance each hour. 1 = no shading curatin, the transmittance of shading curtain = deploy curtain
+            transmittanceThroughShadingCurtainChangingEachMonth = simulatorClass.transmittanceThroughShadingCurtainChangingEachMonth
+
+            hourlyDirectSolarRadiationAfterShadingCurtain = hourlyDirectSolarRadiationAfterInnerStructure * transmittanceThroughShadingCurtainChangingEachMonth
+
         return hourlyDirectSolarRadiationAfterShadingCurtain
 
+def getDiffuseSolarIrradianceBeforeShadingCurtain(simulatorClass):
 
-def getDiffuseSolarIrradianceToPlants(simulatorClass):
+    # get the diffuse solar irradiance, which has not consider the transmittance of OPV film yet.
+    # diffuseHorizontalSolarRadiation = simulatorClass.getDiffuseSolarRadiationToOPV()
+    diffuseHorizontalSolarRadiation = simulatorClass.diffuseHorizontalSolarRadiation
+    print("diffuseHorizontalSolarRadiation.shape:{}".format(diffuseHorizontalSolarRadiation.shape))
+
+    # consider the influecne of the PV module on the roof
+    overallRoofCoveringTrasmittance = constant.roofCoveringTransmittance * (1 - constant.OPVAreaCoverageRatio) + \
+                                      (constant.roofCoveringTransmittance + constant.OPVPARTransmittance) * constant.OPVAreaCoverageRatio
+    # get the average transmittance through roof and sidewall
+    transmittanceThroughWallAndRoof = (constant.greenhouseSideWallArea * constant.sideWallTransmittance + constant.greenhouseTotalRoofArea * overallRoofCoveringTrasmittance) \
+                                      / (constant.greenhouseSideWallArea + constant.greenhouseTotalRoofArea)
+    # consider the light reflection by greenhouse inner structures and equipments like pipes, poles and gutters
+    transmittanceThroughInnerStructure = (1 - constant.GreenhouseShadeProportion) * transmittanceThroughWallAndRoof
+
+    hourlyDiffuseSolarRadiationAfterShadingCurtain = diffuseHorizontalSolarRadiation * transmittanceThroughInnerStructure
+
+    return hourlyDiffuseSolarRadiationAfterShadingCurtain
+
+
+def getDiffuseSolarIrradianceToPlants(simulatorClass, hourlyDiffuseSolarRadiationAfterShadingCurtain):
     '''
     the diffuse solar radiation was calculated by multiplying the average transmittance of all covering materials of the greenhouse (side wall, roof and PV module
     '''
 
-    # get the diffuse solar irradiance, which has not consider the transmittance of OPV film yet.
-    diffuseSolarIrradianceToOPV = simulatorClass.getDiffuseSolarRadiationToOPV()
+    transmittanceThroughShadingCurtainChangingEachMonth = simulatorClass.transmittanceThroughShadingCurtainChangingEachMonth
+    # print("at OPVFilm, getDiffuseSolarIrradianceToPlants, transmittanceThroughShadingCurtainChangingEachMonth:{}".format(transmittanceThroughShadingCurtainChangingEachMonth))
 
-    averageTransmittance = (constant.greenhouseSideWallArea * constant.sideWallTransmittance + constant.greenhouseTotalRoofArea * constant.roofCoveringTrasmittance) / (constant.greenhouseSideWallArea + constant.greenhouseTotalRoofArea)
+    # consider the influence of shading curtain
+    transmittanceThroughShadingCurtain = (constant.greenhouseSideWallArea + transmittanceThroughShadingCurtainChangingEachMonth * constant.greenhouseFloorArea) / (constant.greenhouseSideWallArea + constant.greenhouseFloorArea)
+
     # get the diffuse solar irradiance after penetrating the greenhouse cover material
-    diffuseSolarIrradianceAfterGreenhouseCover = diffuseSolarIrradianceToOPV * averageTransmittance
-
-    #consider the light reflection by greenhouse inner structures and equipments like pipes, poles and gutters
-    diffuseSolarIrradianceToPlants = (1 - constant.GreenhouseShadeProportion) * diffuseSolarIrradianceAfterGreenhouseCover
+    diffuseSolarIrradianceToPlants = hourlyDiffuseSolarRadiationAfterShadingCurtain * transmittanceThroughShadingCurtain
 
     return diffuseSolarIrradianceToPlants
 
@@ -793,5 +828,6 @@ def getDifferentOPVCoverageRatioInSummerPeriod(OPVAreaCoverageRatio, simulatorCl
 
     # set the array to the  objec
     simulatorClass.OPVCoverageRatiosConsiderSummerRatio = OPVCoverageRatio
+    # print("OPVCoverageRatio:{}".format(OPVCoverageRatio))
 
     return OPVCoverageRatio

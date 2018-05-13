@@ -75,8 +75,11 @@ class SimulatorClass:
     self._estimatedAlbedoSolarRadiationToOPV = None
     self._hourlySolarIncidenceAngleEastDirection = None
     self._hourlySolarIncidenceAngleWestDirection = None
+    self._directSolarIrradianceBeforeShadingCurtain = None
+    self._diffuseSolarIrradianceBeforeShadingCurtain = None
     self._directSolarIrradianceToPlants = None
     self._diffuseSolarIrradianceToPlants = None
+    self._transmittanceThroughShadingCurtainChangingEachMonth = None
     self._directPPFDToPlants = None
     self._diffusePPFDToPlants = None
     self._directDLIToPlants = None
@@ -103,6 +106,7 @@ class SimulatorClass:
     self._T_matForPerpendicularIrrWestOrSouthFacingRoof = None
     self._integratedT_mat = None
     self._directHorizontalSolarRadiation = None
+    self._diffuseHorizontalSolarRadiation = None
     self._dailyWhopvoutperAreaEastRoof = None
     self._dailyWhopvoutperAreaWestRoof = None
     self._dailykWhopvoutperAreaEastRoof = None
@@ -120,8 +124,8 @@ class SimulatorClass:
     self._totalHarvestedShootFreshMass = None
 
     # variables for validation
-    GHSolarIrradianceValidationData = None
-    GHAirTemperatureValidationData = None
+    self._GHSolarIrradianceValidationData = None
+    self._GHAirTemperatureValidationData = None
 
   def setOPVAreaCoverageRatio(self, OPVAreaCoverageRatio):
     self._OPVAreaCoverageRatio = OPVAreaCoverageRatio
@@ -637,6 +641,20 @@ class SimulatorClass:
 
   ##############################solar irradiance to plants start##############################
   @property
+  def directSolarIrradianceBeforeShadingCurtain(self):
+      return self._directSolarIrradianceBeforeShadingCurtain
+  @directSolarIrradianceBeforeShadingCurtain.setter
+  def directSolarIrradianceBeforeShadingCurtain(self, directSolarIrradianceBeforeShadingCurtain):
+      self._directSolarIrradianceBeforeShadingCurtain = directSolarIrradianceBeforeShadingCurtain
+
+  @property
+  def diffuseSolarIrradianceBeforeShadingCurtain(self):
+      return self._diffuseSolarIrradianceBeforeShadingCurtain
+  @diffuseSolarIrradianceBeforeShadingCurtain.setter
+  def diffuseSolarIrradianceBeforeShadingCurtain(self, diffuseSolarIrradianceBeforeShadingCurtain):
+      self._diffuseSolarIrradianceBeforeShadingCurtain = diffuseSolarIrradianceBeforeShadingCurtain
+
+  @property
   def directSolarIrradianceToPlants(self):
       return self._directSolarIrradianceToPlants
   @directSolarIrradianceToPlants.setter
@@ -649,6 +667,13 @@ class SimulatorClass:
   @diffuseSolarIrradianceToPlants.setter
   def diffuseSolarIrradianceToPlants(self, diffuseSolarIrradianceToPlants):
     self._diffuseSolarIrradianceToPlants = diffuseSolarIrradianceToPlants
+
+  @property
+  def transmittanceThroughShadingCurtainChangingEachMonth(self):
+    return self._transmittanceThroughShadingCurtainChangingEachMonth
+  @transmittanceThroughShadingCurtainChangingEachMonth.setter
+  def transmittanceThroughShadingCurtainChangingEachMonth(self, transmittanceThroughShadingCurtainChangingEachMonth):
+    self._transmittanceThroughShadingCurtainChangingEachMonth = transmittanceThroughShadingCurtainChangingEachMonth
 
   @property
   def directPPFDToPlants(self):
@@ -684,7 +709,6 @@ class SimulatorClass:
   @totalDLItoPlants.setter
   def totalDLItoPlants(self, totalDLItoPlants):
     self._totalDLItoPlants = totalDLItoPlants
-
   ##############################solar irradiance to plants end##############################
 
   @property
@@ -760,6 +784,13 @@ class SimulatorClass:
   @directHorizontalSolarRadiation.setter
   def directHorizontalSolarRadiation(self, directHorizontalSolarRadiation):
     self._directHorizontalSolarRadiation = directHorizontalSolarRadiation
+
+  @property
+  def diffuseHorizontalSolarRadiation(self):
+    return self._diffuseHorizontalSolarRadiation
+  @diffuseHorizontalSolarRadiation.setter
+  def diffuseHorizontalSolarRadiation(self, diffuseHorizontalSolarRadiation):
+    self._diffuseHorizontalSolarRadiation = diffuseHorizontalSolarRadiation
 
   ##############################plant weights (growth)start ##############################
   @property

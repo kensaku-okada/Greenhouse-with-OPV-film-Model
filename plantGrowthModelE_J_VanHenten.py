@@ -181,16 +181,6 @@ def calcUnitDailyFreshWeightE_J_VanHenten1994(simulatorClass):
         Xnsdw[i] = Xnsdw[i-1] + d_nonStructuralDryWeight
         DW[i] = Xsdw[i] +  Xnsdw[i]
 
-        #####################################################################################################
-        # get the penalized plant fresh weight with too strong sunlight [g/unit]
-        if constant.IfConsiderPhotoInhibition is True:
-            1==1
-
-        #####################################################################################################
-
-
-
-
         # if the dry weight exceeds the weight for cultimvation, then reset the dryweight
         if DW[i] > constant.harvestDryWeight * plantDensity:
 

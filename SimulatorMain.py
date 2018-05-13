@@ -14,7 +14,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import math
 import CropElectricityYeildSimulator1 as Simulator1
-import TwoDimLeastSquareAnalysis as TwoDimLS
+# import TwoDimLeastSquareAnalysis as TwoDimLS
 import Util
 import CropElectricityYeildSimulatorConstant as constant
 # import importlib
@@ -41,59 +41,58 @@ if case == "OneCaseSimulation":
 # ####################################################################################################
 
 
-# Least Square method
-if case == "LeastSquareMethod":
-  print("run LeastSquareMethod")
-
-  # get the 2-D data for least square method
-  simulatorClass = Simulator1.simulateCropElectricityYieldProfit1()
-  # print "profitVSOPVCoverageData:{}".format(profitVSOPVCoverageData)
-
-  # create the instance
-  twoDimLeastSquare = TwoDimLS.TwoDimLeastSquareAnalysis(profitVSOPVCoverageData)
-  # print "twoDimLeastSquare.getXaxis():{}".format(twoDimLeastSquare.getXAxis())
-
-  x = twoDimLeastSquare.getXAxis()
-  y = twoDimLeastSquare.getYAxis()
-
-  ########################### 10-fold CV (Cross Validation)
-  NumOfFold = 10
-  maxorder = 15
-  k10BestPolyOrder, min_log_mean_10cv_loss = twoDimLeastSquare.runCrossValidation(NumOfFold, maxorder, x, y,
-                                          randomize_data=True,
-                                          cv_loss_title='10-fold CV Loss',
-                                          filepath='./exportData/10fold-CV.png')
-
-  # curve fitting (least square method) with given order w
-  w = twoDimLeastSquare.getApproximatedFittingCurve(k10BestPolyOrder)
-
-  # This polyfit is just for generating non-optimal order figure.  Commend out this except debugging or experiment
-  w = np.polyfit(x, y, 15)
-  w = w[::-1]
-
-  # plot the best order curve with the data points
-  Util.plotDataAndModel(x, y, w, filepath='./exportData/bestPolynomialKFold.png')
-  print ('\n======================')
-  print ('10-fold the best order = {0}. loss = {1}, func coefficients w = {2}'.format(k10BestPolyOrder, min_log_mean_10cv_loss, w))
-
-  ########################### LOOCV (Leave One Out Cross Validation)
-  NumOfFold = twoDimLeastSquare.getXAxis().shape[0]
-  loocv_best_poly, min_log_mean_loocv_loss = twoDimLeastSquare.runCrossValidation(NumOfFold, maxorder, x, y,
-                                              randomize_data=True,
-                                              cv_loss_title='LOOCV Loss',
-                                              filepath='./exportData/LOOCV.png')
-
-  # curve fitting (least square method) with given order w
-  wLOOCV = twoDimLeastSquare.getApproximatedFittingCurve(k10BestPolyOrder)
-  # This polyfit is just for generating non-optimal order figure.  Commend out this except debugging or experiment
-  # wLOOCV = np.polyfit(x, y, 8)
-  # wLOOCV = wLOOCV[::-1]
-
-  # plot the best order curve with the data points
-  Util.plotDataAndModel(x, y, wLOOCV, filepath='./exportData/bestPolynomialLOOCV.png')
-  print ('\n======================')
-  print ('\n(LOOCV) the best order = {0}. loss = {1}, func coefficients w = {2}'.format(loocv_best_poly, min_log_mean_loocv_loss, w))
-
+# # Least Square method
+# if case == "LeastSquareMethod":
+#   print("run LeastSquareMethod")
+#
+#   # get the 2-D data for least square method
+#   simulatorClass = Simulator1.simulateCropElectricityYieldProfit1()
+#   # print "profitVSOPVCoverageData:{}".format(profitVSOPVCoverageData)
+#
+#   # create the instance
+#   twoDimLeastSquare = TwoDimLS.TwoDimLeastSquareAnalysis(profitVSOPVCoverageData)
+#   # print "twoDimLeastSquare.getXaxis():{}".format(twoDimLeastSquare.getXAxis())
+#
+#   x = twoDimLeastSquare.getXAxis()
+#   y = twoDimLeastSquare.getYAxis()
+#
+#   ########################### 10-fold CV (Cross Validation)
+#   NumOfFold = 10
+#   maxorder = 15
+#   k10BestPolyOrder, min_log_mean_10cv_loss = twoDimLeastSquare.runCrossValidation(NumOfFold, maxorder, x, y,
+#                                           randomize_data=True,
+#                                           cv_loss_title='10-fold CV Loss',
+#                                           filepath='./exportData/10fold-CV.png')
+#
+#   # curve fitting (least square method) with given order w
+#   w = twoDimLeastSquare.getApproximatedFittingCurve(k10BestPolyOrder)
+#
+#   # This polyfit is just for generating non-optimal order figure.  Commend out this except debugging or experiment
+#   w = np.polyfit(x, y, 15)
+#   w = w[::-1]
+#
+#   # plot the best order curve with the data points
+#   Util.plotDataAndModel(x, y, w, filepath='./exportData/bestPolynomialKFold.png')
+#   print ('\n======================')
+#   print ('10-fold the best order = {0}. loss = {1}, func coefficients w = {2}'.format(k10BestPolyOrder, min_log_mean_10cv_loss, w))
+#
+#   ########################### LOOCV (Leave One Out Cross Validation)
+#   NumOfFold = twoDimLeastSquare.getXAxis().shape[0]
+#   loocv_best_poly, min_log_mean_loocv_loss = twoDimLeastSquare.runCrossValidation(NumOfFold, maxorder, x, y,
+#                                               randomize_data=True,
+#                                               cv_loss_title='LOOCV Loss',
+#                                               filepath='./exportData/LOOCV.png')
+#
+#   # curve fitting (least square method) with given order w
+#   wLOOCV = twoDimLeastSquare.getApproximatedFittingCurve(k10BestPolyOrder)
+#   # This polyfit is just for generating non-optimal order figure.  Commend out this except debugging or experiment
+#   # wLOOCV = np.polyfit(x, y, 8)
+#   # wLOOCV = wLOOCV[::-1]
+#
+#   # plot the best order curve with the data points
+#   Util.plotDataAndModel(x, y, wLOOCV, filepath='./exportData/bestPolynomialLOOCV.png')
+#   print ('\n======================')
+#   print ('\n(LOOCV) the best order = {0}. loss = {1}, func coefficients w = {2}'.format(loocv_best_poly, min_log_mean_loocv_loss, w))
 
 elif case == "OptimizeOnlyOPVCoverageRatio":
   # print ("run Simulator1.simulateCropElectricityYieldProfit1")

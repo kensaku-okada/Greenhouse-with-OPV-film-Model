@@ -11,6 +11,7 @@ import datetime
 import sys
 import os as os
 import numpy as np
+import ShadingCurtain
 import matplotlib.pyplot as plt
 import math
 import CropElectricityYeildSimulatorConstant as constant
@@ -20,7 +21,6 @@ import Lettuce
 import PlantGrowthModelE_J_VanHenten
 import PlantGrowthModelS_Pearson1997
 import SolarIrradianceMultiSpanRoof
-import QlearningAgentShadingCurtain as QRLshadingCurtain
 from dateutil.relativedelta import *
 
 #######################################################
@@ -135,6 +135,7 @@ def calcOPVmoduleSolarIrradianceGHRoof(simulatorClass, roofDirectionNotation=con
     simulatorClass.directHorizontalSolarRadiation = directHorizontalSolarRadiation
     # symbol: I_S
     diffuseHorizontalSolarRadiation = OPVFilm.getDiffuseHorizontalSolarRadiation(hourlySolarAltitudeAngle, hourlyHorizontalSolarIncidenceAngle)
+    simulatorClass.diffuseHorizontalSolarRadiation = diffuseHorizontalSolarRadiation
     # print "diffuseHorizontalSolarRadiation:{}".format(diffuseHorizontalSolarRadiation)
     # symbol: I_HT
     totalHorizontalSolarRadiation = directHorizontalSolarRadiation + diffuseHorizontalSolarRadiation
@@ -308,17 +309,29 @@ def getDirectSolarIrradianceThroughMultiSpanRoof(simulatorClass):
 
 def setSolarIrradianceToPlants(simulatorClass):
     '''
-    it was assumed ground reflectance does not significantly affect the solar irradiance to plants
-
-    :param simulatorClass:
-    :return:
-    '''
     # calculate the light intensity to plants after penetrating the roof, considering the sidewall material transmittance, shading curtain, and the greenhouse structure shading
-    directSolarIrradianceToPlants = OPVFilm.getDirectSolarIrradianceToPlants(simulatorClass)
-    diffuseSolarIrradianceToPlants = OPVFilm.getDiffuseSolarIrradianceToPlants(simulatorClass)
+    it was assumed ground reflectance does not significantly affect the solar irradiance to plants
+    '''
+
+    directSolarIrradianceBeforeShadingCurtain = OPVFilm.getDirectSolarIrradianceBeforeShadingCurtain(simulatorClass)
+    # set the data to the object
+    simulatorClass.directSolarIrradianceBeforeShadingCurtain = directSolarIrradianceBeforeShadingCurtain
+    diffuseSolarIrradianceBeforeShadingCurtain = OPVFilm.getDiffuseSolarIrradianceBeforeShadingCurtain(simulatorClass)
+    # set the data to the object
+    simulatorClass.diffuseSolarIrradianceBeforeShadingCurtain = diffuseSolarIrradianceBeforeShadingCurtain
+
+    # get the shading curtain transmittance
+    ShadingCurtain.getHourlyShadingCurtainDeploymentPatternChangingEachMonthMain(simulatorClass)
+
+    directSolarIrradianceToPlants = OPVFilm.getDirectSolarIrradianceToPlants(simulatorClass, directSolarIrradianceBeforeShadingCurtain)
     # set the data to the object
     simulatorClass.directSolarIrradianceToPlants = directSolarIrradianceToPlants
+    # calculate the light intensity to plants
+    diffuseSolarIrradianceToPlants = OPVFilm.getDiffuseSolarIrradianceToPlants(simulatorClass, diffuseSolarIrradianceBeforeShadingCurtain)
+    # set the data to the object
     simulatorClass.diffuseSolarIrradianceToPlants = diffuseSolarIrradianceToPlants
+
+
     # #############command to print out all array data
     # np.set_printoptions(threshold=np.inf)
     # print("directSolarIrradianceToPlants:{}".format(directSolarIrradianceToPlants))
@@ -340,8 +353,8 @@ def setSolarIrradianceToPlants(simulatorClass):
     simulatorClass.diffuseDLIToPlants = diffuseDLIToPlants
     #############command to print out all array data
     np.set_printoptions(threshold=np.inf)
-    # print("directDLIToPlants:{}".format(directDLIToPlants))
-    # print("diffuseDLIToPlants:{}".format(diffuseDLIToPlants))
+    print("directDLIToPlants:{}".format(directDLIToPlants))
+    print("diffuseDLIToPlants:{}".format(diffuseDLIToPlants))
     np.set_printoptions(threshold=1000)
     #############
 
@@ -581,11 +594,11 @@ def getMonthlyElectricitySalesperArea(dailyJopvoutperArea, yearOfeachDay, monthO
     monthlyElectricityYieldperArea = OPVFilm.getMonthlyElectricityProductionFromDailyData(dailyJopvoutperArea, yearOfeachDay, monthOfeachDay)
     # print("monthlyElectricityYieldperArea:{}".format(monthlyElectricityYieldperArea))
 
-    # import the electricity sales price file: source (download the CSV file): http://www.eia.gov/electricity/data/browser/#/topic/7?agg=2,0,1&geo=g&freq=M
+    # import the electricity sales price file: source (download the CSV file): https://www.eia.gov/electricity/data/browser/#/topic/7?agg=0,1&geo=0000000001&endsec=vg&freq=M&start=200101&end=201802&ctype=linechart&ltype=pin&rtype=s&maptype=0&rse=0&pin=
     fileName = constant.averageRetailPriceOfElectricityMonthly
     # import the file removing the header
     fileData = Util.readData(fileName, relativePath="", skip_header=1, d='\t')
-    print ("fileData:{}".format(fileData))
+    # print ("fileData:{}".format(fileData))
 
     # print "monthlyElectricityYieldperArea.shape[0]:{}".format(monthlyElectricityYieldperArea.shape[0])
     year = np.zeros(monthlyElectricityYieldperArea.shape[0])

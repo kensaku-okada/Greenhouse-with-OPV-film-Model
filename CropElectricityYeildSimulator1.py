@@ -1,9 +1,4 @@
 # -*- coding: utf-8 -*-
-#######################################################
-# author :Kensaku Okada [kensakuokada@email.arizona.edu]
-# create date : 12 Dec 2016
-# last edit date: 14 Dec 2016
-#######################################################
 
 #############command to print out all array data
 # np.set_printoptions(threshold=np.inf)
@@ -21,7 +16,7 @@
 from scipy import stats
 import datetime
 import sys
-import os as os
+import os
 import numpy as np
 import math
 import CropElectricityYeildSimulatorConstant as constant
@@ -89,7 +84,6 @@ def simulateCropElectricityYieldProfit1():
     ################################################################################
     ##########solar irradiance to OPV calculation with imported data start##########
     ################################################################################
-
     if constant.ifUseOnlyRealData == True:
 
         # calculate with real data
@@ -436,7 +430,7 @@ def simulateCropElectricityYieldProfit1():
     # print "simulatorClass.getMonthlyElectricitySalesperArea():{}".format(simulatorClass.getMonthlyElectricitySalesperArea())
 
     # electricity sales unit Exchange [USD/m^2/month] -> [USD/month]
-    totalElectricitySalesPerMonth = monthlyElectricitySalesperAreaEastRoof  * (constant.OPVAreaFacingEastOrNorthfacingRoof) + monthlyElectricitySalesperAreaWastRoof * (constant.OPVAreaFacingWestOrSouthfacingRoof)
+    totalElectricitySalesPerMonth = monthlyElectricitySalesperAreaEastRoof  * constant.OPVAreaFacingEastOrNorthfacingRoof + monthlyElectricitySalesperAreaWastRoof * constant.OPVAreaFacingWestOrSouthfacingRoof
     # print("totalElectricitySalesPerMonth[USD/month]:{}".format(totalElectricitySalesPerMonth))
     # the averaged electricity sales [USD/m^2/month]
     if constant.OPVArea == 0.0:
@@ -518,6 +512,7 @@ def simulateCropElectricityYieldProfit1():
     ###########################################################################################
     ###################calculate the solar irradiance to plants start##########################
     ###########################################################################################
+
     # get/set cultivation days per harvest [days/harvest]
     cultivationDaysperHarvest = constant.cultivationDaysperHarvest
     simulatorClass.setCultivationDaysperHarvest(cultivationDaysperHarvest)
