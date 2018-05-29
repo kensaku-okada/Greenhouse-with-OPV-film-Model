@@ -492,7 +492,6 @@ def calcOPVElectricEnergyperArea(simulatorClass, hourlyOPVTemperature, solarRadi
             hourlyOPVTemperature[day*constant.hourperDay : (day+1)*constant.hourperDay], \
             solarRadiationToOPV[day*constant.hourperDay : (day+1)*constant.hourperDay], PVDegradationRatio[day*constant.hourperDay : (day+1)*constant.hourperDay])
 
-    # print "dailyJopvout:{}".format(dailyJopvout)
 
     return dailyJopvout
 
@@ -608,7 +607,7 @@ def getDirectSolarIrradianceBeforeShadingCurtain(simulatorClass):
     # print "OPVAreaCoverageRatio:{}, HourlyInnerLightIntensityPPFDThroughOPV:{}".format(OPVAreaCoverageRatio, HourlyInnerLightIntensityPPFDThroughOPV)
 
     # consider the light reduction by greenhouse inner structures and equipments like pipes, poles and gutters
-    hourlyDirectSolarRadiationAfterInnerStructure = (1 - constant.GreenhouseShadeProportion) * hourlyDirectSolarRadiationAfterOPVAndRoof
+    hourlyDirectSolarRadiationAfterInnerStructure = (1 - constant.GreenhouseShadeProportionByInnerStructures) * hourlyDirectSolarRadiationAfterOPVAndRoof
     # print "hourlyInnerLightIntensityPPFDThroughInnerStructure:{}".format(hourlyInnerLightIntensityPPFDThroughInnerStructure)
 
     return hourlyDirectSolarRadiationAfterInnerStructure
@@ -675,7 +674,7 @@ def getDiffuseSolarIrradianceBeforeShadingCurtain(simulatorClass):
     # get the diffuse solar irradiance, which has not consider the transmittance of OPV film yet.
     # diffuseHorizontalSolarRadiation = simulatorClass.getDiffuseSolarRadiationToOPV()
     diffuseHorizontalSolarRadiation = simulatorClass.diffuseHorizontalSolarRadiation
-    print("diffuseHorizontalSolarRadiation.shape:{}".format(diffuseHorizontalSolarRadiation.shape))
+    # print("diffuseHorizontalSolarRadiation.shape:{}".format(diffuseHorizontalSolarRadiation.shape))
 
     # consider the influecne of the PV module on the roof
     overallRoofCoveringTrasmittance = constant.roofCoveringTransmittance * (1 - constant.OPVAreaCoverageRatio) + \
@@ -684,7 +683,7 @@ def getDiffuseSolarIrradianceBeforeShadingCurtain(simulatorClass):
     transmittanceThroughWallAndRoof = (constant.greenhouseSideWallArea * constant.sideWallTransmittance + constant.greenhouseTotalRoofArea * overallRoofCoveringTrasmittance) \
                                       / (constant.greenhouseSideWallArea + constant.greenhouseTotalRoofArea)
     # consider the light reflection by greenhouse inner structures and equipments like pipes, poles and gutters
-    transmittanceThroughInnerStructure = (1 - constant.GreenhouseShadeProportion) * transmittanceThroughWallAndRoof
+    transmittanceThroughInnerStructure = (1 - constant.GreenhouseShadeProportionByInnerStructures) * transmittanceThroughWallAndRoof
 
     hourlyDiffuseSolarRadiationAfterShadingCurtain = diffuseHorizontalSolarRadiation * transmittanceThroughInnerStructure
 
@@ -737,7 +736,7 @@ def calcHourlyInnerLightIntensityPPFD(HourlyOuterLightIntensityPPFD, OPVAreaCove
     # print "OPVAreaCoverageRatio:{}, HourlyInnerLightIntensityPPFDThroughOPV:{}".format(OPVAreaCoverageRatio, HourlyInnerLightIntensityPPFDThroughOPV)
 
     #consider the light reflection by greenhouse inner structures and equipments like pipes, poles and gutters
-    hourlyInnerLightIntensityPPFDThroughInnerStructure = (1 - constant.GreenhouseShadeProportion) * HourlyInnerLightIntensityPPFDThroughOPV
+    hourlyInnerLightIntensityPPFDThroughInnerStructure = (1 - constant.GreenhouseShadeProportionByInnerStructures) * HourlyInnerLightIntensityPPFDThroughOPV
     # print "hourlyInnerLightIntensityPPFDThroughInnerStructure:{}".format(hourlyInnerLightIntensityPPFDThroughInnerStructure)
     # set the value to the instance
     # cropElectricityYieldSimulator1.setHourlyInnerLightIntensityPPFDThroughInnerStructure(hourlyInnerLightIntensityPPFDThroughInnerStructure)

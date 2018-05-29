@@ -384,13 +384,15 @@ def getArraysFromData(fileName, simulatorClass):
     # [W/m^2]
     hourlyHorizontalDirectOuterSolarIrradiance[index] = hourlyHorizontalTotalOuterSolarIrradiance[index] \
                                                         - hourlyHorizontalDiffuseOuterSolarIrradiance[index]
-    # [celusis]
+    # unit: [celusis]
     hourlyHorizontalTotalBeamMeterBodyTemperature[index] = hourlyData[7]
-    # [celusis]
+    # unit: [celusis]
     hourlyHorizonalDirectBeamMeterBodyTemperature[index] = hourlyData[8]
-    # [celusis]
+    # unit: [celusis]
     hourlyAirTemperature[index] = hourlyData[5]
     # print "hourlyAirTemperature:{}".format(hourlyAirTemperature)
+    # unit: [-] <- [%]
+    hourlyRelativeHumidity = hourlyData[6] * 0.01
 
     # print "hour[index] - hour[index-1]:{}".format(hourlyData[1] - hour[index-1])
     # print "year[index]:{}, month[index]:{}, day[index]:{}, hour[index]:{}".format(year[index], month[index], day[index], hour[index])
@@ -421,6 +423,9 @@ def getArraysFromData(fileName, simulatorClass):
   simulatorClass.setImportedHourlyHorizontalDiffuseSolarRadiation(hourlyHorizontalDiffuseOuterSolarIrradiance)
   simulatorClass.setImportedHourlyHorizontalTotalBeamMeterBodyTemperature(hourlyHorizontalTotalBeamMeterBodyTemperature)
   simulatorClass.setImportedHourlyAirTemperature(hourlyAirTemperature)
+  simulatorClass.hourlyRelativeHumidity = hourlyRelativeHumidity
+
+
   ##########file import (TucsonHourlyOuterEinvironmentData) end##########
 
   return year, month, day, hour, hourlyHorizontalDiffuseOuterSolarIrradiance, \

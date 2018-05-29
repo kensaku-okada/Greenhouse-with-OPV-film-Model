@@ -13,7 +13,6 @@
 # ####################################################################################################
 
 ##########import package files##########
-from scipy import stats
 import datetime
 import sys
 import os
@@ -420,8 +419,8 @@ def simulateCropElectricityYieldProfit1():
     # convert the month of each hour to the month to each day
     monthOfeachDay = month[::24]
     # get the monthly electricity sales per area [USD/month/m^2]
-    monthlyElectricitySalesperAreaEastRoof = simulatorDetail.getMonthlyElectricitySalesperArea(dailyJopvoutperAreaEastRoof, yearOfeachDay, monthOfeachDay)
-    monthlyElectricitySalesperAreaWastRoof = simulatorDetail.getMonthlyElectricitySalesperArea(dailyJopvoutperAreaWestRoof, yearOfeachDay, monthOfeachDay)
+    monthlyElectricitySalesperAreaEastRoof = simulatorDetail.getMonthlyElectricitySalesperArea(dailyJopvoutperAreaEastRoof, yearOfeachDay, monthOfeachDay ,simulatorClass)
+    monthlyElectricitySalesperAreaWastRoof = simulatorDetail.getMonthlyElectricitySalesperArea(dailyJopvoutperAreaWestRoof, yearOfeachDay, monthOfeachDay, simulatorClass)
     # print("monthlyElectricitySalesperAreaEastRoof:{}".format(monthlyElectricitySalesperAreaEastRoof))
     # print("monthlyElectricitySalesperAreaWastRoof:{}".format(monthlyElectricitySalesperAreaWastRoof))
     # set the value to the object
@@ -512,7 +511,6 @@ def simulateCropElectricityYieldProfit1():
     ###########################################################################################
     ###################calculate the solar irradiance to plants start##########################
     ###########################################################################################
-
     # get/set cultivation days per harvest [days/harvest]
     cultivationDaysperHarvest = constant.cultivationDaysperHarvest
     simulatorClass.setCultivationDaysperHarvest(cultivationDaysperHarvest)
@@ -541,9 +539,9 @@ def simulateCropElectricityYieldProfit1():
     # the DLI to plants [mol/m^2/day]
     # totalDLItoPlants = simulatorDetail.getTotalDLIToPlants(OPVCoverage, importedDirectPPFDToOPV, importedDiffusePPFDToOPV, importedGroundReflectedPPFDToOPV,\
     #                                        hasShadingCurtain, shadingCurtainDeployPPFD, simulatorClass)
-    # print "totalDLItoPlants:{}".format(totalDLItoPlants)
-    # print "totalDLItoPlants.shape:{}".format(totalDLItoPlants.shape)
     totalDLItoPlants = simulatorClass.directDLIToPlants + simulatorClass.diffuseDLIToPlants
+    # print("totalDLItoPlants:{}".format(totalDLItoPlants))
+    # print "totalDLItoPlants.shape:{}".format(totalDLItoPlants.shape)
     # unit: DLI/day
     simulatorClass.totalDLItoPlants = totalDLItoPlants
 
@@ -579,30 +577,31 @@ def simulateCropElectricityYieldProfit1():
 
     #calculate plant yield given an OPV coverage and model :daily [g/head]
     shootFreshMassList, \
-    unitDailyFreshWeightIncrease, \
-    accumulatedUnitDailyFreshWeightIncrease, \
-    unitDailyHarvestedFreshWeight = simulatorDetail.getPlantYieldSimulation(simulatorClass)
+    dailyFreshWeightPerHeadIncrease, \
+    accumulatedDailyFreshWeightPerHeadIncrease, \
+    dailyHarvestedFreshWeightPerHead = simulatorDetail.getPlantYieldSimulation(simulatorClass)
     # np.set_printoptions(threshold=np.inf)
     # print ("shootFreshMassList:{}".format(shootFreshMassList))
-    # print ("unitDailyFreshWeightIncrease:{}".format(unitDailyFreshWeightIncrease))
-    # print ("accumulatedUnitDailyFreshWeightIncrease:{}".format(accumulatedUnitDailyFreshWeightIncrease))
-    # print ("unitDailyHarvestedFreshWeight:{}".format(unitDailyHarvestedFreshWeight))
+    # print ("dailyFreshWeightPerHeadIncrease:{}".format(dailyFreshWeightPerHeadIncrease))
+    # print ("accumulatedDailyFreshWeightPerHeadIncrease:{}".format(accumulatedDailyFreshWeightPerHeadIncrease))
+    # print ("dailyHarvestedFreshWeightPerHead:{}".format(dailyHarvestedFreshWeightPerHead))
     # np.set_printoptions(threshold=100)
 
     # get the penalized plant fresh weight with  too strong sunlight : :daily [g/unit]
+    # In this research, it was concluded not to assumed the penalty function. According to Jonathan M. Frantz and Glen Ritchie "2004". Exploring the Limits of Crop Productivity: Beyond the Limits of Tipburn in Lettuce, the literature on lettuce response to high PPF is not clear, and indeed, I also found there is a contradiction between Fu et al. (2012). Effects of different light intensities on anti-oxidative enzyme activity, quality and biomass in lettuce, and Jonathan M. Frantz and Glen Ritchie (2004) on this discussion.
     if constant.IfConsiderPhotoInhibition is True:
 
-        # TODO: modify this function to decrease the plant when the average DLI during the cultivation period exceeds 17mol/m^2/day, which is the maximum DLI not causing tipburn
-        penalizedUnitDailyHarvestedFreshWeight = simulatorDetail.penalizeUnitDailyHarvestedFreshWeight(unitDailyHarvestedFreshWeight, simulatorClass)
+        penalizedDailyHarvestedFreshWeightPerHead = simulatorDetail.penalizeDailyHarvestedFreshWeightPerHead(dailyHarvestedFreshWeightPerHead, simulatorClass)
+        print("penalizedDailyHarvestedFreshWeightPerHead:{}".format(penalizedDailyHarvestedFreshWeightPerHead))
 
         if constant.ifExportFigures:
-            ######################### plot UnitDailyHarvestedFreshWeight and penalized UnitDailyHarvestedFreshWeight
+            ######################### plot dailyHarvestedFreshWeightPerHead and penalized dailyHarvestedFreshWeightPerHead
             # if no penalty occurs, these variables plot the same dots.
             title = "HarvestedFreshWeight and penalized HarvestedFreshWeight "
             xAxisLabel = "time [day]:  " + constant.SimulationStartDate + "-" + constant.SimulationEndDate
             yAxisLabel = "plant fresh weight[g/unit]"
             util.plotTwoData(np.linspace(0, util.getSimulationDaysInt(), util.getSimulationDaysInt()), \
-                             unitDailyHarvestedFreshWeight, penalizedUnitDailyHarvestedFreshWeight, title, xAxisLabel, yAxisLabel, "real data", "penalized data")
+                             dailyHarvestedFreshWeightPerHead, penalizedDailyHarvestedFreshWeightPerHead, title, xAxisLabel, yAxisLabel, "real data", "penalized data")
             util.saveFigure(title + " " + constant.SimulationStartDate + "-" + constant.SimulationEndDate)
             #######################################################################
 
@@ -621,7 +620,7 @@ def simulateCropElectricityYieldProfit1():
     shootFreshMassPerCultivationFloorAreaPerDay = util.convertUnitShootFreshMassToShootFreshMassperArea(shootFreshMassList)
     # print("shootFreshMassPerAreaPerDay:{}".format(shootFreshMassPerAreaPerDay))
     # unit [g/head] -> [g/m^2]
-    harvestedShootFreshMassPerCultivationFloorAreaPerDay = util.convertUnitShootFreshMassToShootFreshMassperArea(unitDailyHarvestedFreshWeight)
+    harvestedShootFreshMassPerCultivationFloorAreaPerDay = util.convertUnitShootFreshMassToShootFreshMassperArea(dailyHarvestedFreshWeightPerHead)
     # print("harvestedShootFreshMassPerCultivationFloorAreaPerDay:{}".format(harvestedShootFreshMassPerCultivationFloorAreaPerDay))
     # unit conversion:  [g/m^2/day] -> [kg/m^2/day]
     shootFreshMassPerCultivationFloorAreaKgPerDay = util.convertFromgramTokilogram(shootFreshMassPerCultivationFloorAreaPerDay)
@@ -634,7 +633,7 @@ def simulateCropElectricityYieldProfit1():
     simulatorClass.totalHarvestedShootFreshMass = sum(harvestedShootFreshMassPerCultivationFloorAreaKgPerDay) * constant.greenhouseCultivationFloorArea
     # print("shootFreshMassPerAreaKgPerDay:{}".format(shootFreshMassPerCultivationFloorAreaKgPerDay))
     # print("harvestedShootFreshMassPerCultivationFloorAreaKgPerDay:{}".format(harvestedShootFreshMassPerCultivationFloorAreaKgPerDay))
-    print("simulatorClass.totalHarvestedShootFreshMass:{}".format(simulatorClass.totalHarvestedShootFreshMass))
+    # print("simulatorClass.totalHarvestedShootFreshMass:{}".format(simulatorClass.totalHarvestedShootFreshMass))
 
 
     if constant.ifExportFigures:
@@ -647,10 +646,10 @@ def simulateCropElectricityYieldProfit1():
         # ###############################################################################################################
 
         ################## plot various unit Plant Yield vs time
-        # plotDataSet = np.array([shootFreshMassList, unitDailyFreshWeightIncrease, accumulatedUnitDailyFreshWeightIncrease, unitDailyHarvestedFreshWeight])
-        # labelList = np.array(["shootFreshMassList", "unitDailyFreshWeightIncrease", "accumulatedUnitDailyFreshWeightIncrease", "unitDailyHarvestedFreshWeight"])
-        plotDataSet = np.array([shootFreshMassList, unitDailyFreshWeightIncrease, unitDailyHarvestedFreshWeight])
-        labelList = np.array(["shootFreshMassList", "unitDailyFreshWeightIncrease", "unitDailyHarvestedFreshWeight"])
+        # plotDataSet = np.array([shootFreshMassList, dailyFreshWeightPerHeadIncrease, accumulatedDailyFreshWeightPerHeadIncrease, dailyHarvestedFreshWeightPerHead])
+        # labelList = np.array(["shootFreshMassList", "dailyFreshWeightPerHeadIncrease", "accumulatedDailyFreshWeightPerHeadIncrease", "dailyHarvestedFreshWeightPerHead"])
+        plotDataSet = np.array([shootFreshMassList, dailyFreshWeightPerHeadIncrease, dailyHarvestedFreshWeightPerHead])
+        labelList = np.array(["shootFreshMassList", "dailyFreshWeightPerHeadIncrease", "dailyHarvestedFreshWeightPerHead"])
         title = "Various unit Plant Yield vs time (OPV coverage " + str(int(100*OPVCoverage)) + "%)"
         xAxisLabel = "time [day]: " + constant.SimulationStartDate + "-" + constant.SimulationEndDate
         yAxisLabel = "Unit plant Fresh Weight [g/unit]"
@@ -680,14 +679,14 @@ def simulateCropElectricityYieldProfit1():
     # print ("totalPlantSalesperSquareMeter(USD):{}".format(totalPlantSalesPerCultivationFloorArea))
     # unit: USD
     totalplantSales = totalPlantSalesPerCultivationFloorArea * constant.greenhouseCultivationFloorArea
-    # print ("totalplantSales(USD):{}".format(totalplantSales))
+    print ("totalplantSales(USD):{}".format(totalplantSales))
     totalPlantSalesPerGHFloorArea = totalplantSales / constant.greenhouseFloorArea
 
     # set the variable to the object
     simulatorClass.totalPlantSalesperSquareMeter = totalPlantSalesPerCultivationFloorArea
     simulatorClass.totalplantSales = totalplantSales
     simulatorClass.totalPlantSalesPerGHFloorArea = totalPlantSalesPerGHFloorArea
-    # print("totalPlantSalesPerGHFloorArea:{}".format(totalPlantSalesPerGHFloorArea))
+    print("totalPlantSalesPerGHFloorArea:{}".format(totalPlantSalesPerGHFloorArea))
     ##########################################################################
     ################## calculate the daily plant sales end####################
     ##########################################################################
@@ -697,11 +696,14 @@ def simulateCropElectricityYieldProfit1():
     ######################################################################################################
     # it was assumed that the cost for growing plants is significantly composed of labor cost and electricity and fuel energy cost for heating/cooling (including pad and fan syste)
 
-    # TODO: make the functions for fuel and electricity cost
-    totalFuelEnergyCost = 0.0
-    totalFuelEnergyCostPerGHFloorArea = totalFuelEnergyCost / constant.greenhouseFloorArea
-    totalElectricityCost = 0.0
-    totalElectricityCostPerGHFloorArea = totalElectricityCost / constant.greenhouseFloorArea
+    totalHeatingCostForPlants, totalCoolingCostForPlants = simulatorDetail.getGreenhouseOperationCostForGrowingPlants(simulatorClass)
+
+    # date export
+    util.exportCSVFile(np.array([simulatorClass.Q_v["coolingOrHeatingEnergy W m-2"], simulatorClass.Q_sr["solarIrradianceToPlants W m-2"], simulatorClass.Q_lh["latentHeatByTranspiration W m-2"], \
+                                 simulatorClass.Q_sh["sensibleHeatFromConductionAndConvection W m-2"], simulatorClass.Q_lw["longWaveRadiation W m-2"]]).T, "energeBalance(W m-2)")
+
+    totalHeatingCostForPlantsPerGHFloorArea = totalHeatingCostForPlants / constant.greenhouseFloorArea
+    totalCoolingCostForPlantsPerGHFloorArea = totalCoolingCostForPlants / constant.greenhouseFloorArea
 
     totalLaborCost = simulatorDetail.getLaborCost(simulatorClass)
     totalLaborCostPerGHFloorArea = totalLaborCost / constant.greenhouseFloorArea
@@ -709,13 +711,13 @@ def simulateCropElectricityYieldProfit1():
     simulatorClass.totalLaborCost = totalLaborCost
     simulatorClass.totalLaborCostPerGHFloorArea = totalLaborCostPerGHFloorArea
 
-    totalPlantProductionCost = totalFuelEnergyCost + totalElectricityCost + totalLaborCost
-    totalPlantProductionCostPerGHFloorArea = totalFuelEnergyCostPerGHFloorArea + totalElectricityCostPerGHFloorArea + totalLaborCostPerGHFloorArea
+    totalPlantProductionCost = totalHeatingCostForPlants + totalCoolingCostForPlants + totalLaborCost
+    totalPlantProductionCostPerGHFloorArea = totalHeatingCostForPlantsPerGHFloorArea + totalCoolingCostForPlantsPerGHFloorArea + totalLaborCostPerGHFloorArea
     # set the values to the object
     simulatorClass.totalPlantProductionCost = totalPlantProductionCost
     simulatorClass.totalPlantProductionCostPerGHFloorArea = totalPlantProductionCostPerGHFloorArea
-    # print("totalPlantProductionCost:{}".format(totalPlantProductionCost))
-    # print("totalPlantProductionCostPerGHFloorArea:{}".format(totalPlantProductionCostPerGHFloorArea))
+    print("totalPlantProductionCost:{}".format(totalPlantProductionCost))
+    print("totalPlantProductionCostPerGHFloorArea:{}".format(totalPlantProductionCostPerGHFloorArea))
     ######################################################################################################
     ################## calculate the daily plant cost (greenhouse operation cost) end#####################
     ######################################################################################################
@@ -745,8 +747,8 @@ def simulateCropElectricityYieldProfit1():
     # set the values to the object
     simulatorClass.economicProfit = economicProfit
     simulatorClass.economicProfitPerGHFloorArea = economicProfitPerGHFloorArea
-    # print("economicProfit:{}".format(economicProfit))
-    # print("economicProfitPerGHFloorArea:{}".format(economicProfitPerGHFloorArea))
+    print("economicProfit:{}".format(economicProfit))
+    print("economicProfitPerGHFloorArea:{}".format(economicProfitPerGHFloorArea))
 
     ##############################################################################
     ################## calculate the total economic profit/loss end###############
@@ -756,13 +758,12 @@ def simulateCropElectricityYieldProfit1():
     # util.exportCSVFile(np.array([[simulatorClass.totalHarvestedShootFreshMass, simulatorClass.totalElectricitySales], [simulatorClass.totalOPVCostUSDForDepreciation], \
     #         [totalplantSales], [totalPlantSalesPerGHFloorArea], [totalPlantProductionCost], [totalPlantProductionCostPerGHFloorArea], \
     #         [economicProfit], [economicProfitPerGHFloorArea]]).T, "yieldProfitSalesCost")
-
     # print("simulatorClass.totalHarvestedShootFreshMass:{}".format(simulatorClass.totalHarvestedShootFreshMass))
-
     util.exportCSVFile(np.array([[simulatorClass.totalHarvestedShootFreshMass], [simulatorClass.totalElectricitySales], [simulatorClass.totalOPVCostUSDForDepreciation], \
             [totalplantSales], [totalPlantSalesPerGHFloorArea], [totalPlantProductionCost], [totalPlantProductionCostPerGHFloorArea], \
             [economicProfit], [economicProfitPerGHFloorArea]]).T, "yieldProfitSalesCost")
 
+    print ("end modeling: datetime.datetime.now():{}".format(datetime.datetime.now()))
 
     return simulatorClass
 
@@ -816,7 +817,7 @@ def simulateCropElectricityYieldProfit1():
 #         # unit total daily plant fresh mass increase for a given period with each OPV film coverage: [g] for a given period
 #         unitDailyFreshWeightList = np.zeros(int(1.0/OPVCoverageDelta), dtype = float)
 #         # unit harvested fresh mass weight for a given period with each OPV film coverage: [g] for a given period
-#         unitDailyHarvestedFreshWeightList = np.zeros(int(1.0/OPVCoverageDelta), dtype = float)
+#         dailyHarvestedFreshWeightPerHeadList = np.zeros(int(1.0/OPVCoverageDelta), dtype = float)
 #         # plant sales per square meter with each OPV film coverage: [USD/m^2]
 #         plantSalesperSquareMeterList = np.zeros(int(1.0/OPVCoverageDelta), dtype = float)
 #         # plant cost per square meter with each OPV film coverage: [USD/m^2]
@@ -915,22 +916,22 @@ def simulateCropElectricityYieldProfit1():
 #             ##################calculate the plant yield
 #             # Since the plants are not tilted, do not use the light intensity to the tilted surface, just use the inmported data or estimated data with 0 degree surface.
 #             # daily [g/unit]
-#             # shootFreshMassList, unitDailyFreshWeightIncrease, accumulatedUnitDailyFreshWeightIncrease, unitDailyHarvestedFreshWeight = \
+#             # shootFreshMassList, dailyFreshWeightPerHeadIncrease, accumulatedDailyFreshWeightPerHeadIncrease, dailyHarvestedFreshWeightPerHead = \
 #             #     simulatorDetail.getPlantYieldSimulation(plantGrowthModel, cultivationDaysperHarvest,OPVCoverageList[i], \
 #             #     (directPPFDToOPVEastDirection + directPPFDToOPVWestDirection)/2.0, diffusePPFDToOPV, groundReflectedPPFDToOPV, hasShadingCurtain, shadingCurtainDeployPPFD, simulatorClass)
-#             shootFreshMassList, unitDailyFreshWeightIncrease, accumulatedUnitDailyFreshWeightIncrease, unitDailyHarvestedFreshWeight = \
+#             shootFreshMassList, dailyFreshWeightPerHeadIncrease, accumulatedDailyFreshWeightPerHeadIncrease, dailyHarvestedFreshWeightPerHead = \
 #                 simulatorDetail.getPlantYieldSimulation(plantGrowthModel, cultivationDaysperHarvest,OPVCoverageList[i], \
 #                 importedDirectPPFDToOPV, importedDiffusePPFDToOPV, importedGroundReflectedPPFDToOPV, hasShadingCurtain, shadingCurtainDeployPPFD, simulatorClass)
 #
 #             # sum the daily increase and get the total increase for a given period with a certain OPV coverage ratio
-#             unitDailyFreshWeightList[i] =  sum(unitDailyFreshWeightIncrease)
+#             unitDailyFreshWeightList[i] =  sum(dailyFreshWeightPerHeadIncrease)
 #             # sum the daily increase and get the total harvest weight for a given period with a certain OPV coverage ratio
-#             unitDailyHarvestedFreshWeightList[i] = sum(unitDailyHarvestedFreshWeight)
-#             # print "unitDailyHarvestedFreshWeight.shape:{}".format(unitDailyHarvestedFreshWeight.shape)
+#             dailyHarvestedFreshWeightPerHeadList[i] = sum(dailyHarvestedFreshWeightPerHead)
+#             # print "dailyHarvestedFreshWeightPerHead.shape:{}".format(dailyHarvestedFreshWeightPerHead.shape)
 #
 #             ##################calculate the plant sales
 #             # unit conversion; get the daily plant yield per given period per area: [g/unit] -> [g/m^2]
-#             dailyHarvestedFreshWeightperArea = util.convertUnitShootFreshMassToShootFreshMassperArea(unitDailyHarvestedFreshWeight)
+#             dailyHarvestedFreshWeightperArea = util.convertUnitShootFreshMassToShootFreshMassperArea(dailyHarvestedFreshWeightPerHead)
 #             # unit conversion:  [g/m^2] -> [kg/m^2]1
 #             dailyHarvestedFreshWeightperAreaKg = util.convertFromgramTokilogram(dailyHarvestedFreshWeightperArea)
 #             # get the sales price of plant [USD/m^2]

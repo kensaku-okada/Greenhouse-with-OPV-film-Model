@@ -170,7 +170,7 @@ def calcUnitDailyFreshWeightE_J_VanHenten1994(simulatorClass):
         # [g / m ** 2/ sec]
         d_nonStructuralDryWeight = VanHentenConstant.c_alpha * f_photo - r_gr * Xsdw[i-1] - f_resp - (1 - VanHentenConstant.c_beta) / VanHentenConstant.c_beta * r_gr * Xsdw[i-1]
 
-        # unit conversion. [g / m ** 2/ sec] -> [g / m ** 2/ hour]
+        # unit conversion. [g m-2 sec-1] -> [g m-2 hour-1]
         d_structuralDryWeight = d_structuralDryWeight * constant.secondperMinute * constant.minuteperHour
         d_nonStructuralDryWeight = d_nonStructuralDryWeight * constant.secondperMinute * constant.minuteperHour
         # print("d_structuralDryWeight:{}".format(d_structuralDryWeight))

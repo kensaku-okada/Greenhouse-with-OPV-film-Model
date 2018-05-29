@@ -22,6 +22,7 @@ import PlantGrowthModelE_J_VanHenten
 import PlantGrowthModelS_Pearson1997
 import SolarIrradianceMultiSpanRoof
 from dateutil.relativedelta import *
+import GreenhouseEnergyBalance as energyBalance
 
 #######################################################
 
@@ -243,8 +244,6 @@ def getDirectSolarIrradianceThroughMultiSpanRoof(simulatorClass):
     hourlySolarIncidenceAngleWestDirection = simulatorClass.hourlySolarIncidenceAngleWestDirection
 
 
-
-
     # get the direct solar irradiance on each axis
     directSolarIrradiancePerpendicularToOPVEastDirection = directSolarRadiationToOPVEastFacingRoof * np.cos(hourlySolarIncidenceAngleEastDirection)
     directSolarIrradianceParallelToOPVEastDirection = directSolarRadiationToOPVEastFacingRoof * np.sin(hourlySolarIncidenceAngleEastDirection)
@@ -323,12 +322,16 @@ def setSolarIrradianceToPlants(simulatorClass):
     # get the shading curtain transmittance
     ShadingCurtain.getHourlyShadingCurtainDeploymentPatternChangingEachMonthMain(simulatorClass)
 
+    # calculate the light intensity to plants [W m-2]
     directSolarIrradianceToPlants = OPVFilm.getDirectSolarIrradianceToPlants(simulatorClass, directSolarIrradianceBeforeShadingCurtain)
+    diffuseSolarIrradianceToPlants = OPVFilm.getDiffuseSolarIrradianceToPlants(simulatorClass, diffuseSolarIrradianceBeforeShadingCurtain)
+
+    # # change this part if you can to see how plant fresh weight changes with the change of solar irradiance to plants
+    # directSolarIrradianceToPlants = directSolarIrradianceToPlants * 2.0
+    # diffuseSolarIrradianceToPlants = diffuseSolarIrradianceToPlants * 2.0
+
     # set the data to the object
     simulatorClass.directSolarIrradianceToPlants = directSolarIrradianceToPlants
-    # calculate the light intensity to plants
-    diffuseSolarIrradianceToPlants = OPVFilm.getDiffuseSolarIrradianceToPlants(simulatorClass, diffuseSolarIrradianceBeforeShadingCurtain)
-    # set the data to the object
     simulatorClass.diffuseSolarIrradianceToPlants = diffuseSolarIrradianceToPlants
 
 
@@ -351,12 +354,12 @@ def setSolarIrradianceToPlants(simulatorClass):
     diffuseDLIToPlants = Util.convertFromHourlyPPFDWholeDayToDLI(diffusePPFDToPlants)
     simulatorClass.directDLIToPlants = directDLIToPlants
     simulatorClass.diffuseDLIToPlants = diffuseDLIToPlants
-    #############command to print out all array data
-    np.set_printoptions(threshold=np.inf)
-    print("directDLIToPlants:{}".format(directDLIToPlants))
-    print("diffuseDLIToPlants:{}".format(diffuseDLIToPlants))
-    np.set_printoptions(threshold=1000)
-    #############
+    # #############command to print out all array data
+    # np.set_printoptions(threshold=np.inf)
+    # print("directDLIToPlants:{}".format(directDLIToPlants))
+    # print("diffuseDLIToPlants:{}".format(diffuseDLIToPlants))
+    # np.set_printoptions(threshold=1000)
+    # #############
 
 # def setThermalTimeToPlants(simulatorClass):
 #   '''
@@ -370,7 +373,6 @@ def setSolarIrradianceToPlants(simulatorClass):
 #   simulatorClass.setThermalTimeToPlants(airTemperatureInGreenhouse)
 
 
-# def getPlantYieldSimulation(directPPFDToOPV, diffusePPFDToOPV, groundReflectedPPFDToOPV,cropElectricityYieldSimulator1 = None):
 def getPlantYieldSimulation(simulatorClass):
     '''
     calculate the daily plant yield
@@ -493,68 +495,104 @@ def getTotalDLIToPlants(OPVAreaCoverageRatio, directPPFDToOPV, diffusePPFDToOPV,
     return innerDLIToPlants
 
 
-def penalizeUnitDailyHarvestedFreshWeight(unitDailyHarvestedFreshWeight, cropElectricityYieldSimulator1):
+def penalizeDailyHarvestedFreshWeightPerHead(dailyHarvestedFreshWeightPerHead, simulatorClass):
     '''
-    the function was made based on the data of plant fresh weights for 400 600, and 800 PPFD (umiol m^-2, s-1) in the following source:
-    "Effects of different light intensities on anti-oxidative enzyme activity, quality and biomass in lettuce, Weiguo Fu, Pingping Li, Yanyou Wu, Juanjuan Tang"
+    the function was made based on the data of plant fresh weights for 400 600, and 800 PPFD (umiol m^-2, s-1) in the source below:
+    Table 1 at "Effects of different light intensities on anti-oxidative enzyme activity, quality and biomass in lettuce, Weiguo Fu, Pingping Li, Yanyou Wu, Juanjuan Tang"
 
-    the parameters were derived with the solver of Excel 2007, the process is written in "penalizePlantYieldBySolarRadiation.xlsx"
+    The parameters were derived with the solver of Excel 2007, the process is written in "penalizePlantYieldBySolarRadiation.xlsx"
 
-    :param totalDLItoPlants:
-    :param unitDailyHarvestedFreshWeight:
-    :param cropElectricityYieldSimulator1:
-    :return:
+    Table 1. Quality and biomass of above-ground part of lettuce under different light intensity treatments
+    Light intensity (μmol m-2 s-1)        Biomass of above-ground part (g plant-1, FW)
+    100                                   127.98 ± 8.32
+    200                                   145.65 ± 7.53
+    400                                   158.45 ± 6.21
+    600                                   162.89 ± 7.13
+    800                                   135.56 ± 5.76
     '''
-    penalizedUnitDailyHarvestedFreshWeight = np.zeros(unitDailyHarvestedFreshWeight.shape[0])
-    # penalizedUnitDailyHarvestedFreshWeight = unitDailyHarvestedFreshWeight
 
-    # get the average light DLi of each cultivation cycle, the data is stored in the element on the harvest date.
-    averageDLIonEachCycle = cropElectricityYieldSimulator1.getAverageDLIonEachCycle()
+    penalizedUnitDailyHarvestedFreshWeight = np.zeros(dailyHarvestedFreshWeightPerHead.shape[0])
 
-    # parameters
+    # the DLI including both direct and diffuse to plants
+    totalDLItoPlants = simulatorClass.totalDLItoPlants
+    # print("totalDLItoPlants:{}".format(totalDLItoPlants))
+
+    # get the average DLI of each cultivation cycle.
+    if  simulatorClass.getPlantGrowthModel()  == constant.A_J_Both_Modified_TaylorExpantionWithFluctuatingDLI:
+      averageDLIonEachCycle = simulatorClass.getAverageDLIonEachCycle()
+    else:
+      averageDLIonEachCycle = np.zeros(simulatorClass.totalDLItoPlants.shape[0])
+
+      nextCultivationStartDay = 0
+      for i in range(0, simulatorClass.totalDLItoPlants.shape[0]):
+
+        # if the date is not the harvest date, then skip.
+        if dailyHarvestedFreshWeightPerHead[i] == 0.0:
+            continue
+        # Right row, E_J_VanHenten1994 is assumed
+        else:
+          # calc the average DLI during each cultivation cycle
+          averageDLIonEachCycle[i] = np.mean(totalDLItoPlants[nextCultivationStartDay:i + 1])
+          print("i:{}, averageDLIonEachCycle:{}".format(i, averageDLIonEachCycle[i]))
+          # update lastHarvestDay
+          # It was assumed to take 3 days to the next cultivation cycle assuming "transplanting  shock  prevented growth during the first 48 h", and it takes one day for preparation.
+          nextCultivationStartDay = i + 3
+
+      # print("averageDLIonEachCycle:{}".format(averageDLIonEachCycle))
+
+    # parameters, which is derived from the data of the reference
     photoPriod = {"hour":14.0}
-    maximumYieldFW = {"g unit-1": 164.9777479}
     optimumLightIntensityDLI = {"mol m-2 d-1": 26.61516313}
+    # maximumYieldFW = {"g unit-1": 164.9777479}
+    maximumYieldFW = getPenalizedUnitFreshWeight(optimumLightIntensityDLI["mol m-2 d-1"])
+    # print("maximumYieldFW:{}".format(maximumYieldFW))
     # convert PPFD to DLI
     # optimumLightIntensityPPFD = {"umol m-2 s-1": 524.1249999}
     # optimumLightIntensityDLI = {"mol m-2 d-1": optimumLightIntensityPPFD["umol m-2 s-1"] * constant.secondperMinute * constant.minuteperHour * photoPriod["hour"] / 1000000.0}
 
     i = 0
-    while i <  unitDailyHarvestedFreshWeight.shape[0]:
+    while i <  dailyHarvestedFreshWeightPerHead.shape[0]:
 
         # if the date is not the harvest date, then skip.
-        if unitDailyHarvestedFreshWeight[i] == 0.0:
+        if dailyHarvestedFreshWeightPerHead[i] == 0.0:
             i += 1
             continue
         else:
-            print ("non zero averageDLIonEachCycle:{}".format(averageDLIonEachCycle[i]))
-            print ("non zero unitDailyHarvestedFreshWeight:{}".format(unitDailyHarvestedFreshWeight[i]))
-            # print("getPenalizedUnitFreshWeight(averageDLIonEachCycle[i]):{}, i:{}".format(getPenalizedUnitFreshWeight(averageDLIonEachCycle[i]), i))
+
+            print ("averageDLIonEachCycle:{}".format(averageDLIonEachCycle[i]))
+            print ("dailyHarvestedFreshWeightPerHead[i]:{}".format(dailyHarvestedFreshWeightPerHead[i]))
+            print("getPenalizedUnitFreshWeight(averageDLIonEachCycle[i]):{}, i:{}".format(getPenalizedUnitFreshWeight(averageDLIonEachCycle[i]), i))
 
             if averageDLIonEachCycle[i] > optimumLightIntensityDLI["mol m-2 d-1"] and getPenalizedUnitFreshWeight(averageDLIonEachCycle[i]) > 0.0:
                 # penalize the plant fresh weight
                 print ("penaize the fresh weight, i:{}".format(i))
-                penalizedUnitDailyHarvestedFreshWeight[i] = unitDailyHarvestedFreshWeight[i] - unitDailyHarvestedFreshWeight[i] / maximumYieldFW["g unit-1"] * (maximumYieldFW["g unit-1"] - getPenalizedUnitFreshWeight(averageDLIonEachCycle[i]))
+                penalizedUnitDailyHarvestedFreshWeight[i] = dailyHarvestedFreshWeightPerHead[i] - dailyHarvestedFreshWeightPerHead[i] / maximumYieldFW["g unit-1"] * (maximumYieldFW["g unit-1"] - getPenalizedUnitFreshWeight(averageDLIonEachCycle[i]))
 
                 print("penalizedUnitDailyHarvestedFreshWeight[i]:{}".format(penalizedUnitDailyHarvestedFreshWeight[i]))
-                print("unitDailyHarvestedFreshWeight[i]:{}".format(unitDailyHarvestedFreshWeight[i]))
+                print("unitDailyHarvestedFreshWeight[i]:{}".format(dailyHarvestedFreshWeightPerHead[i]))
 
+            # if the penalty is too strong and the weight becomes zero
             elif averageDLIonEachCycle[i] > optimumLightIntensityDLI["mol m-2 d-1"] and getPenalizedUnitFreshWeight(averageDLIonEachCycle[i]) <= 0.0:
                 print ("the light intensity may be too strong. The yield was penalized to zero")
                 penalizedUnitDailyHarvestedFreshWeight[i] = 0.0
-            # no penalization occured
+
+            # if no penalization occured
             else:
-                penalizedUnitDailyHarvestedFreshWeight[i] = unitDailyHarvestedFreshWeight[i]
+                penalizedUnitDailyHarvestedFreshWeight[i] = dailyHarvestedFreshWeightPerHead[i]
         i += 1
 
     return penalizedUnitDailyHarvestedFreshWeight
 
-def getPenalizedUnitFreshWeight(lightIntensityDLI):
-    a = -0.1563
-    b = 8.3199
-    c = 54.26
-    return a * lightIntensityDLI**2 + b * lightIntensityDLI + c
 
+def getPenalizedUnitFreshWeight(lightIntensityDLI):
+  '''
+  The following parameters were derived from the soruce mentioned at penalizeDailyHarvestedFreshWeightPerHead
+
+  '''
+  a = -0.1563
+  b = 8.3199
+  c = 54.26
+  return a * lightIntensityDLI**2 + b * lightIntensityDLI + c
 
 
 def getWholeElectricityYieldEachOPVRatio(OPVAreaCoverageRatio, dailyJopvout, cropElectricityYieldSimulator1, greenhouseRoofArea = None):
@@ -582,7 +620,7 @@ def getWholeElectricityYieldEachOPVRatio(OPVAreaCoverageRatio, dailyJopvout, cro
     #     return totalJopvout * unfixedOPVCoverageRatio * greenhouseRoofArea
 
 
-def getMonthlyElectricitySalesperArea(dailyJopvoutperArea, yearOfeachDay, monthOfeachDay):
+def getMonthlyElectricitySalesperArea(dailyJopvoutperArea, yearOfeachDay, monthOfeachDay, simulatorClass):
     '''
 
     :param dailyJopvoutperArea:
@@ -600,9 +638,11 @@ def getMonthlyElectricitySalesperArea(dailyJopvoutperArea, yearOfeachDay, monthO
     fileData = Util.readData(fileName, relativePath="", skip_header=1, d='\t')
     # print ("fileData:{}".format(fileData))
 
+    simulatorClass.monthlyElectricityRetailPrice = fileData
+
     # print "monthlyElectricityYieldperArea.shape[0]:{}".format(monthlyElectricityYieldperArea.shape[0])
-    year = np.zeros(monthlyElectricityYieldperArea.shape[0])
-    month = np.zeros(monthlyElectricityYieldperArea.shape[0])
+    # year = np.zeros(monthlyElectricityYieldperArea.shape[0])
+    # month = np.zeros(monthlyElectricityYieldperArea.shape[0])
     monthlyResidentialElectricityPrice = np.zeros(monthlyElectricityYieldperArea.shape[0])
 
     index = 0
@@ -613,10 +653,11 @@ def getMonthlyElectricitySalesperArea(dailyJopvoutperArea, yearOfeachDay, monthO
                 datetime.date(int(monthlyData[1]), int(monthlyData[0]), 1) > Util.getEndDateDateType():
             continue
 
-        year[index] = monthlyData[1]
-        month[index] = monthlyData[0]
+        # year[index] = monthlyData[1]
+        # month[index] = monthlyData[0]
         # take the residential electricity retail price
         monthlyResidentialElectricityPrice[index] = monthlyData[2]
+
         # print "monthlyData:{}".format(monthlyData)
         index += 1
 
@@ -687,8 +728,53 @@ def getPlantSalesperSquareMeter(simulatorClass):
       # TODO: need to refine more
       plantSalesperSquareMeter = Lettuce.discountPlantSalesperSquareMeterByTipburn(plantSalesPerSquareMeter, totalDLIToPlants)
 
-
     return plantSalesPerSquareMeter
+
+def getGreenhouseOperationCostForGrowingPlants(simulatorClass):
+  '''
+  This function estimates the economic cost for cooling and heating a greenhouse by simulating the energy balance model of a greenhouse.
+  '''
+
+  # get environment data to calculate the energy for cooling and heating
+
+
+  # the energy for cooling and heating
+  energyBalance.getGHEnergyConsumptionByCoolingHeating(simulatorClass)
+  # unit: W
+  Q_vW = simulatorClass.Q_vW
+  # ############command to print out all array data
+  # np.set_printoptions(threshold=np.inf)
+  # print("Q_vW:{}".format(Q_vW))
+  # np.set_printoptions(threshold=1000)
+  # ############
+
+  # if the energy balance is minus, we need to heat to maintain the internal temperature. [W m]
+  requiredHeatingEnergyForPlants = np.array([-Q_vW["coolingOrHeatingEnergy W"][i] if Q_vW["coolingOrHeatingEnergy W"][i] < 0.0 else 0.0 for i in range (Q_vW["coolingOrHeatingEnergy W"].shape[0])])
+  # if the energy balance is plus, we need to cool to maintain the internal temperature. [W m]
+  requiredCoolingEnergyForPlants = np.array([Q_vW["coolingOrHeatingEnergy W"][i] if Q_vW["coolingOrHeatingEnergy W"][i] > 0.0 else 0.0 for i in range (Q_vW["coolingOrHeatingEnergy W"].shape[0])])
+
+  # ############command to print out all array data
+  # np.set_printoptions(threshold=np.inf)
+  # print("totalFuelEnergyConsumptionForPlants:{}".format(totalFuelEnergyConsumptionForPlants))
+  # print("totalElectricityConsumptionForPlants:{}".format(totalElectricityConsumptionForPlants))
+  # np.set_printoptions(threshold=1000)
+  # ############
+
+  # unit: USD
+  totalHeatingCostForPlants = energyBalance.getGHHeatingEnergyCostForPlants(requiredHeatingEnergyForPlants, simulatorClass)
+  totalCoolingCostForPlants = energyBalance.getGHCoolingEnergyCostByCooling(requiredCoolingEnergyForPlants, simulatorClass)
+  simulatorClass.totalHeatingCostForPlants = totalHeatingCostForPlants
+  simulatorClass.totalCoolingCostForPlants = totalCoolingCostForPlants
+
+  # unit: USD m-2
+  totalHeatingCostForPlantsPerGHFloorArea = totalHeatingCostForPlants / constant.greenhouseFloorArea
+  totalCoolingCostForPlantsPerGHFloorArea = totalCoolingCostForPlants / constant.greenhouseFloorArea
+  simulatorClass.totalHeatingCostForPlantsPerGHFloorArea = totalHeatingCostForPlantsPerGHFloorArea
+  simulatorClass.totalCoolingCostForPlantsPerGHFloorArea = totalCoolingCostForPlantsPerGHFloorArea
+
+
+  return totalHeatingCostForPlants, totalCoolingCostForPlants
+
 
 def getLaborCost(simulatorClass):
     """

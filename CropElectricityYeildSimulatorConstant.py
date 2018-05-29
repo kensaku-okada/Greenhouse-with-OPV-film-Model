@@ -63,6 +63,9 @@ romaineLettceRetailPriceFilePath = ""
 
 plantGrowthModelValidationData = "plantGrowthModelValidationData.csv"
 
+# source: https://www.eia.gov/dnav/ng/hist/n3010az3m.htm
+ArizonaPriceOfNaturalGasDeliveredToResidentialConsumers = "ArizonaPriceOfNaturalGasDeliveredToResidentialConsumers.csv"
+
 ###################################################
 ############ filepath and file name end ###########
 ###################################################
@@ -251,7 +254,6 @@ widthPerRoof = 9.6
 greenhouseWidth = numOfRoofs * widthPerRoof
 
 # source of greenhouse depth : file:///C:/Users/kensa/Downloads/FanandPadgreenhouseevaporativecoolingsystemscirc1135bucklin.pdf,
-# https://www.researchgate.net/publication/235665387_Fan_and_Pad_Greenhouse_Evaporative_Cooling_Systems
 #depth of the greenhouse (m)
 greenhouseDepth = 45.72 # = 150 feet
 
@@ -305,9 +307,9 @@ greenhouseRoofTotalAreaWestOrSouth = greenhouseRoofWidthWestOrSouth * greenhouse
 print ("greenhouseRoofTotalAreaWestOrSouth[m^2]: {}".format(greenhouseRoofTotalAreaWestOrSouth))
 #########################################################
 
-#the proportion of shade made by the structure, actuator (e.g. sensors and fog cooling systems) and farming equipments (e.g. gutters) (-)
+#the proportion of shade made by the greenhouse inner structure, actuator (e.g. sensors and fog cooling systems) and farming equipments (e.g. gutters) (-)
 # GreenhouseShadeProportion = 0.1
-GreenhouseShadeProportion = 0.05
+GreenhouseShadeProportionByInnerStructures = 0.05
 
 # DLI [mol m^-2 day^-1]
 DLIForButterHeadLettuceWithNoTipburn = 17.0
@@ -620,6 +622,12 @@ setPointTemperatureDayTime = 24.0
 setPointTemperatureNightTime = 19.0
 # setPointTemperatureNightTime = 16.8
 
+setPointHumidityDayTime = 0.65
+# setPointHumidityDayTime = 0.7
+setPointHumidityNightTime = 0.8
+# setPointHumidityNightTime = 0.7
+
+
 # the flags indicating daytime or nighttime at each time step
 daytime = "daytime"
 nighttime = "nighttime"
@@ -627,6 +635,8 @@ nighttime = "nighttime"
 ###################################################
 ##########Specification of the plants end##########
 ###################################################
+
+
 
 ###################################################
 ##########Specification of labor cost start########
@@ -644,6 +654,38 @@ workingHourPerDay = 8.0
 
 ###################################################
 ##########Specification of labor cost end########
+###################################################
+
+
+###################################################
+##########Specification of energy cost start#######
+###################################################
+
+# energy efficiency of heating equipment [-]
+# source: https://www.alibaba.com/product-detail/Natural-gas-fired-hot-air-heater_60369835987.html?spm=a2700.7724838.2017115.1.527251bcQ2pojZ
+# source: https://www.aga.org/natural-gas/in-your-home/heating/
+heatingEquipmentEfficiency = 0.9
+
+# unit: USD
+heatingEquipmentQurchaseCost = 0.0
+
+# source: http://www.world-nuclear.org/information-library/facts-and-figures/heat-values-of-various-fuels.aspx
+# source: http://agnatural.pt/documentos/ver/natural-gas-conversion-guide_cb4f0ccd80ccaf88ca5ec336a38600867db5aaf1.pdf
+# unit: MJ m-3
+naturalGasSpecificEnergy = {"MJ m-3" :38.7}
+naturalGasSpecificEnergy["MJ ft-3"] = naturalGasSpecificEnergy["MJ m-3"] / 35.3147
+heatOfWaterEcaporation = {"J kg-1" : 2257}
+
+
+# source: https://www.researchgate.net/publication/265890843_A_Review_of_Evaporative_Cooling_Technologies?enrichId=rgreq-2c40013798cfb3c564cf35844f4947fb-XXX&enrichSource=Y292ZXJQYWdlOzI2NTg5MDg0MztBUzoxNjUxOTgyMjg4OTM2OTdAMTQxNjM5NzczNTk5Nw%3D%3D&el=1_x_3&_esc=publicationCoverPdf
+# COP = coefficient of persormance. COP = Q/W
+# Q is the useful heat supplied or removed by the considered system. W is the work required by the considered system.
+PadAndFanCOP = 15.0
+
+
+
+###################################################
+##########Specification of energy cost end#########
 ###################################################
 
 

@@ -48,6 +48,21 @@ class SimulatorClass:
     self._totalPlantSalesperSquareMeter = None
     self._totalPlantSales = None
     self._totalPlantSalesPerGHFloorArea = None
+    self._Q_v = {"coolingOrHeatingEnergy W m-2": None}
+    self._Q_sr = {"solarIrradianceToPlants W m-2": None}
+    self._Q_lh = {"sensibleHeatFromConductionAndConvection W m-2": None}
+    self._Q_sh = {"latentHeatByTranspiration W m-2": None}
+    self._Q_lw = {"longWaveRadiation W m-2": None}
+    self._Q_vW = {"coolingOrHeatingEnergy W": None}
+    self._Q_srW = {"solarIrradianceToPlants W": None}
+    self._Q_lhW = {"sensibleHeatFromConductionAndConvection W": None}
+    self._Q_shW = {"latentHeatByTranspiration W": None}
+    self._Q_lwW = {"longWaveRadiation W": None}
+    self._monthlyRequiredGHHeatingEnergyForPlants = None
+    self._totalHeatingCostForPlants = None
+
+    self._totalCoolingCostForPlants = None
+
     self._totalLaborCost = None
     self._totalLaborCostPerGHFloorArea = None
     self._totalPlantProductionCost = None
@@ -65,6 +80,7 @@ class SimulatorClass:
     self._importedHourlyHorizontalDiffuseSolarRadiation = None
     self._importedHourlyHorizontalTotalBeamMeterBodyTemperature = None
     self._importedHourlyAirTemperature = None
+    self._hourlyRelativeHumidity = None
     self._directSolarRadiationToOPVEastDirection = None
     self._directSolarRadiationToOPVWestDirection = None
     self._diffuseSolarRadiationToOPV = None
@@ -112,6 +128,8 @@ class SimulatorClass:
     self._dailykWhopvoutperAreaEastRoof = None
     self._dailykWhopvoutperAreaWestRoof = None
     self._totalkWhopvoutPerday = None
+    self._monthlyElectricityRetailPrice = None
+
     self._totalkWhopvoutPerAreaPerday = None
     self._totalkWhopvoutPerAreaPerday = None
 
@@ -422,6 +440,90 @@ class SimulatorClass:
   def totalPlantSalesPerGHFloorArea(self, totalPlantSalesPerGHFloorArea):
     self._totalPlantSalesPerGHFloorArea = totalPlantSalesPerGHFloorArea
 
+  @property
+  def Q_v(self):
+    return self._Q_v
+  @Q_v.setter
+  def Q_v(self, Q_v):
+    self._Q_v = Q_v
+
+  @property
+  def Q_sr(self):
+    return self._Q_sr
+  @Q_sr.setter
+  def Q_sr(self, Q_sr):
+    self._Q_sr = Q_sr
+
+  @property
+  def Q_lh(self):
+    return self._Q_lh
+  @Q_lh.setter
+  def Q_lh(self, Q_lh):
+    self._Q_lh = Q_lh
+
+  @property
+  def Q_sh(self):
+    return self._Q_sh
+  @Q_sh.setter
+  def Q_sh(self, Q_sh):
+    self._Q_sh = Q_sh
+
+  @property
+  def Q_lw(self):
+    return self._Q_lw
+  @Q_lw.setter
+  def Q_lw(self, Q_lw):
+    self._Q_lw = Q_lw
+
+  @property
+  def Q_vW(self):
+    return self._Q_vW
+  @Q_vW.setter
+  def Q_vW(self, Q_vW):
+    self._Q_vW = Q_vW
+
+  @property
+  def Q_srW(self):
+    return self._Q_srW
+  @Q_srW.setter
+  def Q_srW(self, Q_srW):
+    self._Q_srW = Q_srW
+
+  @property
+  def Q_lhW(self):
+    return self._Q_lhW
+  @Q_lhW.setter
+  def Q_lhW(self, Q_lhW):
+    self._Q_lhW = Q_lhW
+
+  @property
+  def Q_shW(self):
+    return self._Q_shW
+  @Q_shW.setter
+  def Q_shW(self, Q_shW):
+    self._Q_shW = Q_shW
+
+  @property
+  def Q_lwW(self):
+    return self._Q_lwW
+  @Q_lwW.setter
+  def Q_lwW(self, Q_lwW):
+    self._Q_lwW = Q_lwW
+
+  @property
+  def monthlyRequiredGHHeatingEnergyForPlants(self):
+    return self._monthlyRequiredGHHeatingEnergyForPlants
+  @monthlyRequiredGHHeatingEnergyForPlants.setter
+  def monthlyRequiredGHHeatingEnergyForPlants(self, monthlyRequiredGHHeatingEnergyForPlants):
+    self._monthlyRequiredGHHeatingEnergyForPlants = monthlyRequiredGHHeatingEnergyForPlants
+
+  @property
+  def totalHeatingCostForPlants(self):
+    return self._totalHeatingCostForPlants
+  @totalHeatingCostForPlants.setter
+  def totalHeatingCostForPlants(self, totalHeatingCostForPlants):
+    self._totalHeatingCostForPlants = totalHeatingCostForPlants
+
 
   @property
   def totalLaborCost(self):
@@ -524,6 +626,13 @@ class SimulatorClass:
     self._importedHourlyAirTemperature = importedHourlyAirTemperature
   def getImportedHourlyAirTemperature(self):
     return self._importedHourlyAirTemperature
+
+  @property
+  def hourlyRelativeHumidity(self):
+    return self._hourlyRelativeHumidity
+  @hourlyRelativeHumidity.setter
+  def hourlyRelativeHumidity(self, hourlyRelativeHumidity):
+    self._hourlyRelativeHumidity = hourlyRelativeHumidity
   ######################### imported data end #########################
 
 
@@ -562,6 +671,13 @@ class SimulatorClass:
   @totalkWhopvoutPerday.setter
   def totalkWhopvoutPerday(self, totalkWhopvoutPerday):
     self._totalkWhopvoutPerday = totalkWhopvoutPerday
+
+  @property
+  def monthlyElectricityRetailPrice(self):
+    return self._monthlyElectricityRetailPrice
+  @monthlyElectricityRetailPrice.setter
+  def monthlyElectricityRetailPrice(self, monthlyElectricityRetailPrice):
+    self._monthlyElectricityRetailPrice = monthlyElectricityRetailPrice
 
   @property
   def totalkWhopvoutPerAreaPerday(self):

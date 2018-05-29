@@ -248,7 +248,7 @@ import SimulatorClass
 # 	# print "OPVAreaCoverageRatio:{}, HourlyInnerLightIntensityPPFDThroughOPV:{}".format(OPVAreaCoverageRatio, HourlyInnerLightIntensityPPFDThroughOPV)
 #
 # 	# consider the light reduction by greenhouse inner structures and equipments like pipes, poles and gutters
-# 	hourlyDirectSolarRadiationAfterInnerStructure = (1 - constant.GreenhouseShadeProportion) * hourlyDirectSolarRadiationAfterOPVAndRoof
+# 	hourlyDirectSolarRadiationAfterInnerStructure = (1 - constant.GreenhouseShadeProportionByInnerStructures) * hourlyDirectSolarRadiationAfterOPVAndRoof
 #
 #
 # 	transmittanceThroughShadingCurtainChangingEachMonth = getHourlyShadingCurtainDeploymentPatternChangingEachMonthMain(simulatorClass, hourlyDirectSolarRadiationAfterInnerStructure)
@@ -267,7 +267,7 @@ def getHourlyShadingCurtainDeploymentPatternChangingEachMonthMain(simulatorClass
 	diffuseSolarIrradianceBeforeShadingCurtain = simulatorClass.diffuseSolarIrradianceBeforeShadingCurtain
 
 	totalSolarIrradianceBeforeShadingCurtain = directSolarIrradianceBeforeShadingCurtain + diffuseSolarIrradianceBeforeShadingCurtain
-	print("totalSolarIrradianceBeforeShadingCurtain:{}".format(totalSolarIrradianceBeforeShadingCurtain))
+	# print("totalSolarIrradianceBeforeShadingCurtain:{}".format(totalSolarIrradianceBeforeShadingCurtain))
 
 	################### calc shading deployment pattern start ###########################
 	if constant.IsShadingCurtainDeployOnlyDayTime == True and constant.IsDifferentShadingCurtainDeployTimeEachMonth == True:
@@ -339,7 +339,7 @@ def getHourlyShadingCurtainDeploymentPatternChangingEachMonthMain(simulatorClass
 
 		# unit: hour
 		simulationHours = util.getSimulationDaysInt() * constant.hourperDay
-		print("simulationHours:{}".format(simulationHours))
+		# print("simulationHours:{}".format(simulationHours))
 
 		currnetDate = util.getStartDateDateType()
 		currentYear = util.getStartDateDateType().year
@@ -362,21 +362,21 @@ def getHourlyShadingCurtainDeploymentPatternChangingEachMonthMain(simulatorClass
 		# loop each hour
 		hour = 0
 		while hour < simulationHours:
-			print("hour:{}".format(hour))
+			# print("hour:{}".format(hour))
 
 			# get the number of days each month
 			_, currentMonthDays = calendar.monthrange(currnetDate.year, currnetDate.month)
-			print("currentMonthDays:{}".format(currentMonthDays))
+			# print("currentMonthDays:{}".format(currentMonthDays))
 
 			daysOfEachMonth = (datetime.date(currentYear, currentMonth, currentMonthDays) - currnetDate).days + 1
-			print("daysOfEachMonth:{}".format(daysOfEachMonth))
+			# print("daysOfEachMonth:{}".format(daysOfEachMonth))
 
 			# loop for each shading curtain deployment pattern
 			for i in range(0, len(shadingHours)):
 
 				# if shading curtain: constant.shadingTransmittanceRatio, if no shading: 1.0 transmittance
 				TransmittanceThroughShadingCurtain = np.array([constant.shadingTransmittanceRatio if j == 1 else 1.0 for j in shadingHours[i]])
-				print("TransmittanceThroughShadingCurtain:{}".format(TransmittanceThroughShadingCurtain))
+				# print("TransmittanceThroughShadingCurtain:{}".format(TransmittanceThroughShadingCurtain))
 
 				# extend the shading curatin pattern for whole month
 				transmittanceThroughShadingCurtainWholeMonth   = []
@@ -386,12 +386,12 @@ def getHourlyShadingCurtainDeploymentPatternChangingEachMonthMain(simulatorClass
 				# get the solar irradiance throught shading curtain
 				hourlyDirectSolarRadiationAfterShadingCurtain = totalSolarIrradianceBeforeShadingCurtain[hour : hour + daysOfEachMonth * constant.hourperDay] * transmittanceThroughShadingCurtainWholeMonth
 				# print("hourlyDirectSolarRadiationAfterShadingCurtain:{}".format(hourlyDirectSolarRadiationAfterShadingCurtain))
-				print("len(hourlyDirectSolarRadiationAfterShadingCurtain):{}".format(len(hourlyDirectSolarRadiationAfterShadingCurtain)))
-				print("sum(hourlyDirectSolarRadiationAfterShadingCurtain):{}".format(sum(hourlyDirectSolarRadiationAfterShadingCurtain)))
+				# print("len(hourlyDirectSolarRadiationAfterShadingCurtain):{}".format(len(hourlyDirectSolarRadiationAfterShadingCurtain)))
+				# print("sum(hourlyDirectSolarRadiationAfterShadingCurtain):{}".format(sum(hourlyDirectSolarRadiationAfterShadingCurtain)))
 
 				# convert the unit from W m-2 to DLI (mol m-2 day-1)
 				DLIAfterShadingCurtain = sum(hourlyDirectSolarRadiationAfterShadingCurtain) / daysOfEachMonth * constant.wattToPPFDConversionRatio * constant.secondperMinute * constant.minuteperHour / 1000000.0
-				print("DLIAfterShadingCurtain:{}".format(DLIAfterShadingCurtain))
+				# print("DLIAfterShadingCurtain:{}".format(DLIAfterShadingCurtain))
 
 				# print("i:{}".format(i))
 				# if the average DLI is less than the optimal DLI
@@ -401,9 +401,9 @@ def getHourlyShadingCurtainDeploymentPatternChangingEachMonthMain(simulatorClass
 					# increment hour
 					hour += daysOfEachMonth * constant.hourperDay
 					# variable update
-					print("before currnetDate:{}".format(currnetDate))
+					# print("before currnetDate:{}".format(currnetDate))
 					currnetDate = currnetDate + datetime.timedelta(days = daysOfEachMonth)
-					print("after currnetDate:{}".format(currnetDate))
+					# print("after currnetDate:{}".format(currnetDate))
 					currentYear = currnetDate.year
 					currentMonth = currnetDate.month
 
@@ -417,9 +417,9 @@ def getHourlyShadingCurtainDeploymentPatternChangingEachMonthMain(simulatorClass
 					# increment hour
 					hour += daysOfEachMonth * constant.hourperDay
 					# variable update
-					print("before currnetDate:{}".format(currnetDate))
+					# print("before currnetDate:{}".format(currnetDate))
 					currnetDate = currnetDate + datetime.timedelta(days = daysOfEachMonth)
-					print("after currnetDate:{}".format(currnetDate))
+					# print("after currnetDate:{}".format(currnetDate))
 					currentYear = currnetDate.year
 					currentMonth = currnetDate.month
 

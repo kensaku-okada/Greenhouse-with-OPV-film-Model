@@ -22,7 +22,7 @@ import CropElectricityYeildSimulatorConstant as constant
 case = "OneCaseSimulation"
 # case == "LeastSquareMethod"
 # case = "OptimizeOnlyOPVCoverageRatio"
-# case = "MINLPc"
+# case = "OptimizationByMINLPSolver"
 # case = "ShadingCurtainReinforcementLearning"
 
 if case == "OneCaseSimulation":
@@ -347,14 +347,207 @@ elif case == "OptimizeOnlyOPVCoverageRatio":
   # Move the above line to different parts of the assignment as you implement more of the functionality.
   ####################################################################################################
 
+
+###########################################################################################################
 ########################### Mixed integer non-liner programming with constraints###########################
-elif case == "MINLPc":
+###########################################################################################################
+elif case == "OptimizationByMINLPSolver":
   print ("run SimulatorMINLPc.py")
 
-  simulatorClass = Simulator1.simulateCropElectricityYieldProfit1()
+  ########################################################################
+  #
+  #     This is an example call of MIDACO 5.0
+  #     -------------------------------------
+  #
+  #     MIDACO solves Multi-Objective Mixed-Integer Non-Linear Problems:
+  #
+  #
+  #      Minimize     F_1(X),... F_O(X)  where X(1,...N-NI)   is CONTINUOUS
+  #                                      and   X(N-NI+1,...N) is DISCRETE
+  #
+  #      subject to   G_j(X)  =  0   (j=1,...ME)      equality constraints
+  #                   G_j(X) >=  0   (j=ME+1,...M)  inequality constraints
+  #
+  #      and bounds   XL <= X <= XU
+  #
+  #
+  #     The problem statement of this example is given below. You can use
+  #     this example as template to run your own problem. To do so: Replace
+  #     the objective functions 'F' (and in case the constraints 'G') given
+  #     here with your own problem and follow the below instruction steps.
+  #
+  ########################################################################
+  ######################   OPTIMIZATION PROBLEM   ########################
+  ########################################################################
+  def inputParameters(x):
+    '''
+    substitute the parameters to the simulator
+    return: None
+    '''
 
-  print("OK")
+    # unit: [-]
+    OPVAreaCoverageRatio = x[0]
+    # set OPV coverage ratio [-]
+    constant.OPVAreaCoverageRatio = OPVAreaCoverageRatio
+    # change the other relevant parameters
+    constant.OPVArea = OPVAreaCoverageRatio * constant.greenhouseTotalRoofArea
+    constant.OPVAreaFacingEastOrNorthfacingRoof = OPVAreaCoverageRatio * (constant.greenhouseRoofTotalAreaEastOrNorth / constant.greenhouseTotalRoofArea)
+    constant.OPVAreaFacingWestOrSouthfacingRoof = OPVAreaCoverageRatio * (constant.greenhouseRoofTotalAreaWestOrSouth / constant.greenhouseTotalRoofArea)
 
+    # unit: [days] <- be careful this!!!!!!!!!! The hour is calculated from the beginning of the year (Jan 1st 0 am)
+    shadingCurtainDeployStartDateSpring = x[1]
+    shadingCurtainDeployEndDateSpring = x[2]
+    shadingCurtainDeployStartDateFall = x[3]
+    shadingCurtainDeployEndDateFall = x[4]
+    # simulationEndDate = Util.getEndDateDateType()
+    year = Util.getStartDateDateType().year
+
+    shadingCurtainDeployStartDateSpring = datetime.date(year=year, month=1, day=1) + datetime.timedelta(days=shadingCurtainDeployStartDateSpring)
+    shadingCurtainDeployEndDateSpring = datetime.date(year=year, month=1, day=1) + datetime.timedelta(days=shadingCurtainDeployEndDateSpring)
+    shadingCurtainDeployStartDateFall = datetime.date(year=year, month=1, day=1) + datetime.timedelta(days=shadingCurtainDeployStartDateFall)
+    shadingCurtainDeployEndDateFall = datetime.date(year=year, month=1, day=1) + datetime.timedelta(days=shadingCurtainDeployEndDateFall)
+    print("shadingCurtainDeployStartDateSpring:{}".format(shadingCurtainDeployStartDateSpring))
+    print("shadingCurtainDeployEndDateSpring:{}".format(shadingCurtainDeployEndDateSpring))
+    print("shadingCurtainDeployStartDateFall:{}".format(shadingCurtainDeployStartDateFall))
+    print("shadingCurtainDeployEndDateFall:{}".format(shadingCurtainDeployEndDateFall))
+
+    # set the shading curtain deployment periods
+    constant.ShadingCurtainDeployStartMMSpring = shadingCurtainDeployStartDateSpring.month
+    constant.ShadingCurtainDeployStartDDSpring = shadingCurtainDeployStartDateSpring.day
+    constant.ShadingCurtainDeployEndMMSpring = shadingCurtainDeployEndDateSpring.month
+    constant.ShadingCurtainDeployEndDDSpring = shadingCurtainDeployEndDateSpring.day
+    constant.ShadingCurtainDeployStartMMFall = shadingCurtainDeployStartDateFall.month
+    constant.ShadingCurtainDeployStartDDFall = shadingCurtainDeployStartDateFall.day
+    constant.ShadingCurtainDeployEndMMFall = shadingCurtainDeployEndDateFall.month
+    constant.ShadingCurtainDeployEndDDFall = shadingCurtainDeployEndDateFall.day
+
+    return None
+
+  def problem_function(x):
+    '''
+    :param x: decision variables. In this model, the variables are pv module coverage ratio,
+    '''
+
+    f = [0.0] * 1  # Initialize array for objectives F(X)
+    g = [0.0] * 3  # Initialize array for constraints G(X)
+
+    # input the parameters at each iteration
+    inputParameters(x)
+
+    # Objective functions F(X)
+    # call the simulator
+    simulatorClass = Simulator1.simulateCropElectricityYieldProfit1()
+    # print("simulatorClass.economicProfitPerGHFloorArea:{}".format(simulatorClass.economicProfitPerGHFloorArea))
+    # since we need to maximize the objective function, the minus sign is added
+    f[0] = -simulatorClass.economicProfitPerGHFloorArea
+
+    #  Equality constraints G(X) = 0 MUST COME FIRST in g[0:me-1]
+    #   No eauality constraints
+    # Inequality constraints G(X) >= 0 MUST COME SECOND in g[me:m-1]
+    shadingCurtainDeployStartDateSpring = x[1]
+    shadingCurtainDeployEndDateSpring = x[2]
+    shadingCurtainDeployStartDateFall = x[3]
+    shadingCurtainDeployEndDateFall = x[4]
+    g[0] = shadingCurtainDeployEndDateSpring - (shadingCurtainDeployStartDateSpring + 1)
+    g[1] = shadingCurtainDeployStartDateFall - (shadingCurtainDeployEndDateSpring + 1)
+    g[2] = shadingCurtainDeployEndDateFall - (shadingCurtainDeployStartDateFall + 1)
+
+    print("f:{}, g:{}".format(f,g))
+
+    return f, g
+
+  ########################################################################
+  #########################   MAIN PROGRAM   #############################
+  ########################################################################
+
+  key = 'Kensaku_Okada_(University_of_Arizona)_[ACADEMIC-SINGLE-USER]'
+
+  problem = {}  # Initialize dictionary containing problem specifications
+  option = {}  # Initialize dictionary containing MIDACO options
+
+  problem['@'] = problem_function  # Handle for problem function name
+
+  ########################################################################
+  ### Step 1: Problem definition     #####################################
+  ########################################################################
+
+  # STEP 1.A: Problem dimensions
+  ##############################
+  problem['o'] = 1  # Number of objectives
+  problem['n'] = 5  # Number of variables (in total)
+  problem['ni'] = 4  # Number of integer variables (0 <= ni <= n)
+  problem['m'] = 3  # Number of constraints (in total)
+  problem['me'] = 0  # Number of equality constraints (0 <= me <= m)
+
+  # STEP 1.B: Lower and upper bounds 'xl' & 'xu'
+  ##############################################
+  # get the simulation period by hour [hours]
+  numOfSimulationDays = Util.getSimulationDaysInt()
+  # print("numOfSimulationDays:{}".format(numOfSimulationDays))
+  problem['xl'] = [0.0, 1, 1, 1, 1]
+  problem['xu'] = [1.0, numOfSimulationDays, numOfSimulationDays, numOfSimulationDays, numOfSimulationDays]
+
+  # STEP 1.C: Starting point 'x'
+  ##############################
+
+  # problem['x'] = problem['xl']  # Here for example: starting point = lower bounds
+  problem['x'] = [(problem['xl'][i] + problem['xu'][i])/2.0 for i in range(0, len(problem['xl']))   ]  # start from the middle
+
+  ########################################################################
+  ### Step 2: Choose stopping criteria and printing options    ###########
+  ########################################################################
+
+  # STEP 2.A: Stopping criteria
+  #############################
+  # option['maxeval'] = 10000  # Maximum number of function evaluation (e.g. 1000000), 999999999 (-> disabled)
+  option['maxeval'] = 100  # Maximum number of function evaluation (e.g. 1000000), 999999999 (-> disabled)
+  option['maxtime'] = 60 * 60 * 24  # Maximum time limit in Seconds (e.g. 1 Day = 60*60*24)
+
+  # STEP 2.B: Printing options
+  ############################
+  option['printeval'] = 10  # Print-Frequency for current best solution (e.g. 1000)
+  option['save2file'] = 1  # Save SCREEN and SOLUTION to TXT-files [0=NO/1=YES]
+
+  ########################################################################
+  ### Step 3: Choose MIDACO parameters (FOR ADVANCED USERS)    ###########
+  ########################################################################
+
+  option['param1'] = 0.0  # ACCURACY
+  option['param2'] = 0.0  # SEED
+  option['param3'] = 0.0  # FSTOP
+  option['param4'] = 0.0  # ALGOSTOP
+  # option['param5']  = 500.0005  # EVALSTOP
+  option['param5'] = 0.0  # EVALSTOP
+  option['param6'] = 0.0  # FOCUS
+  option['param7'] = 0.0  # ANTS
+  option['param8'] = 0.0  # KERNEL
+  option['param9'] = 0.0  # ORACLE
+  option['param10'] = 0.0  # PARETOMAX
+  option['param11'] = 0.0  # EPSILON
+  option['param12'] = 0.0  # CHARACTER
+
+  ########################################################################
+  ### Step 4: Choose Parallelization Factor   ############################
+  ########################################################################
+
+  option['parallel'] = 10  # Serial: 0 or 1, Parallel: 2,3,4,5,6,7,8...
+
+  ########################################################################
+  ############################ Run MIDACO ################################
+  ########################################################################
+
+  # add the directory to import MIDACO files
+  sys.path.append("./MIDACO")
+  import midaco
+
+  if __name__ == '__main__':
+    solution = midaco.run(problem, option, key)
+
+  # print solution['f']
+  # print solution['g']
+  # print solution['x']
+
+  print("simulation finished.")
 
 
 ########################### Reinforcement learning (q learning)###########################
