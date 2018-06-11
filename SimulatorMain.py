@@ -19,10 +19,10 @@ import Util
 import CropElectricityYeildSimulatorConstant as constant
 # import importlib
 
-case = "OneCaseSimulation"
+# case = "OneCaseSimulation"
 # case == "LeastSquareMethod"
 # case = "OptimizeOnlyOPVCoverageRatio"
-# case = "OptimizationByMINLPSolver"
+case = "OptimizationByMINLPSolver"
 # case = "ShadingCurtainReinforcementLearning"
 
 if case == "OneCaseSimulation":
@@ -406,10 +406,10 @@ elif case == "OptimizationByMINLPSolver":
     shadingCurtainDeployEndDateSpring = datetime.date(year=year, month=1, day=1) + datetime.timedelta(days=shadingCurtainDeployEndDateSpring)
     shadingCurtainDeployStartDateFall = datetime.date(year=year, month=1, day=1) + datetime.timedelta(days=shadingCurtainDeployStartDateFall)
     shadingCurtainDeployEndDateFall = datetime.date(year=year, month=1, day=1) + datetime.timedelta(days=shadingCurtainDeployEndDateFall)
-    print("shadingCurtainDeployStartDateSpring:{}".format(shadingCurtainDeployStartDateSpring))
-    print("shadingCurtainDeployEndDateSpring:{}".format(shadingCurtainDeployEndDateSpring))
-    print("shadingCurtainDeployStartDateFall:{}".format(shadingCurtainDeployStartDateFall))
-    print("shadingCurtainDeployEndDateFall:{}".format(shadingCurtainDeployEndDateFall))
+    # print("shadingCurtainDeployStartDateSpring:{}".format(shadingCurtainDeployStartDateSpring))
+    # print("shadingCurtainDeployEndDateSpring:{}".format(shadingCurtainDeployEndDateSpring))
+    # print("shadingCurtainDeployStartDateFall:{}".format(shadingCurtainDeployStartDateFall))
+    # print("shadingCurtainDeployEndDateFall:{}".format(shadingCurtainDeployEndDateFall))
 
     # set the shading curtain deployment periods
     constant.ShadingCurtainDeployStartMMSpring = shadingCurtainDeployStartDateSpring.month
@@ -452,7 +452,7 @@ elif case == "OptimizationByMINLPSolver":
     g[1] = shadingCurtainDeployStartDateFall - (shadingCurtainDeployEndDateSpring + 1)
     g[2] = shadingCurtainDeployEndDateFall - (shadingCurtainDeployStartDateFall + 1)
 
-    print("f:{}, g:{}".format(f,g))
+    # print("f:{}, g:{}".format(f,g))
 
     return f, g
 
@@ -500,7 +500,7 @@ elif case == "OptimizationByMINLPSolver":
   # STEP 2.A: Stopping criteria
   #############################
   # option['maxeval'] = 10000  # Maximum number of function evaluation (e.g. 1000000), 999999999 (-> disabled)
-  option['maxeval'] = 100  # Maximum number of function evaluation (e.g. 1000000), 999999999 (-> disabled)
+  option['maxeval'] = 700  # Maximum number of function evaluation (e.g. 1000000), 999999999 (-> disabled)
   option['maxtime'] = 60 * 60 * 24  # Maximum time limit in Seconds (e.g. 1 Day = 60*60*24)
 
   # STEP 2.B: Printing options

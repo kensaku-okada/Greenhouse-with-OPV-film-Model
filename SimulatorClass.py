@@ -133,6 +133,7 @@ class SimulatorClass:
     self._totalkWhopvoutPerAreaPerday = None
     self._totalkWhopvoutPerAreaPerday = None
 
+    self._LeafAreaIndex_J_VanHenten1994 = None
     self._dailyShootFreshMass = None
     self._dailyUnitDailyFreshWeightIncrease = None
     self._dailyAccumulatedUnitDailyFreshWeightIncrease = None
@@ -909,6 +910,13 @@ class SimulatorClass:
     self._diffuseHorizontalSolarRadiation = diffuseHorizontalSolarRadiation
 
   ##############################plant weights (growth)start ##############################
+  @property
+  def LeafAreaIndex_J_VanHenten1994(self):
+    return self._LeafAreaIndex_J_VanHenten1994
+  @LeafAreaIndex_J_VanHenten1994.setter
+  def LeafAreaIndex_J_VanHenten1994(self, LeafAreaIndex_J_VanHenten1994):
+    self._LeafAreaIndex_J_VanHenten1994 = LeafAreaIndex_J_VanHenten1994
+
   @property
   def dailyShootFreshMass(self):
     return self._dailyShootFreshMass

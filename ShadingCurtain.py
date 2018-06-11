@@ -383,7 +383,7 @@ def getHourlyShadingCurtainDeploymentPatternChangingEachMonthMain(simulatorClass
 				[transmittanceThroughShadingCurtainWholeMonth   .extend(TransmittanceThroughShadingCurtain) for k in range(0, daysOfEachMonth)]
 				# print("len(transmittanceThroughShadingCurtainWholeMonth   ):{}".format(len(transmittanceThroughShadingCurtainWholeMonth   )))
 
-				# get the solar irradiance throught shading curtain
+				# get the solar irradiance through shading curtain
 				hourlyDirectSolarRadiationAfterShadingCurtain = totalSolarIrradianceBeforeShadingCurtain[hour : hour + daysOfEachMonth * constant.hourperDay] * transmittanceThroughShadingCurtainWholeMonth
 				# print("hourlyDirectSolarRadiationAfterShadingCurtain:{}".format(hourlyDirectSolarRadiationAfterShadingCurtain))
 				# print("len(hourlyDirectSolarRadiationAfterShadingCurtain):{}".format(len(hourlyDirectSolarRadiationAfterShadingCurtain)))

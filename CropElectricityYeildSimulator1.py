@@ -500,7 +500,7 @@ def simulateCropElectricityYieldProfit1():
     ###################calculate the solar irradiance through multi span roof start################
     ###############################################################################################
     # The calculated irradiance is stored to the object in this function
-    simulatorDetail.getDirectSolarIrradianceThroughMultiSpanRoof(simulatorClass)
+    simulatorDetail.setDirectSolarIrradianceThroughMultiSpanRoof(simulatorClass)
     # data export
     util.exportCSVFile(np.array([year, month, day, hour, simulatorClass.integratedT_mat, simulatorClass.getHourlyDirectSolarRadiationAfterMultiSpanRoof(),]).T,
                           "directSolarRadiationAfterMultiSpanRoof")
@@ -526,12 +526,6 @@ def simulateCropElectricityYieldProfit1():
     # get if we assume to have shading curtain
     hasShadingCurtain = constant.hasShadingCurtain
     simulatorClass.setIfHasShadingCurtain(hasShadingCurtain)
-
-    # TODO: delete this if it was determined not to use this variable
-    # the amount of PPFD to deploy shading curtain PPFD [umol m^-2 s^-1]
-    shadingCurtainDeployPPFD = constant.shadingCurtainDeployPPFD
-    # this variable is substituted to the object at the declaration
-    # simulatorClass.setShadingCurtainDeployPPFD(shadingCurtainDeployPPFD)
 
     # consider the OPV film, shading curtain, structure,
     simulatorDetail.setSolarIrradianceToPlants(simulatorClass)
@@ -613,8 +607,14 @@ def simulateCropElectricityYieldProfit1():
     # util.saveFigure(title + " " + constant.SimulationStartDate + "-" + constant.SimulationEndDate)
     # #######################################################################################################
 
+    # ############command to print out all array data
+    # np.set_printoptions(threshold=np.inf)
+    # print("simulatorClass.LeafAreaIndex_J_VanHenten1994:{}".format(simulatorClass.LeafAreaIndex_J_VanHenten1994))
+    # np.set_printoptions(threshold=1000)
+    # ############
+
     # data export
-    util.exportCSVFile(np.array([year[::24], month[::24], day[::24], totalDLItoPlants, shootFreshMassList]).T, "shootFreshMassAndDLIToPlants")
+    util.exportCSVFile(np.array([year[::24], month[::24], day[::24], totalDLItoPlants, simulatorClass.LeafAreaIndex_J_VanHenten1994, shootFreshMassList]).T, "shootFreshMassAndDLIToPlants")
 
     # unit conversion; get the plant yield per day per area: [g/head/day] -> [g/m^2/day]
     shootFreshMassPerCultivationFloorAreaPerDay = util.convertUnitShootFreshMassToShootFreshMassperArea(shootFreshMassList)
@@ -634,7 +634,6 @@ def simulateCropElectricityYieldProfit1():
     # print("shootFreshMassPerAreaKgPerDay:{}".format(shootFreshMassPerCultivationFloorAreaKgPerDay))
     # print("harvestedShootFreshMassPerCultivationFloorAreaKgPerDay:{}".format(harvestedShootFreshMassPerCultivationFloorAreaKgPerDay))
     # print("simulatorClass.totalHarvestedShootFreshMass:{}".format(simulatorClass.totalHarvestedShootFreshMass))
-
 
     if constant.ifExportFigures:
         # ######################## plot a graph showing only shootFreshMassList per square meter ########################
@@ -668,7 +667,6 @@ def simulateCropElectricityYieldProfit1():
     ################## calculate the daily plant sales start##################
     ##########################################################################
     # get the sales price of plant [USD/m^2]
-    # if the average DLI during each harvest term is more than 17 mol/m^2/day, discount the price
     # It was assumed that there is no tipburn.
     # unit: USD/m^2/day
     dailyPlantSalesPerSquareMeter = simulatorDetail.getPlantSalesperSquareMeter(simulatorClass)
@@ -681,6 +679,8 @@ def simulateCropElectricityYieldProfit1():
     totalplantSales = totalPlantSalesPerCultivationFloorArea * constant.greenhouseCultivationFloorArea
     print ("totalplantSales(USD):{}".format(totalplantSales))
     totalPlantSalesPerGHFloorArea = totalplantSales / constant.greenhouseFloorArea
+
+
 
     # set the variable to the object
     simulatorClass.totalPlantSalesperSquareMeter = totalPlantSalesPerCultivationFloorArea

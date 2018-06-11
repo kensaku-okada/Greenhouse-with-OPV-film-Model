@@ -25,7 +25,7 @@ import Util as util
 # the heat transfer coefficient [W m-2 Celsius degree] (ASHRAE guide and data book fundamentals, 1981)
 # source: https://www.crcpress.com/Greenhouses-Advanced-Technology-for-Protected-Horticulture/Hanan/p/book/9780849316982
 # Hanan, J.J. (1998). Chapter 2 Structures: locations, styles, and covers. Greenhouses: advanced technology for protected horticulture (56). CRC Press. Boca Raton, FL.
-# I directly got this value from a confidential research thesis in Kacira Lab at CEAC in University of Arizona
+# I directly got this value from a confidential research thesis in Kacira Lab at CEAC in University of Arizona. the paper said this value was taken from Hanan (1998)
 U =  6.3
 # if the roof is made from double PE
 # U =  4.0

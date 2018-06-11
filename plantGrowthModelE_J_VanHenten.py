@@ -36,8 +36,6 @@ def calcUnitDailyFreshWeightE_J_VanHenten1994(simulatorClass):
     "dt" is 1 second.
     reference: E. J. Van Henten, 1994, "validation of a dynamic lettuce growth model for greenhouse climate control"
     https://www.sciencedirect.com/science/article/pii/S0308521X94902801
-
-    :return:
     '''
     # According to Van Henten (1994), 'With data logging system connected to the greenhouse climate computer, half-hour mean values of the indoor climate data were recorded.'
 
@@ -88,10 +86,6 @@ def calcUnitDailyFreshWeightE_J_VanHenten1994(simulatorClass):
     Xnsdw = np.zeros(simulationDaysInt*constant.hourperDay)
     # total dry weight
     DW = np.zeros(simulationDaysInt*constant.hourperDay)
-    # dry weight per head
-    DWPerHead = np.zeros(simulationDaysInt*constant.hourperDay)
-    # fresh weight per head
-    FWPerHead = np.zeros(simulationDaysInt*constant.hourperDay)
 
     # set the initial values
     # according to the reference, the initial dry weight was 2.7 g/m^2 with the cultivar "Berlo" (started 17 October 1991), and 0.72 g/m^2  with "Norden"(started 21 January 1992)
@@ -119,6 +113,7 @@ def calcUnitDailyFreshWeightE_J_VanHenten1994(simulatorClass):
 
             # skip the summer period cultivation cycle
             # It was assumed to take 3 days to the next cultivation cycle assuming "transplanting  shock  prevented growth during the first 48 h", and it takes one day for preparation.
+            # source: 21.	Pearson, S., Wheeler, T. R., Hadley, P., & Wheldon, A. E. (1997). A validated model to predict the effects of environment on the growth of lettuce (Lactuca sativa L.): Implications for climate change. Journal of Horticultural Science, 72(4), 503–517. https://doi.org/10.1080/14620316.1997.11515538
             i += summerPeriodHours + 3 * constant.hourperDay
 
             # initialize the plant weight for the cultivation soon after the summer period
@@ -199,6 +194,9 @@ def calcUnitDailyFreshWeightE_J_VanHenten1994(simulatorClass):
 
     # the plant weight per head
     # Ydw = (Xsdw + Xnsdw) / float(constant.numOfHeadsPerArea)
+
+    # set leaf area index to the object
+    simulatorClass.LeafAreaIndex_J_VanHenten1994 = VanHentenConstant.c_lar['m2 g-2'] * (1- VanHentenConstant.c_tau) * Xsdw
 
     DWPerHead = DW / plantDensity
     # print("DWPerHead:{}".format(DWPerHead))

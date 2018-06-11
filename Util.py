@@ -570,7 +570,10 @@ def convertHourlyTemperatureToDailyAverageTemperature(hourlyTemperature):
 
 
 def convertPoundToKg(pound):
-  return pound * (1.0 / 0.45359237)
+  return pound / (1.0 / 0.45359237)
+
+def convertKgToPound(kg):
+  return kg * (1.0 / 0.45359237)
 
 
 def saveFigure (filename):

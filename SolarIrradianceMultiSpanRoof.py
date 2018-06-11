@@ -18,7 +18,7 @@ def getAngleBetweenIncientRayAndHorizontalAxisPerpendicularToGHSpan(simulatorCla
     alpha = simulatorClass.hourlySolarAltitudeAngle
     hourlySolarAzimuthAngle = simulatorClass.hourlySolarAzimuthAngle
 
-    E = np.arcsin( np.sin(alpha) / np.sqrt(np.sin(alpha)**2 + np.cos(alpha)*np.cos(hourlyModuleAzimuthAngle - hourlySolarAzimuthAngle)**2))
+    E = np.arcsin( np.sin(alpha) / np.sqrt(np.sin(alpha)**2 + (np.cos(alpha)*np.cos(hourlyModuleAzimuthAngle - hourlySolarAzimuthAngle))**2))
     # It was interpreted that the reference of the model Soriano et al., 2004,"A Study of Direct Solar Radiation transmittance in Asymmetrical Multi-span Greenhouses using Scale Models and Simulation Models"
     # need the angle E be expressed less than pi/2, when the solar position changes from east to east side in the sky passing meridian
 
@@ -32,7 +32,7 @@ def getAngleBetweenIncientRayAndHorizontalAxisParallelToGHSpan(simulatorClass, h
     alpha = simulatorClass.hourlySolarAltitudeAngle
     hourlySolarAzimuthAngle = simulatorClass.hourlySolarAzimuthAngle
 
-    EParallel = np.arcsin( np.sin(alpha) / np.sqrt(np.sin(alpha)**2 + np.cos(alpha)*np.sin(hourlyModuleAzimuthAngle - hourlySolarAzimuthAngle)**2))
+    EParallel = np.arcsin( np.sin(alpha) / np.sqrt(np.sin(alpha)**2 + (np.cos(alpha)*np.sin(hourlyModuleAzimuthAngle - hourlySolarAzimuthAngle))**2))
 
     return EParallel
 
@@ -522,14 +522,17 @@ def getTransmittanceOfReflectedLightThroughMultiSpanCoveringCaseA2_1ForEastOrNor
     '''
     # print("called from CaseA2_1: l_a:{}, l_b:{}, m:{},  T_r11:{}, T_r12:{}, F_r11:{}, F_r12:{}, F_1:{}, l_1:{}, l_2:{}".format(l_a, l_b, m, T_r11, T_r12, F_r11, F_r12, F_1, l_1, l_2))
 
-    transmittanceOfReflectedLight = (F_1*l_a*T_r11*(F_r12*util.sigma(2, m-2, lambda s: (T_r11*T_r12)**s,0.0) + (T_r11*T_r12)**(m-1)) + \
-        F_1*l_b*T_r11*(F_r12*util.sigma(0, m-3, lambda s: util.sigma(0, s, lambda n: (T_r11*T_r12)**n,0),0.0) + \
+    # transmittanceOfReflectedLight = (F_1*l_a*T_r11*(F_r12*util.sigma(2, m-2, lambda s: (T_r11*T_r12)**s,0.0) + (T_r11*T_r12)**(m-1)) + \
+    #     F_1*l_b*T_r11*(F_r12*util.sigma(0, m-3, lambda s: util.sigma(0, s, lambda n: (T_r11*T_r12)**n,0),0.0) + \
+    #                        util.sigma(0, m-2, lambda s: (T_r11 * T_r12)**s, 0.0))) / (l_1 + l_2)
+		#
+    # # print ("transmittanceOfReflectedLight:{}".format(transmittanceOfReflectedLight))
+		#
+    # return transmittanceOfReflectedLight
+
+    return (F_1*l_a*T_r11*(F_r12*util.sigma(2, m-2, lambda s: (T_r11*T_r12)**s,0.0) + (T_r11*T_r12)**(m-1)) + \
+            F_1*l_b*T_r11*(F_r12*util.sigma(0, m-3, lambda s: util.sigma(0, s, lambda n: (T_r11*T_r12)**n,0),0.0) + \
                            util.sigma(0, m-2, lambda s: (T_r11 * T_r12)**s, 0.0))) / (l_1 + l_2)
-
-    # print ("transmittanceOfReflectedLight:{}".format(transmittanceOfReflectedLight))
-
-    return transmittanceOfReflectedLight
-
 
 def getTransmittanceOfReflectedLightThroughMultiSpanCoveringCaseA2_1ForWestOrSouthFacingRoof(l_a, l_b, m, T_r21, T_r22, F_r22, F_r21, F_2, l_1, l_2):
     '''

@@ -57,9 +57,9 @@ import datetime
 environmentData = "20130101-20170101" + ".csv"
 
 romaineLettceRetailPriceFileName = "romaineLettuceRetailPrice.csv"
+romaineLettceRetailPriceFilePath = ""
 
 averageRetailPriceOfElectricityMonthly = "averageRetailPriceOfElectricityMonthly.csv"
-romaineLettceRetailPriceFilePath = ""
 
 plantGrowthModelValidationData = "plantGrowthModelValidationData.csv"
 
@@ -101,11 +101,13 @@ exportCSVFiles = True
 ifExportCSVFile = True
 ifExportFigures = False
 
+# if you want to refer to the price of lettuce grown at greenhouse, True, if you sell lettuce at open field farming price, False
+# sellLettuceByGreenhouseRetailPrice = True
+sellLettuceByGreenhouseRetailPrice = False
+
 #############################################################
 ####################### If statement flag end################
 #############################################################
-
-
 
 ########################################
 ##########other constant start##########
@@ -174,9 +176,9 @@ atmosphericTransmissivity = 0.75
 kgpercwt = 45.36
 
 # if this is true, then continue to grow plants during the Summer period. the default value is False in the object(instance)
+# ifGrowForSummerPeriod = True
 ifGrowForSummerPeriod = False
 print("ifGrowForSummerPeriod:{}".format(ifGrowForSummerPeriod))
-
 ######################################
 ##########other constant end##########
 ######################################
@@ -325,11 +327,10 @@ shadingCurtainDeployPPFD = OptimumPPFDForButterHeadLettuceWithNoTipburn * 1.5
 print("shadingCurtainDeployPPFD:{}".format(shadingCurtainDeployPPFD))
 
 # The maximum value of m: the number of roofs that incident light penetrating in the model. This value is used at SolarIrradianceMultiroofRoof.py.
-# if the angle between the incident light and the horizontal axis is too small, the m can be too large, which cause a system error at Util.sigma by iterating too much and make the simulation slow.
+# if the angle between the incident light and the horizonta ql axis is too small, the m can be too large, which cause a system error at Util.sigma by iterating too much and make the simulation slow.
 # Thus, the upper limit was set.
 mMax = numOfRoofs
 # defaultIterationLimit = 495
-
 #######################################################
 ##########Specification of the greenhouse end##########
 #######################################################
@@ -341,6 +342,7 @@ greenhouseGlazingType = "polyethylene (PE) DoubleLayer"
 
 #ratio of visible light (400nm - 750nm) through a glazing material (-)
 #source: Nadia Sabeh, "TOMATO GREENHOUSE ROADMAP" https://www.amazon.com/Tomato-Greenhouse-Roadmap-Guide-Production-ebook/dp/B00O4CPO42
+# https://www.goodreads.com/book/show/23878832-tomato-greenhouse-roadmap
 # singlePEPERTransmittance = 0.875
 singlePERTransmittance = 0.85
 dobulePERTransmittance = singlePERTransmittance ** 2.0
@@ -391,13 +393,13 @@ print("OPVArea:{}".format(OPVArea))
 OPVAreaFacingEastOrNorthfacingRoof = OPVArea * (greenhouseRoofTotalAreaEastOrNorth/greenhouseTotalRoofArea)
 OPVAreaFacingWestOrSouthfacingRoof = OPVArea * (greenhouseRoofTotalAreaWestOrSouth/greenhouseTotalRoofArea)
 
-
 #the ratio of degradation per day (/day)
 # TODO: find a paper describing the general degradation ratio of OPV module
 #the specification document of our PV module says that the guaranteed quality period is 1 year.
 # reference (degradation ratio of PV module): https://www.nrel.gov/docs/fy12osti/51664.pdf, https://www.solar-partners.jp/pv-eco-informations-41958.html
-# It was assumed that inorganic PV module expiration date is 20 years and its yearly degradation rate is 0.5% (from the first reference page 6), which indicates the OPV film degrades faster by 20 times.
-PVDegradationRatioPerHour =  20.0 * 0.005 / dayperYear / hourperDay
+# It was assumed that inorganic PV module expiration date is 20 years and its yearly degradation rate is 0.8% (from the first reference page 6), which indicates the OPV film degrades faster by 20 times.
+PVDegradationRatioPerHour =  20.0 * 0.008 / dayperYear / hourperDay
+print("PVDegradationRatioPerHour:{}".format(PVDegradationRatioPerHour))
 
 
 # the coefficient converting the ideal (given by manufacturers) cell efficiency to the real efficiency under actual conditions
@@ -491,7 +493,6 @@ OPVDepreciationMethod = "StraightLine"
 ##########specification of OPV module (film or panel) end##########
 ###################################################################
 
-
 ##########################################################
 ##########specification of shading curtain start##########
 ##########################################################
@@ -546,11 +547,6 @@ IsHourlyShadingCurtainDeploy = False
 #################################################
 ##########Specification of plants start##########
 #################################################
-#unit selling price (USD/kg)
-# original price
-# source: USDA, Agricultural, Marketing, Service, National Retail Report - Specialty Crops page 9 and others: https://www.ams.usda.gov/mnreports/fvwretail.pdf
-plantUnitPriceUSDperKilogram = 1.99
-
 #Cost of plant production. the unit is USD/m^2
 # the conversion rate was calculated from from University of California Cooperative Extension (UCEC) UC Small farm program (http://sfp.ucdavis.edu/crops/coststudieshtml/lettuce/LettuceTable1/)
 plantProductionCostperSquareMeterPerYear = 1.096405
@@ -605,7 +601,6 @@ plantcostperSquaremeterperYear = 1.096405
 # the DLI upper limitation causing some tipburn
 DLIforTipBurn = DLIForButterHeadLettuceWithNoTipburn
 
-
 # the discount ratio when there are some tipburn observed
 tipburnDiscountRatio = 0.2
 
@@ -627,10 +622,16 @@ setPointHumidityDayTime = 0.65
 setPointHumidityNightTime = 0.8
 # setPointHumidityNightTime = 0.7
 
-
 # the flags indicating daytime or nighttime at each time step
 daytime = "daytime"
 nighttime = "nighttime"
+
+# sales price of lettuce grown at greenhouses, which is usually higher than that of open field farming grown lettuce
+# source
+# 1.99 USD head-1 for "Lettuce, Other, Boston-Greenhouse") cited from USDA (https://www.ams.usda.gov/mnreports/fvwretail.pdf)
+# other source: USDA, Agricultural, Marketing, Service, National Retail Report - Specialty Crops page 9 and others: https://www.ams.usda.gov/mnreports/fvwretail.pdf
+# unit: USD head-1
+romainLettucePriceBasedOnHeadPrice = 1.99
 
 ###################################################
 ##########Specification of the plants end##########
@@ -681,9 +682,6 @@ heatOfWaterEcaporation = {"J kg-1" : 2257}
 # COP = coefficient of persormance. COP = Q/W
 # Q is the useful heat supplied or removed by the considered system. W is the work required by the considered system.
 PadAndFanCOP = 15.0
-
-
-
 ###################################################
 ##########Specification of energy cost end#########
 ###################################################

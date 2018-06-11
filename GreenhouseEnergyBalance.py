@@ -40,7 +40,7 @@ def getGHEnergyConsumptionByCoolingHeating(simulatorClass):
 		2
 		Idso, S. B. 1981.  A set of equations for full spectrum and 8-µm to 14-µm and 10.5-µm to
 		12.5-µm thermal radiation from cloudless skies. Water Resources Research, 17: 295-
-		304.
+		304. https://agupubs.onlinelibrary.wiley.com/doi/abs/10.1029/WR017i002p00295
 
 	'''
 
@@ -146,7 +146,7 @@ def getGHEnergyConsumptionByCoolingHeating(simulatorClass):
 	# np.set_printoptions(threshold=1000)
 	# ############
 	# the sky temperature (the  Swinbank  model  (1963) ) [K]
-	T_sky = 0.0522 * T_oK**1.5
+	T_sky = 0.0552 * T_oK**1.5
 	# print("T_sky.shape:{}".format(T_sky.shape))
 
 	# ############command to print out all array data
@@ -225,13 +225,19 @@ def getLatentHeatTransferByTranspiration(simulatorClass, totalSolarIrradianceToP
 
 	# the leaf area index [-]
 	# source: reference No 2, Andriolo et al. 2005
-	L = 4.3
+	# L = 4.3
+	# source: Van Henten (1994)
+	L = simulatorClass.LeafAreaIndex_J_VanHenten1994
+	# print("leaf area index (L):{}".format(L))
 
 	# arerodynamic resistance of the crop [s m-1]
 	# source: reference No 1, Pollet et al. 2000
 	r_b = r_a /(2.0 * L)
+	# ############command to print out all array data
+	# np.set_printoptions(threshold=np.inf)
 	# print("r_b:{}".format(r_b))
-
+	# np.set_printoptions(threshold=1000)
+	# ############
 
 	# short wave radiation [W m-2]
 	# Need to figure out why dividing the solar irradiance inside by 0.844. see the differnce. -> This is probably because the suthor considered some light prevention by internal equipment. Considering the definition, it should be same as the soalr irradiance to plants
@@ -256,14 +262,15 @@ def getLatentHeatTransferByTranspiration(simulatorClass, totalSolarIrradianceToP
 	r_c = r_s / L
 
 	################## calc psychrometric constant start ##################
-	print("energyBalanceConstant.c_p / (energyBalanceConstant.epsilon * energyBalanceConstant.lambda_:{}".format(energyBalanceConstant.c_p / (energyBalanceConstant.epsilon * energyBalanceConstant.lambda_)))
-	print("energyBalanceConstant.P:{}".format(energyBalanceConstant.P))
+	# print("energyBalanceConstant.c_p / (energyBalanceConstant.epsilon * energyBalanceConstant.lambda_:{}".format(energyBalanceConstant.c_p / (energyBalanceConstant.epsilon * energyBalanceConstant.lambda_)))
+	# print("energyBalanceConstant.P:{}".format(energyBalanceConstant.P))
 	# psychrometric constant
 	# source: http://www.fao.org/docrep/X0490E/x0490e07.htm
 	gamma = energyBalanceConstant.c_p * energyBalanceConstant.P / (energyBalanceConstant.epsilon * energyBalanceConstant.lambda_)
 	# gamma = 0.665 * 10**(-3) * energyBalanceConstant.P
 	# print("gamma:{}".format(gamma))
 
+	# gamma_star = gamma * (1 + r_c / r_b)
 	gamma_star = gamma * (1 + r_c / r_b)
 	# ############command to print out all array data
 	# np.set_printoptions(threshold=np.inf)
@@ -283,13 +290,22 @@ def getLatentHeatTransferByTranspiration(simulatorClass, totalSolarIrradianceToP
 	# np.set_printoptions(threshold=1000)
 	# ############
 
-	# net radiation at the crop surface == above the canopy [W m-2]
-	R_n = totalSolarIrradianceToPlants
+	# net all wave radiation above the crop surface == above the canopy [W m-2]
+	# R_n = totalSolarIrradianceToPlants
+	# source: (Stanghellini, 1987)
+	R_n = 0.86 * (1.0 - np.exp(-0.7 * L)) * I_s
 
 	# The Penman-Monteith equation
-	Q_e = s * (R_n - energyBalanceConstant.F) / (s + gamma_star) + (energyBalanceConstant.rho * energyBalanceConstant.C_p * D / r_b) / (s + gamma_star)
+	Q_lh = s * (R_n - energyBalanceConstant.F) / (s + gamma_star) + (energyBalanceConstant.rho * energyBalanceConstant.C_p * D / r_b) / (s + gamma_star)
+	# when L (leaf area index is 0.0 Q_lh (r_b and r_c) beomes Nan. To avoid it, Nan is converted into 0.0)
+	Q_lh = np.nan_to_num(Q_lh)
+	# ############command to print out all array data
+	# np.set_printoptions(threshold=np.inf)
+	# print("Q_lh:{}".format(Q_lh))
+	# np.set_printoptions(threshold=1000)
+	# ############
 
-	return Q_e
+	return Q_lh
 
 
 def getSturatedAndActualVaporPressure(actualT, relativeHumidity):
@@ -314,6 +330,7 @@ def getQ_v(simulatorClass, Q_sr, Q_lh, Q_sh, Q_lw):
 	Q_lwW = Q_lw * constant.greenhouseFloorArea
 
 	# unit: W
+	# In the default definition, when Q_lhW, Q_shW, and Q_lwW are positive, heat energy gets out of the  greenhouse. Thus, the unit was converted into negative value
 	Q_vW = Q_srW - (Q_lhW + Q_shW + Q_lwW)
 
 	simulatorClass.Q_vW["coolingOrHeatingEnergy W"] = Q_vW
@@ -324,7 +341,6 @@ def getQ_v(simulatorClass, Q_sr, Q_lh, Q_sh, Q_lw):
 
 	# unit: W m-2
 	return Q_vW / constant.greenhouseFloorArea
-
 
 def getGHHeatingEnergyCostForPlants(requiredHeatingEnergyForPlants, simulatorClass):
 	# ############command to print out all array data
@@ -339,7 +355,7 @@ def getGHHeatingEnergyCostForPlants(requiredHeatingEnergyForPlants, simulatorCla
 	requiredHeatingEnergyConsumptionForPlants["MJ"] = requiredHeatingEnergyConsumptionForPlants["W"] * constant.secondperMinute * constant.minuteperHour / 1000000.0
 	# unit conversion: MJ -> ft3
 	requiredHeatingEnergyConsumptionForPlants["ft3"] = requiredHeatingEnergyConsumptionForPlants["MJ"] / constant.naturalGasSpecificEnergy["MJ ft-3"]
-	print("requiredHeatingEnergyConsumptionForPlants:{}".format(requiredHeatingEnergyConsumptionForPlants))
+	# print("requiredHeatingEnergyConsumptionForPlants:{}".format(requiredHeatingEnergyConsumptionForPlants))
 
 	# get the price of natural gas
 	fileName = constant.ArizonaPriceOfNaturalGasDeliveredToResidentialConsumers
@@ -385,7 +401,7 @@ def getGHHeatingEnergyCostForPlants(requiredHeatingEnergyForPlants, simulatorCla
 		# print "monthlyData:{}".format(monthlyData)
 		index += 1
 
-	print("monthlyHeatingCostForPlants:{}".format(monthlyHeatingCostForPlants))
+	# print("monthlyHeatingCostForPlants:{}".format(monthlyHeatingCostForPlants))
 
 	totalHeatingCostForPlants = sum(monthlyHeatingCostForPlants)
 
@@ -410,8 +426,7 @@ def getMonthlyRequiredGHHeatingEnergyForPlants(requiredHeatingEnergyConsumptionF
 
 	return monthlyRequiredGHHeatingEnergyForPlants
 
-
-def getGHCoolingEnergyCostByCooling(requiredCoolingEnergyForPlants, simulatorClass):
+def getGHCoolingEnergyCostForPlants(requiredCoolingEnergyForPlants, simulatorClass):
 	# ############command to print out all array data
 	# np.set_printoptions(threshold=np.inf)
 	# print("requiredCoolingEnergyForPlants:{}".format(requiredCoolingEnergyForPlants))
@@ -457,7 +472,7 @@ def getGHCoolingEnergyCostByCooling(requiredCoolingEnergyForPlants, simulatorCla
 		monthlyCoolingCostForPlants[index] = (monthlyData[2] / 100.0 ) * monthlyRequiredGHCoolingEnergyForPlants[index]
 		index += 1
 
-	print("monthlyCoolingCostForPlants:{}".format(monthlyCoolingCostForPlants))
+	# print("monthlyCoolingCostForPlants:{}".format(monthlyCoolingCostForPlants))
 
 	totalCoolingCostForPlants = sum(monthlyCoolingCostForPlants)
 

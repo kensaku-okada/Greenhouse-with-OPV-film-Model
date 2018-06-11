@@ -6,7 +6,6 @@
 #######################################################
 
 ##########import package files##########
-from scipy import stats
 import os as os
 import numpy as np
 import matplotlib.pyplot as plt
@@ -15,6 +14,7 @@ import CropElectricityYeildSimulatorConstant as constant
 import Util as util
 import datetime
 import sys
+from dateutil.relativedelta import relativedelta
 #######################################################
 
 
@@ -412,35 +412,53 @@ def getRetailPricePerArea(simulatorClass):
     simulationMonthEachDay = simulatorClass.getMonth()[::24]
     simulationYearEachDay = simulatorClass.getYear()[::24]
 
-    # import the price data
-    filename = constant.romaineLettceRetailPriceFileName
-    relativePath = constant.romaineLettceRetailPriceFilePath
-    romaineLettceRetailPricePerMonth = util.readData(filename, relativePath, 0, ',')
-    # print("romaineLettceRetailPricePerMonth:{}".format(romaineLettceRetailPricePerMonth))
-    # print("type(romaineLettceRetailPricePerMonth):{}".format(type(romaineLettceRetailPricePerMonth)))
+    # if you refer to the price for greenhouse lettuce
+    if constant.sellLettuceByGreenhouseRetailPrice:
+      # define the price data
+      # source: https://www.ams.usda.gov/mnreports/fvwretail.pdf
+      # "Lettuce Other Boston-Greenhouse" 1.99 USD each
 
-    # get the sales price of each harvested lettuce (weight)
-    for i in range (0, harvestedShootFreshMassPerAreaKgPerDay.shape[0]):
-      # if it is not the harvest date then skip the day
-      if harvestedShootFreshMassPerAreaKgPerDay[i] == 0.0: continue
+      # make the price data in the same format as constant.romaineLettceRetailPriceFileName
+      # get the unit price (USD m-2)
+      # romaineLettuceRetailPricePerMonth = getRomainLettucePriceBasedOnHeadPrice()
 
-      # get the unit price (USD/pound)
-      unitRetailPricePerPound = getUnitRomainLettucePrice(simulationMonthEachDay[i], simulationYearEachDay[i], romaineLettceRetailPricePerMonth)
+      # get the sales price of each harvested lettuce (weight)
+      for i in range(0, harvestedShootFreshMassPerAreaKgPerDay.shape[0]):
+        # if it is not the harvest date then skip the day. It is also skipped if the head weight does not reach 90% of the defined harvest fresh weight by kg m-2 day-1.
+        if harvestedShootFreshMassPerAreaKgPerDay[i] < (constant.harvestDryWeight * constant.DryMassToFreshMass) / 1000 * constant.plantDensity * 0.9 : continue
 
-      # unit conversion: 1USD/pound -> USD/kg
-      unitRetailPricePerKg = util.convertPoundToKg(unitRetailPricePerPound)
+        # unit: USD/m^2/day
+        harvestedFreshMassPricePerAreaPerDay[i] = constant.romainLettucePriceBasedOnHeadPrice * constant.plantDensity
 
-      # unit: USD/m^2/day
-      harvestedFreshMassPricePerAreaPerDay[i] = harvestedShootFreshMassPerAreaKgPerDay[i] * unitRetailPricePerKg
+    else:
+      # import the price data
+      filename = constant.romaineLettceRetailPriceFileName
+      relativePath = constant.romaineLettceRetailPriceFilePath
+      romaineLettuceRetailPricePerMonth = util.readData(filename, relativePath, 0, ',')
+      # print("romaineLettuceRetailPricePerMonth:{}".format(romaineLettuceRetailPricePerMonth))
+      # print("type(romaineLettuceRetailPricePerMonth):{}".format(type(romaineLettuceRetailPricePerMonth)))
 
+      # get the sales price of each harvested lettuce (weight)
+      for i in range (0, harvestedShootFreshMassPerAreaKgPerDay.shape[0]):
+        # if it is not the harvest date then skip the day
+        if harvestedShootFreshMassPerAreaKgPerDay[i] == 0.0: continue
 
+        # get the unit price (USD pound-1)
+        unitRetailPricePerPound = getUnitRomainLettucePrice(simulationMonthEachDay[i], simulationYearEachDay[i], romaineLettuceRetailPricePerMonth)
+
+        # unit conversion: 1USD pound-1 -> USD kg-1
+        unitRetailPricePerKg = util.convertKgToPound(unitRetailPricePerPound)
+
+        # unit: USD/m^2/day
+        harvestedFreshMassPricePerAreaPerDay[i] = harvestedShootFreshMassPerAreaKgPerDay[i] * unitRetailPricePerKg
+
+    # print("In Lettuce.py, harvestedFreshMassPricePerAreaPerDay:{}".format(harvestedFreshMassPricePerAreaPerDay))
 
     return harvestedFreshMassPricePerAreaPerDay
 
 def getUnitRomainLettucePrice(month, year, priceInfoList):
   """
-
-  return: the unit price of a given month and year
+  return the price of lettuce on a given month and year
   """
   # print("priceInfoList:{}".format(priceInfoList))
   # print("priceInfoList.shape:{}".format(priceInfoList.shape))
@@ -461,6 +479,7 @@ def getUnitRomainLettucePrice(month, year, priceInfoList):
     if year == int(priceInfo[1]) and month == int(priceInfo[2][1:]):
       # print("priceInfo[3]:{}".format(priceInfo[3]))
       # print("type(priceInfo[3]):{}".format(type(priceInfo[3])))
+      # unit: USD pound-1
       return float(priceInfo[3])
 
   print("The specified simulation period include the term where there is no lettuce unit price information. Simulation stopped.")
@@ -469,6 +488,30 @@ def getUnitRomainLettucePrice(month, year, priceInfoList):
   sys.exit()
   # # Move the above line to different parts of the assignment as you implement more of the functionality.
   # ####################################################################################################
+
+
+def getRomainLettucePriceBasedOnHeadPrice():
+
+  # get init date
+  startDate = util.getStartDateDateType()
+
+  numOfSimulationMonths = util.getSimulationMonthsInt()
+
+  romainLettucePriceBasedOnHeadPrice = np.zeros((numOfSimulationMonths,4))
+
+  for i in range (numOfSimulationMonths):
+    romainLettucePriceBasedOnHeadPrice[i][0] = "dummy"
+    # set year
+    romainLettucePriceBasedOnHeadPrice[i][1] = (startDate + relativedelta(months = i)).year
+    # set month
+    romainLettucePriceBasedOnHeadPrice[i][2] = (startDate + relativedelta(months = i)).month
+    # set the head price
+    # unit: USD head-1
+    romainLettucePriceBasedOnHeadPrice[i][3] = constant.romainLettucePriceBasedOnHeadPrice
+    # unit convert: USD head-1 -> USD m-2
+    romainLettucePriceBasedOnHeadPrice[i][3] = romainLettucePriceBasedOnHeadPrice[i][3] * constant.plantDensity
+
+  return romainLettucePriceBasedOnHeadPrice
 
 
 def discountPlantSalesperSquareMeterByTipburn(plantSalesperSquareMeter, TotalDLItoPlants):

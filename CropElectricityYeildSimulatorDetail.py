@@ -191,18 +191,16 @@ def getDailyElectricityYieldperArea(simulatorClass,hourlyOPVTemperature, directS
     return dailyJopvoutperArea
 
 
-def getDirectSolarIrradianceThroughMultiSpanRoof(simulatorClass):
+def setDirectSolarIrradianceThroughMultiSpanRoof(simulatorClass):
     '''
-    calculate the solar irradiance to multi span roof.
-    this calculates the solar irradiance to the single span if you set proper variables at the constant class
+    calculate the solar irradiance to multi-span roof.
+    this calculates the solar irradiance to the single span.
     the variables names follow the symbols in the reference.
     Reference of the model: T. Soriano. et al, 2004, "A Study of Direct Solar Radiation Transmission in Asymmetrical Multi-span Greenhouses using Scale Models and Simulation Models"
-    Reference source: https://www.sciencedirect.com/science/article/pii/S1537511004000455
+    source: https://www.sciencedirect.com/science/article/pii/S1537511004000455
 
-    :param simulatorClass:
-    :return:
     '''
-    # get the direct solar radiation [W/m^2]
+    # get the direct solar radiation [W/m^2]. these values are not directly used to calculate the transmittance but just used to check the existance of solar irradicne at each hour.
     directSolarRadiationToOPVEastFacingRoof = simulatorClass.getDirectSolarRadiationToOPVEastDirection()
     directSolarRadiationToOPVWestFacingRoof = simulatorClass.getDirectSolarRadiationToOPVWestDirection()
     # print("directSolarRadiationToOPVEastFacingRoof: {}".format(directSolarRadiationToOPVEastFacingRoof))
@@ -238,11 +236,9 @@ def getDirectSolarIrradianceThroughMultiSpanRoof(simulatorClass):
     # print("T_matForParallelIrrEastOrNorthFacingRoof: {}".format(T_matForParallelIrrEastOrNorthFacingRoof))
     # print("T_matForParallelIrrWestOrSouthFacingRoof: {}".format(T_matForParallelIrrWestOrSouthFacingRoof))
 
-
     # get the incidence angles
     hourlySolarIncidenceAngleEastDirection = simulatorClass.hourlySolarIncidenceAngleEastDirection
     hourlySolarIncidenceAngleWestDirection = simulatorClass.hourlySolarIncidenceAngleWestDirection
-
 
     # get the direct solar irradiance on each axis
     directSolarIrradiancePerpendicularToOPVEastDirection = directSolarRadiationToOPVEastFacingRoof * np.cos(hourlySolarIncidenceAngleEastDirection)
@@ -272,8 +268,8 @@ def getDirectSolarIrradianceThroughMultiSpanRoof(simulatorClass):
     # sys.setrecursionlimit(constant.defaultIterationLimit)
 
     # set the data
-    simulatorClass.T_matForPerpendicularIrrEastOrNorthFacingRoof  = T_matForPerpendicularIrrEastOrNorthFacingRoof
-    simulatorClass.T_matForPerpendicularIrrWestOrSouthFacingRoof  = T_matForPerpendicularIrrWestOrSouthFacingRoof
+    simulatorClass.T_matForPerpendicularIrrEastOrNorthFacingRoof = T_matForPerpendicularIrrEastOrNorthFacingRoof
+    simulatorClass.T_matForPerpendicularIrrWestOrSouthFacingRoof = T_matForPerpendicularIrrWestOrSouthFacingRoof
 
     # the overall transmittance of multispanroof. The solar irradiance inside the greenhouse can be derived only by multiplying this with the outer solar irradiance for horizontal surface
     integratedT_mat = SolarIrradianceMultiSpanRoof.getIntegratedT_matFromBothRoofs(T_matForPerpendicularIrrEastOrNorthFacingRoof, T_matForPerpendicularIrrWestOrSouthFacingRoof)
@@ -762,7 +758,7 @@ def getGreenhouseOperationCostForGrowingPlants(simulatorClass):
 
   # unit: USD
   totalHeatingCostForPlants = energyBalance.getGHHeatingEnergyCostForPlants(requiredHeatingEnergyForPlants, simulatorClass)
-  totalCoolingCostForPlants = energyBalance.getGHCoolingEnergyCostByCooling(requiredCoolingEnergyForPlants, simulatorClass)
+  totalCoolingCostForPlants = energyBalance.getGHCoolingEnergyCostForPlants(requiredCoolingEnergyForPlants, simulatorClass)
   simulatorClass.totalHeatingCostForPlants = totalHeatingCostForPlants
   simulatorClass.totalCoolingCostForPlants = totalCoolingCostForPlants
 
@@ -1013,9 +1009,9 @@ def testWeightsRLShadingCurtainDayStep(hasShadingCurtain, qLearningAgentsShading
       unitPlantWeightperArea = Util.convertUnitShootFreshMassToShootFreshMassperArea(unitPlantWeight)
       # unit conversion:  [g/m^2] -> [kg/m^2]1
       unitPlantWeightperAreaKg = Util.convertFromgramTokilogram(unitPlantWeightperArea)
+
       # get the sales price of plant [USD/m^2]
       # if the average DLI during each harvest term is more than 17 mol/m^2/day, discount the price
-      # TODO may need to improve the affect of Tipburn
       dailyPlantSalesperSquareMeter = getPlantSalesperSquareMeter(\
         cropElectricityYieldSimulator1.getYear(), unitPlantWeightperAreaKg, qLearningAgentsShadingCurtain.dLIEachDayToPlants)
       plantSalesperSquareMeter = sum(dailyPlantSalesperSquareMeter)

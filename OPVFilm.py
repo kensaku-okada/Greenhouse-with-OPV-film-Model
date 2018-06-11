@@ -643,7 +643,7 @@ def getDirectSolarIrradianceToPlants(simulatorClass, hourlyDirectSolarRadiationA
                     # not deploy the curtain
                     hourlyDirectSolarRadiationAfterShadingCurtain[i] = hourlyDirectSolarRadiationAfterInnerStructure[i]
 
-        # if we assume the shading curtain is deployed only for a certain hot time in a day, use this
+        # if we assume the shading curtain is deployed only for a fixed hot time defined at the constant class in a day, use this
         elif constant.IsShadingCurtainDeployOnlyDayTime == True and constant.IsDifferentShadingCurtainDeployTimeEachMonth == False:
 
             for i in range(0, hour.shape[0]):
@@ -660,6 +660,7 @@ def getDirectSolarIrradianceToPlants(simulatorClass, hourlyDirectSolarRadiationA
                     # not deploy the curtain
                     hourlyDirectSolarRadiationAfterShadingCurtain[i] = hourlyDirectSolarRadiationAfterInnerStructure[i]
 
+        # if we assume the shading curtain is deployed for the time which dynamically changes each month, use this
         elif constant.IsShadingCurtainDeployOnlyDayTime == True and constant.IsDifferentShadingCurtainDeployTimeEachMonth == True:
 
             # having shading curtain transmittance each hour. 1 = no shading curatin, the transmittance of shading curtain = deploy curtain
