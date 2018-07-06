@@ -350,12 +350,6 @@ def getHourlyShadingCurtainDeploymentPatternChangingEachMonthMain(simulatorClass
 		hour = 0
 		##############set the initial values end##############
 
-		# take date and time
-		year = simulatorClass.getYear()
-		month = simulatorClass.getMonth()
-		day = simulatorClass.getDay()
-		hour = simulatorClass.getHour()
-
 		# total sollar irradiance per day which does not cause tipburn. unit conversion: DLI(mol m-2 day) -> W m-2
 		# totalSolarIrradiancePerDayNoTipburn = constant.DLIforTipBurn * 1000000.0 / constant.minuteperHour / constant.secondperMinute / constant.wattToPPFDConversionRatio
 

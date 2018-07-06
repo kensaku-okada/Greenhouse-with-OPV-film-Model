@@ -9,6 +9,7 @@ class SimulatorClass:
     self._OPVCoverageRatioSummerPeriod = constant.OPVAreaCoverageRatioSummerPeriod
     self._OPVCoverageRatiosConsiderSummerRatio = None
     self._plantGrowthModel = constant.plantGrowthModel
+    self._shootFreshMassList = None
     self._cultivationDaysperHarvest = constant.cultivationDaysperHarvest
     self._hasShadingCurtain = constant.hasShadingCurtain
     self._shadingCurtainDeployPPFD = constant.plantGrowthModel
@@ -123,17 +124,19 @@ class SimulatorClass:
     self._integratedT_mat = None
     self._directHorizontalSolarRadiation = None
     self._diffuseHorizontalSolarRadiation = None
+    self._totalHorizontalSolarRadiation = None
+
     self._dailyWhopvoutperAreaEastRoof = None
     self._dailyWhopvoutperAreaWestRoof = None
     self._dailykWhopvoutperAreaEastRoof = None
     self._dailykWhopvoutperAreaWestRoof = None
     self._totalkWhopvoutPerday = None
     self._monthlyElectricityRetailPrice = None
-
     self._totalkWhopvoutPerAreaPerday = None
     self._totalkWhopvoutPerAreaPerday = None
 
     self._LeafAreaIndex_J_VanHenten1994 = None
+    self._summerPeriodFlagArray = None
     self._dailyShootFreshMass = None
     self._dailyUnitDailyFreshWeightIncrease = None
     self._dailyAccumulatedUnitDailyFreshWeightIncrease = None
@@ -145,6 +148,103 @@ class SimulatorClass:
     # variables for validation
     self._GHSolarIrradianceValidationData = None
     self._GHAirTemperatureValidationData = None
+
+    #################################################################################################
+    ################################## variables for debugging start ################################
+    #################################################################################################
+
+    self._r_a = None
+    self._L = None
+    self._r_b = None
+    self._e_a   = None
+    self._e_s = None
+    self._r_s = None
+    self._r_c = None
+    self._gamma = None
+    self._gamma_star = None
+    self._s = None
+    self._R_n = None
+
+  @property
+  def r_a(self):
+    return self._r_a
+  @r_a.setter
+  def r_a(self, r_a):
+    self._r_a= r_a
+
+  @property
+  def L(self):
+    return self._L
+  @L.setter
+  def L(self, L):
+    self._L= L
+
+  @property
+  def r_b(self):
+    return self._r_b
+  @r_b.setter
+  def r_b(self, r_b):
+    self._r_b= r_b
+
+  @property
+  def e_a(self):
+    return self._e_a
+  @e_a.setter
+  def e_a(self, e_a):
+    self._e_a= e_a
+
+  @property
+  def e_s(self):
+    return self._e_s
+  @e_s.setter
+  def e_s(self, e_s):
+    self._e_s= e_s
+
+  @property
+  def r_s(self):
+    return self._r_s
+  @r_s.setter
+  def r_s(self, r_s):
+    self._r_s = r_s
+
+  @property
+  def r_c(self):
+    return self._r_c
+  @r_c.setter
+  def r_c(self, r_c):
+    self._r_c = r_c
+
+  @property
+  def gamma(self):
+    return self._gamma
+  @gamma.setter
+  def gamma(self, gamma):
+    self._gamma = gamma
+
+  @property
+  def gamma_star(self):
+    return self._gamma_star
+  @gamma_star.setter
+  def gamma_star(self, gamma_star):
+    self._gamma_star = gamma_star
+
+  @property
+  def s(self):
+    return self._s
+  @s.setter
+  def s(self, s):
+    self._s =s
+
+  @property
+  def R_n(self):
+    return self._R_n
+  @R_n.setter
+  def R_n(self, R_n):
+    self._R_n = R_n
+
+  #################################################################################################
+  ################################## variables for debugging end ##################################
+  #################################################################################################
 
   def setOPVAreaCoverageRatio(self, OPVAreaCoverageRatio):
     self._OPVAreaCoverageRatio = OPVAreaCoverageRatio
@@ -167,6 +267,13 @@ class SimulatorClass:
     self._plantGrowthModel = plantGrowthModel
   def getPlantGrowthModel(self):
     return self._plantGrowthModel
+
+  @property
+  def shootFreshMassList(self):
+    return self._shootFreshMassList
+  @shootFreshMassList.setter
+  def shootFreshMassList(self, shootFreshMassList):
+    self._shootFreshMassList = shootFreshMassList
 
   def setCultivationDaysperHarvest(self, cultivationDaysperHarvest):
     self._cultivationDaysperHarvest = cultivationDaysperHarvest
@@ -909,6 +1016,13 @@ class SimulatorClass:
   def diffuseHorizontalSolarRadiation(self, diffuseHorizontalSolarRadiation):
     self._diffuseHorizontalSolarRadiation = diffuseHorizontalSolarRadiation
 
+  @property
+  def totalHorizontalSolarRadiation(self):
+    return self._totalHorizontalSolarRadiation
+  @totalHorizontalSolarRadiation.setter
+  def totalHorizontalSolarRadiation(self, totalHorizontalSolarRadiation):
+    self._totalHorizontalSolarRadiation = totalHorizontalSolarRadiation
+
   ##############################plant weights (growth)start ##############################
   @property
   def LeafAreaIndex_J_VanHenten1994(self):
@@ -916,6 +1030,13 @@ class SimulatorClass:
   @LeafAreaIndex_J_VanHenten1994.setter
   def LeafAreaIndex_J_VanHenten1994(self, LeafAreaIndex_J_VanHenten1994):
     self._LeafAreaIndex_J_VanHenten1994 = LeafAreaIndex_J_VanHenten1994
+
+  @property
+  def summerPeriodFlagArray(self):
+    return self._summerPeriodFlagArray
+  @summerPeriodFlagArray.setter
+  def summerPeriodFlagArray(self, summerPeriodFlagArray):
+    self._summerPeriodFlagArray = summerPeriodFlagArray
 
   @property
   def dailyShootFreshMass(self):

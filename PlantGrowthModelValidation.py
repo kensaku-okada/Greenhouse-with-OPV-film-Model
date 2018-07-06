@@ -73,7 +73,7 @@ def importPlantGrowthModelValidationData(fileName, simulatorClass):
 	return simulatorClass
 
 ########################################################################################################################################
-# Note: To run this file and validation, please change constant.SimulationStartDate and constant.SimulationEndDate accordingly
+# Note: To run this file and validation, please change constant.SimulationStartDate and constant.SimulationEndDate according to the date of imported data.
 ########################################################################################################################################
 
 # data import

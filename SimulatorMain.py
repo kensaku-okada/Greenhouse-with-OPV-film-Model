@@ -3,7 +3,7 @@
 # author :Kensaku Okada [kensakuokada@email.arizona.edu]
 # create date : 19 Dec 2017
 # last edit date: 19 Dec 2017
-#######################################################
+######################################################
 
 ##########import package files##########
 # from scipy import stats
@@ -19,10 +19,10 @@ import Util
 import CropElectricityYeildSimulatorConstant as constant
 # import importlib
 
-# case = "OneCaseSimulation"
+case = "OneCaseSimulation"
 # case == "LeastSquareMethod"
 # case = "OptimizeOnlyOPVCoverageRatio"
-case = "OptimizationByMINLPSolver"
+# case = "OptimizationByMINLPSolver"
 # case = "ShadingCurtainReinforcementLearning"
 
 if case == "OneCaseSimulation":
@@ -143,7 +143,7 @@ elif case == "OptimizeOnlyOPVCoverageRatio":
   # totalGrowthFreshWeightsPerHead = np.zeros(OPVCoverages.shape[0], dtype=float)
   totalGrowthFreshWeightsPerCultivationFloorArea = np.zeros(OPVCoverages.shape[0], dtype=float)
   totalGrowthFreshWeightsPerGHFloorArea = np.zeros(OPVCoverages.shape[0], dtype=float)
-  # unit harvested fresh mass weight for a whole given period with each OPV film coverage. unit:
+  # unit harvested fresh mass weight for a whole given period with each OPV film coverage. unit: kg m-2
   totalHarvestedShootFreshMassPerCultivationFloorAreaKgPerDay = np.zeros(OPVCoverages.shape[0], dtype=float)
 
   # plant sales per square meter with each OPV film coverage: [USD/m^2]  totalPlantSaleses =
@@ -160,7 +160,8 @@ elif case == "OptimizeOnlyOPVCoverageRatio":
 
   # economicProfit summing the electricity and plant profit [USD]
   totalEconomicProfits = np.zeros(OPVCoverages.shape[0], dtype=float)
-
+  # economicProfit summing the electricity and plant profit per area [USD m-2]
+  economicProfitPerGHFloorArea = np.zeros(OPVCoverages.shape[0], dtype=float)
 
   ##################################################################################################
   ################ parameter preparation for optimization of OPV coverage ratio end ################
@@ -218,7 +219,7 @@ elif case == "OptimizeOnlyOPVCoverageRatio":
     totalGrowthFreshWeightsPerCultivationFloorArea[i] = sum(simulatorClass.shootFreshMassPerAreaKgPerDay)
     totalGrowthFreshWeightsPerGHFloorArea[i] = totalGrowthFreshWeightsPerCultivationFloorArea[i] * constant.greenhouseCultivationFloorArea / constant.greenhouseFloorArea
 
-    # unit harvested fresh mass weight for a whole given period with each OPV film coverage. unit:
+    # unit harvested fresh mass weight for a whole given period with each OPV film coverage. unit: kg m-2
     # totalHarvestedShootFreshMassPerAreaKgPerHead[i] =
     totalHarvestedShootFreshMassPerCultivationFloorAreaKgPerDay[i] = sum(simulatorClass.harvestedShootFreshMassPerAreaKgPerDay)
 
@@ -239,6 +240,8 @@ elif case == "OptimizeOnlyOPVCoverageRatio":
 
     # plant profit with each OPV film coverage: [USD/m^2]
     totalEconomicProfits[i] = totalElectricityProfits[i] + totalPlantProfitsPerGHFloorArea[i] * constant.greenhouseFloorArea
+
+    economicProfitPerGHFloorArea[i] = simulatorClass.economicProfitPerGHFloorArea
 
   ######################################################
   ##### display the optimization results start #########
@@ -329,7 +332,7 @@ elif case == "OptimizeOnlyOPVCoverageRatio":
     "PlantAndElectricityYieldWholeAndPerFootPrint")
   Util.exportCSVFile(
     np.array([OPVCoverages, totalElectricitySalesPerGHFloorArea, totalElectricityCostsPerGHFloorArea, totalPlantSalesesPerGHFloorArea, \
-              totalPlantCostsPerGHFloorArea,totalEconomicProfits]).T, \
+              totalPlantCostsPerGHFloorArea,totalEconomicProfits, economicProfitPerGHFloorArea]).T, \
     "SalesAndCostPerFootPrint")
 
   # plotting this graph is the coal of this simulation!!!
@@ -340,6 +343,16 @@ elif case == "OptimizeOnlyOPVCoverageRatio":
   Util.plotData(OPVCoverages, totalEconomicProfits, title, xAxisLabel, yAxisLabel)
   Util.saveFigure(title + " " + constant.SimulationStartDate + "-" + constant.SimulationEndDate)
   # #######################################################################
+
+
+  ################# plot the economic profit with different OPV coverage for given period per GH area
+  title = "whole economic profit per GH area vs OPV film"
+  xAxisLabel = "OPV Coverage Ratio [-]: " + constant.SimulationStartDate + "-" + constant.SimulationEndDate
+  yAxisLabel = "economic profit for a given period [USD]"
+  Util.plotData(OPVCoverages, economicProfitPerGHFloorArea, title, xAxisLabel, yAxisLabel)
+  Util.saveFigure(title + " " + constant.SimulationStartDate + "-" + constant.SimulationEndDate)
+  # #######################################################################
+
 
   ####################################################################################################
   # Stop execution here...
@@ -389,6 +402,8 @@ elif case == "OptimizationByMINLPSolver":
     OPVAreaCoverageRatio = x[0]
     # set OPV coverage ratio [-]
     constant.OPVAreaCoverageRatio = OPVAreaCoverageRatio
+    print("constant.OPVAreaCoverageRatio :{}".format(constant.OPVAreaCoverageRatio ))
+
     # change the other relevant parameters
     constant.OPVArea = OPVAreaCoverageRatio * constant.greenhouseTotalRoofArea
     constant.OPVAreaFacingEastOrNorthfacingRoof = OPVAreaCoverageRatio * (constant.greenhouseRoofTotalAreaEastOrNorth / constant.greenhouseTotalRoofArea)
@@ -402,14 +417,15 @@ elif case == "OptimizationByMINLPSolver":
     # simulationEndDate = Util.getEndDateDateType()
     year = Util.getStartDateDateType().year
 
+
     shadingCurtainDeployStartDateSpring = datetime.date(year=year, month=1, day=1) + datetime.timedelta(days=shadingCurtainDeployStartDateSpring)
     shadingCurtainDeployEndDateSpring = datetime.date(year=year, month=1, day=1) + datetime.timedelta(days=shadingCurtainDeployEndDateSpring)
     shadingCurtainDeployStartDateFall = datetime.date(year=year, month=1, day=1) + datetime.timedelta(days=shadingCurtainDeployStartDateFall)
     shadingCurtainDeployEndDateFall = datetime.date(year=year, month=1, day=1) + datetime.timedelta(days=shadingCurtainDeployEndDateFall)
-    # print("shadingCurtainDeployStartDateSpring:{}".format(shadingCurtainDeployStartDateSpring))
-    # print("shadingCurtainDeployEndDateSpring:{}".format(shadingCurtainDeployEndDateSpring))
-    # print("shadingCurtainDeployStartDateFall:{}".format(shadingCurtainDeployStartDateFall))
-    # print("shadingCurtainDeployEndDateFall:{}".format(shadingCurtainDeployEndDateFall))
+    print("shadingCurtainDeployStartDateSpring:{}".format(shadingCurtainDeployStartDateSpring))
+    print("shadingCurtainDeployEndDateSpring:{}".format(shadingCurtainDeployEndDateSpring))
+    print("shadingCurtainDeployStartDateFall:{}".format(shadingCurtainDeployStartDateFall))
+    print("shadingCurtainDeployEndDateFall:{}".format(shadingCurtainDeployEndDateFall))
 
     # set the shading curtain deployment periods
     constant.ShadingCurtainDeployStartMMSpring = shadingCurtainDeployStartDateSpring.month
@@ -490,8 +506,13 @@ elif case == "OptimizationByMINLPSolver":
   # STEP 1.C: Starting point 'x'
   ##############################
 
+  # start from the minimum values
   # problem['x'] = problem['xl']  # Here for example: starting point = lower bounds
+  # # start from the middle values
   problem['x'] = [(problem['xl'][i] + problem['xu'][i])/2.0 for i in range(0, len(problem['xl']))   ]  # start from the middle
+  # # start from the maximum values
+  # problem['x'] = problem['xu']  # Here for example: starting point = lower bounds
+  # print("problem['x']:{}".format(problem['x']))
 
   ########################################################################
   ### Step 2: Choose stopping criteria and printing options    ###########
@@ -500,7 +521,7 @@ elif case == "OptimizationByMINLPSolver":
   # STEP 2.A: Stopping criteria
   #############################
   # option['maxeval'] = 10000  # Maximum number of function evaluation (e.g. 1000000), 999999999 (-> disabled)
-  option['maxeval'] = 700  # Maximum number of function evaluation (e.g. 1000000), 999999999 (-> disabled)
+  option['maxeval'] = 500  # Maximum number of function evaluation (e.g. 1000000), 999999999 (-> disabled)
   option['maxtime'] = 60 * 60 * 24  # Maximum time limit in Seconds (e.g. 1 Day = 60*60*24)
 
   # STEP 2.B: Printing options
@@ -512,18 +533,36 @@ elif case == "OptimizationByMINLPSolver":
   ### Step 3: Choose MIDACO parameters (FOR ADVANCED USERS)    ###########
   ########################################################################
 
+  # this parameter defines the accuracy for the constraint violation. It is considered an equality constraints (G(X)) to be feasible if |G(X)| <= PARAM(1).
+  # An inequality is considered feasible, if G(X) ≥ -PARAM(1). If the user sets PARAM(1) = 0, MIDACO uses a default accuracy of 0.001.
   option['param1'] = 0.0  # ACCURACY
+  # this defines the initial seed for MIDACO's internal pseudo random number generator.
   option['param2'] = 0.0  # SEED
+
   option['param3'] = 0.0  # FSTOP
+
   option['param4'] = 0.0  # ALGOSTOP
+
   # option['param5']  = 500.0005  # EVALSTOP
   option['param5'] = 0.0  # EVALSTOP
+
+  # This parameter forces MIDACO to focus its search process around the current best solution and
+	# thus makes it more greedy or local. The larger the FOCUS value, the closer MIDACO will focus its search on the current best solution.
   option['param6'] = 0.0  # FOCUS
+  # option['param6'] = 20.0  # FOCUS
+
   option['param7'] = 0.0  # ANTS
+
   option['param8'] = 0.0  # KERNEL
+
+ # This parameter speciﬁes a user given oracle parameter to the penalty function within MIDACO.
+ # This parameter is only relevant for constrained problems.
   option['param9'] = 0.0  # ORACLE
+
   option['param10'] = 0.0  # PARETOMAX
+
   option['param11'] = 0.0  # EPSILON
+
   option['param12'] = 0.0  # CHARACTER
 
   ########################################################################

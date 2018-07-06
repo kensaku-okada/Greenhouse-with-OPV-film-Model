@@ -33,7 +33,7 @@ def simulateCropElectricityYieldProfit1():
     simulator of crop and electricity yield and the total profit
     '''
 
-    print ("start modeling: datetime.datetime.now():{}".format(datetime.datetime.now()))
+    # print ("start modeling: datetime.datetime.now():{}".format(datetime.datetime.now()))
 
     # get the num of simulation days
     simulationDaysInt = util.getSimulationDaysInt()
@@ -124,15 +124,18 @@ def simulateCropElectricityYieldProfit1():
             # util.saveFigure(Title + " " + constant.SimulationStartDate + "-" + constant.SimulationEndDate)
             # ##################plot the difference of total solar radiation with imported data (radiation to horizontal surface) and simulated data (radiation to tilted surface end######################
 
-        ###################data export start##################
-        util.exportCSVFile(np.array([year, month, day, hour, simulatorClass.getDirectSolarRadiationToOPVEastDirection(), simulatorClass.getDirectSolarRadiationToOPVWestDirection(), \
-                                simulatorClass.getDiffuseSolarRadiationToOPV(), simulatorClass.getAlbedoSolarRadiationToOPV(),totalSolarRadiationToOPV]).T,
-                           "hourlyMeasuredSolarRadiations")
-        ###################data export end##################
 
-        ###################data export start##################
-        util.exportCSVFile(np.array([year, month, day, hour, hourlyHorizontalTotalOuterSolarIrradiance, totalSolarRadiationToOPV]).T,
-                           "hourlyMeasuredSolarRadiationToHorizontalAndTilted")
+            ###################data export start##################
+        util.exportCSVFile(np.array([year, month, day, hour,
+                                     hourlyHorizontalDirectOuterSolarIrradiance,
+                                     hourlyHorizontalDiffuseOuterSolarIrradiance,
+                                     hourlyHorizontalTotalOuterSolarIrradiance,
+                                     simulatorClass.getDirectSolarRadiationToOPVEastDirection(),
+                                     simulatorClass.getDirectSolarRadiationToOPVWestDirection(),
+                                     simulatorClass.getDiffuseSolarRadiationToOPV(),
+                                     simulatorClass.getAlbedoSolarRadiationToOPV(),
+                                     totalSolarRadiationToOPV]).T,
+                           "hourlyMeasuredSolarRadiations")
         ###################data export end##################
 
         # unit change: [W m^-2] -> [umol m^-2 s^-1] == PPFD
@@ -163,6 +166,20 @@ def simulateCropElectricityYieldProfit1():
         simulatorClass.setDirectDLIToOPVWestDirection(directDLIToOPVWestDirection)
         simulatorClass.setDiffuseDLIToOPV(diffuseDLIToOPV)
         simulatorClass.setGroundReflectedDLIToOPV(groundReflectedDLIToOPV)
+
+        # If necessary, get the solar radiation data only on 15th day
+        if util.getSimulationDaysInt() > 31 and constant.ifGet15thDayData:
+            # measured horizontal data
+            hourlyMeasuredHorizontalTotalSolarRadiationOnly15th = util.getOnly15thDay(hourlyHorizontalTotalOuterSolarIrradiance)
+            # measured tilted value
+            hourlyMeasuredTiltedTotalSolarRadiationOnly15th = util.getOnly15thDay(totalSolarRadiationToOPV)
+
+            yearOnly15th = util.getOnly15thDay(year)
+            monthOnly15th = util.getOnly15thDay(month)
+            dayOnly15th = util.getOnly15thDay(day)
+            hourOnly15th = util.getOnly15thDay(hour)
+            # data export
+            util.exportCSVFile(np.array([yearOnly15th, monthOnly15th, dayOnly15th, hourOnly15th, hourlyMeasuredHorizontalTotalSolarRadiationOnly15th, hourlyMeasuredTiltedTotalSolarRadiationOnly15th]).T, "hourlyMeasuredTotalSolarRadiationOnly15th")
 
     ########################################################################################################################
     ################# calculate solar irradiance without real data (estimate solar irradiance) start #######################
@@ -260,53 +277,56 @@ def simulateCropElectricityYieldProfit1():
 
         # data export of solar irradiance
         util.exportCSVFile(np.array([year, month, day, hour,
+                                     simulatorClass.directHorizontalSolarRadiation,
+                                     simulatorClass.diffuseHorizontalSolarRadiation,
+                                     simulatorClass.totalHorizontalSolarRadiation,
                                      simulatorClass.getDirectSolarRadiationToOPVEastDirection(),
                                      simulatorClass.getDirectSolarRadiationToOPVWestDirection(),
                                      simulatorClass.getDiffuseSolarRadiationToOPV(),
                                      simulatorClass.getAlbedoSolarRadiationToOPV(),
                                      estimatedTotalSolarRadiationToOPV]).T,
-                           "SolarIrradianceToHorizontalSurface")
+                           "estimatedSolarIrradiance")
+
+        # If necessary, get the solar radiation data only on 15th day
+        if util.getSimulationDaysInt() > 31 and constant.ifGet15thDayData:
+
+            # estimated horizontal value
+            hourlyEstimatedTotalHorizontalSolarRadiationOnly15th = util.getOnly15thDay(simulatorClass.totalHorizontalSolarRadiation)
+            # estmated tilted data
+            hourlyEstimatedTotalTiltedSolarRadiationToOPVOnly15th = util.getOnly15thDay(estimatedTotalSolarRadiationToOPV)
+
+            yearOnly15th = util.getOnly15thDay(year)
+            monthOnly15th = util.getOnly15thDay(month)
+            dayOnly15th = util.getOnly15thDay(day)
+            hourOnly15th = util.getOnly15thDay(hour)
+            # data export
+            util.exportCSVFile(np.array([yearOnly15th, monthOnly15th, dayOnly15th, hourOnly15th, hourlyEstimatedTotalHorizontalSolarRadiationOnly15th, hourlyEstimatedTotalTiltedSolarRadiationToOPVOnly15th]).T,
+                               "hourlyEstimatedTotalSolarRadiationOnly15th")
+            # util.exportCSVFile(hourlyEstimatedTotalSolarRadiationToOPVOnly15th, "hourlyEstimatedTotalSolarRadiationToOPVOnly15th")
+
 
         # if constant.ifExportFigures:
-            # ##################plot the difference of total solar radiation with imported data and simulated data start######################
-            # Title = "total solar radiation to OPV with measured horizontal and estimated tilted"
-            # xAxisLabel = "time [hour]: " + constant.SimulationStartDate + "-" + constant.SimulationEndDate
-            # yAxisLabel = "total Solar irradiance [W m^-2]"
-            # util.plotTwoData(np.linspace(0, simulationDaysInt * constant.hourperDay, simulationDaysInt * constant.hourperDay), \
-            #                  hourlyHorizontalTotalOuterSolarIrradiance, estimatedTotalSolarRadiationToOPV ,Title, xAxisLabel, yAxisLabel, "measured horizontal", "estimated tilted")
-            # util.saveFigure(Title + " " + constant.SimulationStartDate + "-" + constant.SimulationEndDate)
-            # ##################plot the difference of total solar radiation with imported data and simulated data  end######################
+        # ##################plot the difference of total solar radiation with imported data and simulated data start######################
+        # Title = "total solar radiation to OPV with measured horizontal and estimated tilted"
+        # xAxisLabel = "time [hour]: " + constant.SimulationStartDate + "-" + constant.SimulationEndDate
+        # yAxisLabel = "total Solar irradiance [W m^-2]"
+        # util.plotTwoData(np.linspace(0, simulationDaysInt * constant.hourperDay, simulationDaysInt * constant.hourperDay), \
+        #                  hourlyHorizontalTotalOuterSolarIrradiance, estimatedTotalSolarRadiationToOPV ,Title, xAxisLabel, yAxisLabel, "measured horizontal", "estimated tilted")
+        # util.saveFigure(Title + " " + constant.SimulationStartDate + "-" + constant.SimulationEndDate)
+        # ##################plot the difference of total solar radiation with imported data and simulated data  end######################
 
-            # ################## plot the difference of total DLI with real data and simulated data start######################
-            # Title = "difference of total DLI to tilted OPV with real data and estimation"
-            # xAxisLabel = "time [hour]: " + constant.SimulationStartDate + "-" + constant.SimulationEndDate
-            # yAxisLabel = "DLI [mol m^-2 day^-1]"
-            # util.plotTwoData(np.linspace(0, simulationDaysInt, simulationDaysInt), \
-            #                  totalDLIToOPV, estimatedTotalDLIToOPV ,Title, xAxisLabel, yAxisLabel, "with real data", "wth no data")
-            # util.saveFigure(Title + " " + constant.SimulationStartDate + "-" + constant.SimulationEndDate)
-            # ################## plot the difference of total DLI with real data and simulated data  end######################
+        # ################## plot the difference of total DLI with real data and simulated data start######################
+        # Title = "difference of total DLI to tilted OPV with real data and estimation"
+        # xAxisLabel = "time [hour]: " + constant.SimulationStartDate + "-" + constant.SimulationEndDate
+        # yAxisLabel = "DLI [mol m^-2 day^-1]"
+        # util.plotTwoData(np.linspace(0, simulationDaysInt, simulationDaysInt), \
+        #                  totalDLIToOPV, estimatedTotalDLIToOPV ,Title, xAxisLabel, yAxisLabel, "with real data", "wth no data")
+        # util.saveFigure(Title + " " + constant.SimulationStartDate + "-" + constant.SimulationEndDate)
+        # ################## plot the difference of total DLI with real data and simulated data  end######################
 
     ################# calculate solar irradiance without real data (estimate the data) end #######################
 
-    # If necessary, get the solar radiation data only on 15th day
-    if util.getSimulationDaysInt() > 31 and constant.ifGet15thDayData:
-        ################## plot the imported horizontal data vs estimated data only with 15th day each month (the tilt should be zero) start ######################
-        title = "measured and estimated horizontal data only 15th day (tilt should be zero)"
-        # measured horizontal data
-        hourlyMeasuredHorizontalTotalSolarRadiationOnly15th = util.getOnly15thDay(hourlyHorizontalTotalOuterSolarIrradiance)
-        # estmated data
-        hourlyEstimatedTotalSolarRadiationToOPVOnly15th = util.getOnly15thDay(estimatedTotalSolarRadiationToOPV)
-        xAxisLabel = "hourly measured horizontal total outer solar radiation [W m^-2]" + constant.SimulationStartDate + "-" + constant.SimulationEndDate
-        yAxisLabel = "hourly estimated horizontal Total outer solar radiation [W m^-2]"
-        util.plotData(hourlyMeasuredHorizontalTotalSolarRadiationOnly15th, hourlyEstimatedTotalSolarRadiationToOPVOnly15th, title, xAxisLabel, yAxisLabel, None, True, 0.0, 1.0)
-        util.saveFigure(title + " " + constant.SimulationStartDate + "-" + constant.SimulationEndDate)
-        ################## plot the imported horizontal data vs estimated data only with 15th day each month (the tilt should be zero) end ######################
-
-        # data export
-        util.exportCSVFile(np.array([hourlyMeasuredHorizontalTotalSolarRadiationOnly15th, hourlyEstimatedTotalSolarRadiationToOPVOnly15th]).T, "hourlyMeasuredHorizontalAndEstimatedTotalSolarRadiationOnly15th")
-        # util.exportCSVFile(hourlyEstimatedTotalSolarRadiationToOPVOnly15th, "hourlyEstimatedTotalSolarRadiationToOPVOnly15th")
-
-    # # export measured horizontal and estimated data only when the simulation date is 1 day. *Modify the condition if necessary.
+        # # export measured horizontal and estimated data only when the simulation date is 1 day. *Modify the condition if necessary.
     # elif constant.ifExportMeasuredHorizontalAndExtimatedData == True and util.getSimulationDaysInt() == 1:
     #     util.exportCSVFile(np.array([estimatedTotalSolarRadiationToOPV, hourlyHorizontalTotalOuterSolarIrradiance]).T, "hourlyMeasuredHOrizontalAndEstimatedTotalSolarRadiation")
 
@@ -530,6 +550,10 @@ def simulateCropElectricityYieldProfit1():
     # consider the OPV film, shading curtain, structure,
     simulatorDetail.setSolarIrradianceToPlants(simulatorClass)
 
+    # data export
+    util.exportCSVFile(np.array([year, month, day, hour, simulatorClass.transmittanceThroughShadingCurtainChangingEachMonth]).T, "transmittanceThroughShadingCurtain")
+    util.exportCSVFile(np.array([year, month, day, hour, simulatorClass.directSolarIrradianceToPlants, simulatorClass.diffuseSolarIrradianceToPlants]).T, "solarIrradianceToPlants")
+
     # the DLI to plants [mol/m^2/day]
     # totalDLItoPlants = simulatorDetail.getTotalDLIToPlants(OPVCoverage, importedDirectPPFDToOPV, importedDiffusePPFDToOPV, importedGroundReflectedPPFDToOPV,\
     #                                        hasShadingCurtain, shadingCurtainDeployPPFD, simulatorClass)
@@ -614,7 +638,8 @@ def simulateCropElectricityYieldProfit1():
     # ############
 
     # data export
-    util.exportCSVFile(np.array([year[::24], month[::24], day[::24], totalDLItoPlants, simulatorClass.LeafAreaIndex_J_VanHenten1994, shootFreshMassList]).T, "shootFreshMassAndDLIToPlants")
+    util.exportCSVFile(np.array([year[::24], month[::24], day[::24], totalDLItoPlants, shootFreshMassList]).T, "shootFreshMassAndDLIToPlants")
+    # util.exportCSVFile(np.array([year[::24], month[::24], day[::24], simulatorClass.LeafAreaIndex_J_VanHenten1994]).T, "LeafAreaIndex_J_VanHenten1994")
 
     # unit conversion; get the plant yield per day per area: [g/head/day] -> [g/m^2/day]
     shootFreshMassPerCultivationFloorAreaPerDay = util.convertUnitShootFreshMassToShootFreshMassperArea(shootFreshMassList)
@@ -659,6 +684,9 @@ def simulateCropElectricityYieldProfit1():
         util.saveFigure(title + " " + constant.SimulationStartDate + "-" + constant.SimulationEndDate)
         #######################################################################
 
+        # data export
+        util.exportCSVFile(np.array([shootFreshMassList, dailyFreshWeightPerHeadIncrease, dailyHarvestedFreshWeightPerHead]).T, "VariousPlantYieldVsTime")
+
     ##########################################################################
     ################## calculate the daily plant yield end####################
     ##########################################################################
@@ -681,7 +709,6 @@ def simulateCropElectricityYieldProfit1():
     totalPlantSalesPerGHFloorArea = totalplantSales / constant.greenhouseFloorArea
 
 
-
     # set the variable to the object
     simulatorClass.totalPlantSalesperSquareMeter = totalPlantSalesPerCultivationFloorArea
     simulatorClass.totalplantSales = totalplantSales
@@ -694,13 +721,18 @@ def simulateCropElectricityYieldProfit1():
     ######################################################################################################
     ################## calculate the daily plant cost (greenhouse operation cost) start###################
     ######################################################################################################
-    # it was assumed that the cost for growing plants is significantly composed of labor cost and electricity and fuel energy cost for heating/cooling (including pad and fan syste)
+    # it was assumed that the cost for growing plants is significantly composed of labor cost and electricity and fuel energy cost for heating/cooling (including pad and fan system)
 
+    # get the cost for cooling and heating
     totalHeatingCostForPlants, totalCoolingCostForPlants = simulatorDetail.getGreenhouseOperationCostForGrowingPlants(simulatorClass)
 
-    # date export
+    # data export
     util.exportCSVFile(np.array([simulatorClass.Q_v["coolingOrHeatingEnergy W m-2"], simulatorClass.Q_sr["solarIrradianceToPlants W m-2"], simulatorClass.Q_lh["latentHeatByTranspiration W m-2"], \
                                  simulatorClass.Q_sh["sensibleHeatFromConductionAndConvection W m-2"], simulatorClass.Q_lw["longWaveRadiation W m-2"]]).T, "energeBalance(W m-2)")
+    # # data export
+    # util.exportCSVFile(np.array([simulatorClass.s, simulatorClass.gamma_star, simulatorClass.r_s, \
+    #                              simulatorClass.r_b, simulatorClass.e_s, simulatorClass.e_a, simulatorClass.R_n, \
+    #                              simulatorClass.r_a, simulatorClass.r_b, simulatorClass.L, simulatorClass.r_c ]).T, "latentHeatCalcData")
 
     totalHeatingCostForPlantsPerGHFloorArea = totalHeatingCostForPlants / constant.greenhouseFloorArea
     totalCoolingCostForPlantsPerGHFloorArea = totalCoolingCostForPlants / constant.greenhouseFloorArea
@@ -763,7 +795,7 @@ def simulateCropElectricityYieldProfit1():
             [totalplantSales], [totalPlantSalesPerGHFloorArea], [totalPlantProductionCost], [totalPlantProductionCostPerGHFloorArea], \
             [economicProfit], [economicProfitPerGHFloorArea]]).T, "yieldProfitSalesCost")
 
-    print ("end modeling: datetime.datetime.now():{}".format(datetime.datetime.now()))
+    # print ("end modeling: datetime.datetime.now():{}".format(datetime.datetime.now()))
 
     return simulatorClass
 

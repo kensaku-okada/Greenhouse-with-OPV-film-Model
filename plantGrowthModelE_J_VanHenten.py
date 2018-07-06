@@ -86,6 +86,8 @@ def calcUnitDailyFreshWeightE_J_VanHenten1994(simulatorClass):
     Xnsdw = np.zeros(simulationDaysInt*constant.hourperDay)
     # total dry weight
     DW = np.zeros(simulationDaysInt*constant.hourperDay)
+    # summer period flag array: 1.0 == summer, 0.0 == not summer
+    summerPeriodFlagArray = np.zeros(simulationDaysInt*constant.hourperDay)
 
     # set the initial values
     # according to the reference, the initial dry weight was 2.7 g/m^2 with the cultivar "Berlo" (started 17 October 1991), and 0.72 g/m^2  with "Norden"(started 21 January 1992)
@@ -105,16 +107,28 @@ def calcUnitDailyFreshWeightE_J_VanHenten1994(simulatorClass):
     while i  < simulationDaysInt * constant.hourperDay:
         # for i in range (1, constant.cultivationDaysperHarvest):
 
-        # if you do not grow plant during the summer period, then skip the period
+        # if you do not grow plant during the summer period, then skip the summer period
         # if simulatorClass.getIfGrowForSummerPeriod() is False and \
+        # the last condition was added to consider the case when the summer period is defined to be zero even if constant.ifGrowForSummerPeriod is False
         if constant.ifGrowForSummerPeriod is False and \
                 datetime.date(year[i], month[i], day[i]) >= datetime.date(year[i], constant.SummerPeriodStartMM, constant.SummerPeriodStartDD) and \
-            datetime.date(year[i], month[i], day[i]) <= datetime.date(year[i], constant.SummerPeriodEndMM, constant.SummerPeriodEndDD):
+            datetime.date(year[i], month[i], day[i]) <= datetime.date(year[i], constant.SummerPeriodEndMM, constant.SummerPeriodEndDD) and \
+            datetime.date(year[i], constant.SummerPeriodEndMM, constant.SummerPeriodEndDD) > datetime.date(year[i], constant.SummerPeriodStartMM, constant.SummerPeriodStartDD):
 
             # skip the summer period cultivation cycle
             # It was assumed to take 3 days to the next cultivation cycle assuming "transplanting  shock  prevented growth during the first 48 h", and it takes one day for preparation.
             # source: 21.	Pearson, S., Wheeler, T. R., Hadley, P., & Wheldon, A. E. (1997). A validated model to predict the effects of environment on the growth of lettuce (Lactuca sativa L.): Implications for climate change. Journal of Horticultural Science, 72(4), 503–517. https://doi.org/10.1080/14620316.1997.11515538
             i += summerPeriodHours + 3 * constant.hourperDay
+            # print("summerPeriodHours:{}".format(summerPeriodHours))
+
+            # record the summer period
+            summerPeriodFlagArray[i - summerPeriodHours + 3 * constant.hourperDay: i] = 1.0
+
+            # print("i:{}".format(i))
+            # print("resetInitialWeights(i, Xsdw[0], Xnsdw[0]):{}".format(resetInitialWeights(i, Xsdw[0], Xnsdw[0])))
+            # print("Xsdw[i - 2 * constant.hourperDay:i]:{}".format(Xsdw[i - 2 * constant.hourperDay:i]))
+            # print("Xnsdw[i - 2 * constant.hourperDay:i]:{}".format(Xnsdw[i - 2 * constant.hourperDay:i]))
+            # print("DW[i - 2 * constant.hourperDay:i]:{}".format(DW[i - 2 * constant.hourperDay:i]))
 
             # initialize the plant weight for the cultivation soon after the summer period
             Xsdw[i - 2 * constant.hourperDay:i], \
@@ -195,8 +209,10 @@ def calcUnitDailyFreshWeightE_J_VanHenten1994(simulatorClass):
     # the plant weight per head
     # Ydw = (Xsdw + Xnsdw) / float(constant.numOfHeadsPerArea)
 
-    # set leaf area index to the object
+    # set variables to the object
     simulatorClass.LeafAreaIndex_J_VanHenten1994 = VanHentenConstant.c_lar['m2 g-2'] * (1- VanHentenConstant.c_tau) * Xsdw
+    simulatorClass.summerPeriodFlagArray = summerPeriodFlagArray
+
 
     DWPerHead = DW / plantDensity
     # print("DWPerHead:{}".format(DWPerHead))

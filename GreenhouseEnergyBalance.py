@@ -74,6 +74,9 @@ def getGHEnergyConsumptionByCoolingHeating(simulatorClass):
 	# ############
 	################# get Q_sr end ################
 
+
+
+
 	# latent heat energy flux due to plant transpiration [W m-2]
 	################# get Q_lh (Q_e) start ################
 	# '''
@@ -173,11 +176,6 @@ def getGHEnergyConsumptionByCoolingHeating(simulatorClass):
 	# print("Q_v.shape:{}".format(Q_v.shape))
 	################# get Q_v end ################
 
-	# # this energy is used for heating. So sum only the minus value of Q_v
-	# totalFuelEnergyConsumptionForPlants =
-	# # this energy is used for cooling with pad and fan systems. So sum only the positive value of Q_v
-	# totalElectricityConsumptionForPlants =
-	# return totalFuelEnergyConsumptionForPlants, totalElectricityConsumptionForPlants
 
 	# set the data to the object. all units are W m-2
 	simulatorClass.Q_v["coolingOrHeatingEnergy W m-2"] = Q_v
@@ -189,8 +187,6 @@ def getGHEnergyConsumptionByCoolingHeating(simulatorClass):
 	# print("Q_lh.shape:{}".format(Q_lh.shape))
 	# print("Q_sh.shape:{}".format(Q_sh.shape))
 	# print("Q_lw.shape:{}".format(Q_lw.shape))
-
-	# return Q_v
 
 
 def getLatentHeatTransferByTranspiration(simulatorClass, totalSolarIrradianceToPlants):
@@ -207,20 +203,20 @@ def getLatentHeatTransferByTranspiration(simulatorClass, totalSolarIrradianceToP
 
 	'''
 
-	# greenhouse air temperature [Celsius degree]
-	T_a = simulatorClass.getImportedHourlyAirTemperature()
+	# inside (set point) air temperature [Celsius degree]
+	T_iC = Lettuce.getGreenhouseTemperatureEachHour(simulatorClass)
 
 	hourlyDayOrNightFlag = simulatorClass.hourlyDayOrNightFlag
 	relativeHumidityInGH = np.array([constant.setPointHumidityDayTime if i == constant.daytime else constant.setPointHumidityNightTime for i in hourlyDayOrNightFlag])
 
 	# leaf temperature [Celsius degree]. It was assumed that the difference between the leaf temperature and the air temperature was always 2. This is just an assumption of unofficial experiment at Kacira Lab at CEAC in University of Arizona
-	T_l = T_a + 2.0
+	T_l = T_iC + 2.0
 	# dimention of leaf [m]. This is just an assumption of unofficial experiment at Kacira Lab at CEAC in University of Arizona
 	d = 0.14
 
 	# arerodynamic resistance of the leaf [s m-1]
 	# source: reference No 1, Pollet et al. 2000
-	r_a = 840.0 * (d/abs(T_l - T_a))**(1.0/4.0)
+	r_a = 840.0 * (d/abs(T_l - T_iC))**(1.0/4.0)
 	# print("r_a:{}".format(r_a))
 
 	# the leaf area index [-]
@@ -248,14 +244,19 @@ def getLatentHeatTransferByTranspiration(simulatorClass, totalSolarIrradianceToP
 	# saturated vapore pressure [Pa]
 	# source: http://cronklab.wikidot.com/calculation-of-vapour-pressure-deficit
 	# source: https://www.weather.gov/media/epz/wxcalc/vaporPressure.pdf
-	e_s, e_a = getSturatedAndActualVaporPressure(T_a, relativeHumidityInGH)
+	e_s, e_a = getSturatedAndActualVaporPressure(T_iC, relativeHumidityInGH)
 	# vapor pressure deficit [Pa]
-	D = e_s - e_a
+	D_Pa = e_s - e_a
+	# unit conversion: Pa (vapor pressure deficit) -> g m-2 (humidity deficit)
+	# source: http://mackenmov.sunnyday.jp/macken/plantf/term/housa/hosa.html
+	VH = 217.0 * e_s / (T_iC + 273.15)
+	D = (1.0 - relativeHumidityInGH) * VH
+
 	############### calc the vapor pressure deficit end ###############
 
 	# the stomatal resistance [sec m-1]
 	# source: reference No 1, Pollet et al. 2000
-	r_s = 164.0*(31.029+I_s)/(6.740+I_s) * (1 + 0.011*(D - 3.0)**2) * (1 + 0.016*(T_a - 16.4)**2)
+	r_s = 164.0*(31.029+I_s)/(6.740+I_s) * (1 + 0.011*(D - 3.0)**2) * (1 + 0.016*(T_iC - 16.4)**2)
 
 	# crop resistance　[sec m-1]
 	# source: reference No 1, Pollet et al. 2000
@@ -283,7 +284,7 @@ def getLatentHeatTransferByTranspiration(simulatorClass, totalSolarIrradianceToP
 	# slope of saturation vapore pressure - temperature curve [kPa C-1]
 	# source: http://www.fao.org/docrep/X0490E/x0490e0k.htm
 	# source: http://edis.ifas.ufl.edu/pdffiles/ae/ae45900.pdf
-	s = 4098.0 * 610.8 * math.e**((17.27*T_a)/(T_a + 273.3)) / ((T_a + 273.3)**2.0)
+	s = 4098.0 * 610.8 * math.e**((17.27 * T_iC)/(T_iC + 273.3)) / ((T_iC + 273.3)**2.0)
 	# ############command to print out all array data
 	# np.set_printoptions(threshold=np.inf)
 	# print("s:{}".format(s))
@@ -304,6 +305,29 @@ def getLatentHeatTransferByTranspiration(simulatorClass, totalSolarIrradianceToP
 	# print("Q_lh:{}".format(Q_lh))
 	# np.set_printoptions(threshold=1000)
 	# ############
+
+	# simulatorClass.r_a = r_a
+	# print("r_a.shape:{}".format(r_a.shape))
+	# simulatorClass.L = L
+	# print(L.shape)
+	# simulatorClass.r_b = r_b
+	# print(r_b.shape)
+	# simulatorClass.e_a = e_a
+	# print(e_a.shape)
+	# simulatorClass.e_s = e_s
+	# print(e_s.shape)
+	# simulatorClass.r_s = r_s
+	# print(r_s.shape)
+	# simulatorClass.r_c = r_c
+	# print(r_c.shape)
+	# # simulatorClass.gamma = gamma
+	# # print(gamma.shape)
+	# simulatorClass.gamma_star = gamma_star
+	# print(gamma_star.shape)
+	# simulatorClass.s = s
+	# print(s.shape)
+	# simulatorClass.R_n = R_n
+	# print(R_n.shape)
 
 	return Q_lh
 
@@ -332,6 +356,16 @@ def getQ_v(simulatorClass, Q_sr, Q_lh, Q_sh, Q_lw):
 	# unit: W
 	# In the default definition, when Q_lhW, Q_shW, and Q_lwW are positive, heat energy gets out of the  greenhouse. Thus, the unit was converted into negative value
 	Q_vW = Q_srW - (Q_lhW + Q_shW + Q_lwW)
+
+	# ############command to print out all array data
+	# np.set_printoptions(threshold=np.inf)
+	# print("simulatorClass.shootFreshMassList:{}".format(simulatorClass.shootFreshMassList))
+	# print("simulatorClass.summerPeriodFlagArray:{}".format(simulatorClass.summerPeriodFlagArray))
+	# np.set_printoptions(threshold=1000)
+	# ############
+
+	# if it is the summer period or the preparation day for the next cultivation (the fresh mass is zero), let Q_vw zero.
+	Q_vW = np.array([0.0 if simulatorClass.shootFreshMassList[i] == 0.0 or simulatorClass.summerPeriodFlagArray[i] == 1.0 else Q_vW[i] for i in range(Q_vW.shape[0])])
 
 	simulatorClass.Q_vW["coolingOrHeatingEnergy W"] = Q_vW
 	simulatorClass.Q_srW["solarIrradianceToPlants W"] = Q_srW
@@ -369,7 +403,7 @@ def getGHHeatingEnergyCostForPlants(requiredHeatingEnergyForPlants, simulatorCla
 	# np.set_printoptions(threshold=np.inf)
 	# print ("fileData:{}".format(fileData))
 	# np.set_printoptions(threshold=1000)
-	# ############
+	# ############	
 
 	# unit ft3 month-1
 	monthlyRequiredGHHeatingEnergyForPlants = getMonthlyRequiredGHHeatingEnergyForPlants(requiredHeatingEnergyConsumptionForPlants["ft3"], simulatorClass)

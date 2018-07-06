@@ -275,11 +275,7 @@ def getDiffuseHorizontalSolarRadiation(hourlySolarAltitudeAngle, hourlyHorizonta
 #         np.zeros(util.calcSimulationDaysInt() * constant.hourperDay)):
 def getDirectTitledSolarRadiation(simulatorClass, hourlySolarAltitudeAngle, hourlySolarIncidenceAngle, hourlyHorizontalDirectOuterSolarIrradiance):
     '''
-    calculate the direct solar radiation to tilted surface. referred to Yano 2009
-    :param hourlySolarAltitudeAngle: [rad]
-    :param hourlySolarIncidenceAngle: [rad]
-
-    :return: maxDirectBeamSolarRadiation [W m^-2]
+    calculate the direct solar radiation to tilted surface. referred to Yano 2009 for both cases
     '''
 
     # if we estimate the solar radiation (calculate the solar radiation without real data), get into this statement
@@ -306,15 +302,8 @@ def getDirectTitledSolarRadiation(simulatorClass, hourlySolarAltitudeAngle, hour
 
     # if we calculate the solar radiation with real data, get into this statement
     else:
-        # print("at OPVFilm.getDirectTitledSolarRadiation, hourlyHorizontalDirectOuterSolarIrradiance has data")
-        # this equation was cited from Murat Kacira, "determining optimum tilt angles and orientations of photovoltaic panels in Sanliurfa, Turkey", 2004
-        # since zenith angle == 90 - solar altitude angle, sin(solar altitude angle) == cos(zenith angle)
-
-        # print("np.cos(hourlySolarIncidenceAngle):{}".format(np.cos(hourlySolarIncidenceAngle)))
-        # print("np.sin(hourlySolarAltitudeAngle):{}".format(np.sin(hourlySolarAltitudeAngle)))
-        # print("hourlySolarAltitudeAngle:{}".format(hourlySolarAltitudeAngle))
-
-        directTiltedSolarRadiation = hourlyHorizontalDirectOuterSolarIrradiance * np.cos(hourlySolarIncidenceAngle) / np.sin(hourlySolarAltitudeAngle)
+        directTiltedSolarRadiation = constant.solarConstant * (constant.atmosphericTransmissivity ** (1.0 / np.sin(hourlySolarAltitudeAngle))) * \
+                                     np.cos(hourlySolarIncidenceAngle)
 
         # direct tilted solar radiation is defined as 0 when the incidence angle is >90 or <-90 (|incidence angle| > 90 degree)
         for i in range (0, hourlySolarIncidenceAngle.shape[0]):
@@ -322,25 +311,11 @@ def getDirectTitledSolarRadiation(simulatorClass, hourlySolarAltitudeAngle, hour
             if hourlySolarAltitudeAngle[i] < 0.0 or directTiltedSolarRadiation[i] < 0.0:
                 directTiltedSolarRadiation[i] = 0.0
 
-        # when SimulationStartDate = "20150301" and SimulationEndDate = "20150415", you gonna get outliers (having more then 1200.0 W/m^2) with indices [1086] at east direction OPV module, and  [18, 66, 162, 258]  at west direction OPV module
-        # the outliers seems to be caused by "np.cos(hourlySolarIncidenceAngle) / np.sin(hourlySolarAltitudeAngle)" in this function, which can be very large number when the denominator is too small like 0.0001
-        # print ("outlier indices:{}".format([i for i, x  in enumerate(directTiltedSolarRadiation) if x > 1200.0]))
-        # print ("hourlyHorizontalDirectOuterSolarIrradiance[1086]:{}".format(hourlyHorizontalDirectOuterSolarIrradiance[1086]))
-        # print ("hourlySolarIncidenceAngle[1086]:{}".format(hourlySolarIncidenceAngle[1086]))
-        # print ("directTiltedSolarRadiation[1086]:{}".format(directTiltedSolarRadiation[1086]))
-        # print ("np.cos(hourlySolarIncidenceAngle[1086]) :{}".format(np.cos(hourlySolarIncidenceAngle[1086])))
-        # print ("np.sin(hourlySolarAltitudeAngle[1086])]:{}".format(np.sin(hourlySolarAltitudeAngle[1086])))
-        # print ("np.cos(hourlySolarIncidenceAngle[1086]) / np.sin(hourlySolarAltitudeAngle[1086])]:{}".format(np.cos(hourlySolarIncidenceAngle[1086]) / np.sin(hourlySolarAltitudeAngle[1086])))
-        # print ("hourlyHorizontalDirectOuterSolarIrradiance[18]:{}".format(hourlyHorizontalDirectOuterSolarIrradiance[18]))
-        # print ("hourlySolarIncidenceAngle[18]:{}".format(hourlySolarIncidenceAngle[18]))
-        # print ("directTiltedSolarRadiation[18]:{}".format(directTiltedSolarRadiation[18]))
-        # print ("np.cos(hourlySolarIncidenceAngle[18]) :{}".format(np.cos(hourlySolarIncidenceAngle[18])))
-        # print ("np.sin(hourlySolarAltitudeAngle[18])]:{}".format(np.sin(hourlySolarAltitudeAngle[18])))
-        # print ("np.cos(hourlySolarIncidenceAngle[18]) / np.sin(hourlySolarAltitudeAngle[18])]:{}".format(np.cos(hourlySolarIncidenceAngle[18]) / np.sin(hourlySolarAltitudeAngle[18])))
-
         # print ("directTiltedSolarRadiation:{}".format(directTiltedSolarRadiation))
 
-        ############ outliers data correction ############
+
+        # TODO: delete the following process if not necessary
+        ############ outliers data correction start ############
         # when this value is 2, then average just 1 hour before and after the ith hour
         averageHourRange = 2
         numElBefore = averageHourRange -1
@@ -362,7 +337,6 @@ def getDirectTitledSolarRadiation(simulatorClass, hourlySolarAltitudeAngle, hour
         # this correction was made because some outliers occured by the calculation of directTiltedSolarRadiation (= hourlyHorizontalDirectOuterSolarIrradiance * np.cos(hourlySolarIncidenceAngle) / np.sin(hourlySolarAltitudeAngle))
         # "np.cos(hourlySolarIncidenceAngle) / np.sin(hourlySolarAltitudeAngle)" can be very larger number like 2000
         # if a light intensity [W /m^2] at a certain hour is more than the maximum light intensity by 20%, the value is replaced by the average light intensity before/after 3 hours
-        # TODO "the maximum light intensity by 20%" does not work cus the maximum value takes maximum outlier. need to find better logically reasonable limiation.
         # directTiltedSolarRadiationExcludingOutliers = np.array([(np.sum(directTiltedSolarRadiation[i-numElBefore :i+numElAfter]) - directTiltedSolarRadiation[i]) / float(numElBefore+numElAfter -1.0) if\
         #                                                         x > 1.5 * (np.sum(directTiltedSolarRadiation[i-numElBefore :i+numElAfter]) - directTiltedSolarRadiation[i]) / (numElBefore+numElAfter -1.0) \
         #                                                         else x for i, x in enumerate(directTiltedSolarRadiation) ])
@@ -370,6 +344,7 @@ def getDirectTitledSolarRadiation(simulatorClass, hourlySolarAltitudeAngle, hour
                                                                 x > outlierLimitation else x for i, x in enumerate(directTiltedSolarRadiation) ])
 
         print ("outlier indices after correction:{}".format([i for i, x in enumerate(directTiltedSolarRadiationExcludingOutliers) if x > outlierLimitation]))
+        ############ outliers data correction end ############
 
         # print ("outlier indices after correction:{}".format([i for i, x in enumerate(directTiltedSolarRadiationExcludingOutliers) if x > 1.2 * (np.sum(directTiltedSolarRadiationExcludingOutliers[i-numElBefore :i+numElAfter]) - directTiltedSolarRadiationExcludingOutliers[i]) / (numElBefore+numElAfter -1.0)]))
         # print "hourlySolarIncidenceAngle:{}".format(hourlySolarIncidenceAngle)
@@ -378,13 +353,6 @@ def getDirectTitledSolarRadiation(simulatorClass, hourlySolarAltitudeAngle, hour
 
         # return directTiltedSolarRadiation
         return directTiltedSolarRadiationExcludingOutliers
-
-
-# TODO will need later
-def combineTwoDirectSolarRadiationToOPV(totalTiltedSolarRadiationEast, totalTiltedSolarRadiationWest):
-    return 1
-
-
 
 
 def getDiffuseTitledSolarRadiation(simulatorClass, hourlySolarAltitudeAngle, estimatedDiffuseHorizontalSolarRadiation, hourlyHorizontalDiffuseOuterSolarIrradiance = \

@@ -140,6 +140,8 @@ def calcOPVmoduleSolarIrradianceGHRoof(simulatorClass, roofDirectionNotation=con
     # print "diffuseHorizontalSolarRadiation:{}".format(diffuseHorizontalSolarRadiation)
     # symbol: I_HT
     totalHorizontalSolarRadiation = directHorizontalSolarRadiation + diffuseHorizontalSolarRadiation
+    simulatorClass.totalHorizontalSolarRadiation = totalHorizontalSolarRadiation
+
     # print "totalHorizontalSolarRadiation:{}".format(totalHorizontalSolarRadiation)
 
 
@@ -317,6 +319,11 @@ def setSolarIrradianceToPlants(simulatorClass):
 
     # get the shading curtain transmittance
     ShadingCurtain.getHourlyShadingCurtainDeploymentPatternChangingEachMonthMain(simulatorClass)
+    # #############command to print out all array data
+    # np.set_printoptions(threshold=np.inf)
+    # print("simulatorClass.transmittanceThroughShadingCurtainChangingEachMonth:{}".format(simulatorClass.transmittanceThroughShadingCurtainChangingEachMonth))
+    # np.set_printoptions(threshold=1000)
+    # #############
 
     # calculate the light intensity to plants [W m-2]
     directSolarIrradianceToPlants = OPVFilm.getDirectSolarIrradianceToPlants(simulatorClass, directSolarIrradianceBeforeShadingCurtain)
@@ -329,7 +336,6 @@ def setSolarIrradianceToPlants(simulatorClass):
     # set the data to the object
     simulatorClass.directSolarIrradianceToPlants = directSolarIrradianceToPlants
     simulatorClass.diffuseSolarIrradianceToPlants = diffuseSolarIrradianceToPlants
-
 
     # #############command to print out all array data
     # np.set_printoptions(threshold=np.inf)
@@ -373,7 +379,6 @@ def getPlantYieldSimulation(simulatorClass):
     '''
     calculate the daily plant yield
 
-    :param plantGrowthModel: String
     :param cultivationDaysperHarvest: [days / harvest]
     :param OPVAreaCoverageRatio: [-] range(0-1)
     :param directPPFDToOPV: hourly average [umol m^-2 s^-1] == PPFD
@@ -424,10 +429,12 @@ def getPlantYieldSimulation(simulatorClass):
         # print("accumulatedUnitDailyFreshWeightIncrease.shape[0]:{}".format(accumulatedUnitDailyFreshWeightIncrease.shape[0]))
         # print("unitHarvestedFreshWeight.shape[0]:{}".format(unitHarvestedFreshWeight.shape[0]))
 
+        # set the data
+        simulatorClass.shootFreshMassList = shootFreshMassList
+
         # Be careful! this model returns hourly weight, not daily weight. so convert the hourly value into daily value.
         dailyShootFreshMassList = shootFreshMassList[23::constant.hourperDay]
         # print("dailyShootFreshMassList:{}".format(dailyShootFreshMassList))
-
 
         # dailyUnitDailyFreshWeightIncrease = np.array(sum[ unitDailyFreshWeightIncrease[constant.hourperDay*(i-1):constant.hourperDay*i]] \
         #                                              for i in range (0, unitDailyFreshWeightIncrease.shape[0]/constant.hourperDay ))
@@ -733,7 +740,6 @@ def getGreenhouseOperationCostForGrowingPlants(simulatorClass):
 
   # get environment data to calculate the energy for cooling and heating
 
-
   # the energy for cooling and heating
   energyBalance.getGHEnergyConsumptionByCoolingHeating(simulatorClass)
   # unit: W
@@ -749,12 +755,12 @@ def getGreenhouseOperationCostForGrowingPlants(simulatorClass):
   # if the energy balance is plus, we need to cool to maintain the internal temperature. [W m]
   requiredCoolingEnergyForPlants = np.array([Q_vW["coolingOrHeatingEnergy W"][i] if Q_vW["coolingOrHeatingEnergy W"][i] > 0.0 else 0.0 for i in range (Q_vW["coolingOrHeatingEnergy W"].shape[0])])
 
-  # ############command to print out all array data
-  # np.set_printoptions(threshold=np.inf)
-  # print("totalFuelEnergyConsumptionForPlants:{}".format(totalFuelEnergyConsumptionForPlants))
-  # print("totalElectricityConsumptionForPlants:{}".format(totalElectricityConsumptionForPlants))
-  # np.set_printoptions(threshold=1000)
-  # ############
+
+  ############command to print out all array data
+  np.set_printoptions(threshold=np.inf)
+  print("requiredCoolingEnergyForPlants:{}".format(requiredCoolingEnergyForPlants))
+  np.set_printoptions(threshold=1000)
+  ############
 
   # unit: USD
   totalHeatingCostForPlants = energyBalance.getGHHeatingEnergyCostForPlants(requiredHeatingEnergyForPlants, simulatorClass)
