@@ -326,6 +326,13 @@ def simulateCropElectricityYieldProfit1():
 
     ################# calculate solar irradiance without real data (estimate the data) end #######################
 
+    # # ####################################################################################################
+    # # Stop execution here...
+    # sys.exit()
+    # # Move the above line to different parts of the assignment as you implement more of the functionality.
+    # #  ####################################################################################################
+
+
         # # export measured horizontal and estimated data only when the simulation date is 1 day. *Modify the condition if necessary.
     # elif constant.ifExportMeasuredHorizontalAndExtimatedData == True and util.getSimulationDaysInt() == 1:
     #     util.exportCSVFile(np.array([estimatedTotalSolarRadiationToOPV, hourlyHorizontalTotalOuterSolarIrradiance]).T, "hourlyMeasuredHOrizontalAndEstimatedTotalSolarRadiation")
@@ -364,7 +371,7 @@ def simulateCropElectricityYieldProfit1():
     ############################################################################################
     ################## calculate the daily electricity yield per area start#####################
     ############################################################################################
-    # TODO: for more accurate modeling, we need actual data for a more detailed model (considering the OPV material) for the temperature of OPV film, but right now, just use the imported body temperature.
+    # TODO: for more accurate modeling, we need actual data (considering the OPV material) for the temperature of OPV film, but right now, just use the imported body temperature.
     # get the daily electricity yield per area per day ([J/m^2/day]) based on the given light intensity ([Celsius],[W/m^2]).
     # regard the east side and west tilted OPV module differently/
     dailyJopvoutperAreaEastRoof = simulatorDetail.getDailyElectricityYieldperArea(simulatorClass, hourlyHorizontalTotalBeamMeterBodyTemperature, \

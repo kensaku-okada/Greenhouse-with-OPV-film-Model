@@ -20,10 +20,8 @@ import CropElectricityYeildSimulatorConstant as constant
 # import importlib
 
 case = "OneCaseSimulation"
-# case == "LeastSquareMethod"
 # case = "OptimizeOnlyOPVCoverageRatio"
 # case = "OptimizationByMINLPSolver"
-# case = "ShadingCurtainReinforcementLearning"
 
 if case == "OneCaseSimulation":
   print("run OneCaseSimulation")
@@ -37,8 +35,8 @@ if case == "OneCaseSimulation":
   # ####################################################################################################
   # Stop execution here...
   sys.exit()
-# Move the above line to different parts of the assignment as you implement more of the functionality.
-# ####################################################################################################
+  # Move the above line to different parts of the assignment as you implement more of the functionality.
+  #  ####################################################################################################
 
 
 # # Least Square method
@@ -436,6 +434,10 @@ elif case == "OptimizationByMINLPSolver":
     constant.ShadingCurtainDeployStartDDFall = shadingCurtainDeployStartDateFall.day
     constant.ShadingCurtainDeployEndMMFall = shadingCurtainDeployEndDateFall.month
     constant.ShadingCurtainDeployEndDDFall = shadingCurtainDeployEndDateFall.day
+    print("constant.ShadingCurtainDeployStartMMFall:{}".format(constant.ShadingCurtainDeployStartMMFall))
+    print("constant.ShadingCurtainDeployStartDDFall:{}".format(constant.ShadingCurtainDeployStartDDFall))
+    print("constant.ShadingCurtainDeployEndMMFall:{}".format(constant.ShadingCurtainDeployEndMMFall))
+    print("constant.ShadingCurtainDeployEndDDFall:{}".format(constant.ShadingCurtainDeployEndDDFall))
 
     return None
 
@@ -498,7 +500,7 @@ elif case == "OptimizationByMINLPSolver":
   # STEP 1.B: Lower and upper bounds 'xl' & 'xu'
   ##############################################
   # get the simulation period by hour [hours]
-  numOfSimulationDays = Util.getSimulationDaysInt()
+  numOfSimulationDays = Util.getSimulationDaysInt()-1
   # print("numOfSimulationDays:{}".format(numOfSimulationDays))
   problem['xl'] = [0.0, 1, 1, 1, 1]
   problem['xu'] = [1.0, numOfSimulationDays, numOfSimulationDays, numOfSimulationDays, numOfSimulationDays]
@@ -509,10 +511,17 @@ elif case == "OptimizationByMINLPSolver":
   # start from the minimum values
   # problem['x'] = problem['xl']  # Here for example: starting point = lower bounds
   # # start from the middle values
-  problem['x'] = [(problem['xl'][i] + problem['xu'][i])/2.0 for i in range(0, len(problem['xl']))   ]  # start from the middle
+  # problem['x'] = [(problem['xl'][i] + problem['xu'][i])/2.0 for i in range(0, len(problem['xl']))   ]  # start from the middle
   # # start from the maximum values
   # problem['x'] = problem['xu']  # Here for example: starting point = lower bounds
   # print("problem['x']:{}".format(problem['x']))
+  # start from the minimum values for OPV coverage ratio and middle values for numOfSimulationDays, numOfSimulationDays, numOfSimulationDays, numOfSimulationDays
+  # problem['x'] = [0.0, 183, 183, 183, 183]
+  # start from the minimum values for numOfSimulationDays, numOfSimulationDays, numOfSimulationDays, numOfSimulationDays and middle value for OPV coverage ratio
+  # problem['x'] = [0.5, 1, 1, 1, 1]
+  # start from the max values for OPV coverage ratio and middle value for numOfSimulationDays, numOfSimulationDays, numOfSimulationDays, numOfSimulationDays
+  problem['x'] = [0.0, 183, 183, 183, 183]
+
 
   ########################################################################
   ### Step 2: Choose stopping criteria and printing options    ###########
@@ -548,7 +557,9 @@ elif case == "OptimizationByMINLPSolver":
 
   # This parameter forces MIDACO to focus its search process around the current best solution and
 	# thus makes it more greedy or local. The larger the FOCUS value, the closer MIDACO will focus its search on the current best solution.
-  option['param6'] = 0.0  # FOCUS
+	# option['param6'] = 0.0  # FOCUS
+  # option['param6'] = 1.0  # FOCUS
+  option['param6'] = 10.0  # FOCUS
   # option['param6'] = 20.0  # FOCUS
 
   option['param7'] = 0.0  # ANTS
@@ -569,7 +580,8 @@ elif case == "OptimizationByMINLPSolver":
   ### Step 4: Choose Parallelization Factor   ############################
   ########################################################################
 
-  option['parallel'] = 10  # Serial: 0 or 1, Parallel: 2,3,4,5,6,7,8...
+  # option['parallel'] = 10  # Serial: 0 or 1, Parallel: 2,3,4,5,6,7,8...
+  option['parallel'] = 1  # Serial: 0 or 1, Parallel: 2,3,4,5,6,7,8...
 
   ########################################################################
   ############################ Run MIDACO ################################

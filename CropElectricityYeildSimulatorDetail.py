@@ -86,11 +86,12 @@ def calcOPVmoduleSolarIrradianceGHRoof(simulatorClass, roofDirectionNotation=con
         # module azimuth angle (yano 2009) == surface azimuth angle (kacira 2003)
         # if the OPV module facing east
         hourlyModuleAzimuthAngleEast = math.radians(-90.0)
+        # hourlyModuleAzimuthAngleEast = math.radians(180.0)
         # if the OPV module facing west
         hourlyModuleAzimuthAngleWest = math.radians(90.0)
+        # hourlyModuleAzimuthAngleWest = math.radians(0.0)
     # if the direction of greenhouse is east-west and the roof tilt direction is north-south
     elif roofDirectionNotation == "NorthSouthDirectionRoof":
-        # TODO: revise in the future project
         hourlyModuleAzimuthAngleNorth = math.radians(180.0)
         # if the OPV module facing west
         hourlyModuleAzimuthAngleSouth = math.radians(0.0)
@@ -103,7 +104,6 @@ def calcOPVmoduleSolarIrradianceGHRoof(simulatorClass, roofDirectionNotation=con
     hourlyModuleAzimuthAngleSouth = math.radians(0.0)
     hourlyHorizontalSolarIncidenceAngle = OPVFilm.calcSolarIncidenceAngleYano2009(hourlySolarAltitudeAngle, hourlySolarAzimuthAngle, hourlyModuleAzimuthAngleSouth, 0)
     # print "hourlyHorizontalSolarIncidenceAngle:{}".format(hourlyHorizontalSolarIncidenceAngle)
-
 
     if roofDirectionNotation == "EastWestDirectionRoof":
         #The incident angle of the beam sunlight on the module surface. [rad] symbol: theta_I
@@ -143,7 +143,6 @@ def calcOPVmoduleSolarIrradianceGHRoof(simulatorClass, roofDirectionNotation=con
     simulatorClass.totalHorizontalSolarRadiation = totalHorizontalSolarRadiation
 
     # print "totalHorizontalSolarRadiation:{}".format(totalHorizontalSolarRadiation)
-
 
     # tilted surface  solar radiation [W m^-2], real / estimated value branch is calculated in this functions
     # symbol: I_TD (= H_b at Kacira 2004). direct beam radiation on the tilted surface
@@ -756,11 +755,11 @@ def getGreenhouseOperationCostForGrowingPlants(simulatorClass):
   requiredCoolingEnergyForPlants = np.array([Q_vW["coolingOrHeatingEnergy W"][i] if Q_vW["coolingOrHeatingEnergy W"][i] > 0.0 else 0.0 for i in range (Q_vW["coolingOrHeatingEnergy W"].shape[0])])
 
 
-  ############command to print out all array data
-  np.set_printoptions(threshold=np.inf)
-  print("requiredCoolingEnergyForPlants:{}".format(requiredCoolingEnergyForPlants))
-  np.set_printoptions(threshold=1000)
-  ############
+  # ############command to print out all array data
+  # np.set_printoptions(threshold=np.inf)
+  # print("requiredCoolingEnergyForPlants:{}".format(requiredCoolingEnergyForPlants))
+  # np.set_printoptions(threshold=1000)
+  # ############
 
   # unit: USD
   totalHeatingCostForPlants = energyBalance.getGHHeatingEnergyCostForPlants(requiredHeatingEnergyForPlants, simulatorClass)

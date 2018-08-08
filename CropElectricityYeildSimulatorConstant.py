@@ -99,8 +99,9 @@ exportCSVFiles = True
 # if you want to export CVS file and figures, then true
 ifExportCSVFile = True
 # ifExportCSVFile = False
-ifExportFigures = True
-# ifExportFigures = False
+# ifExportFigures = True
+ifExportFigures = False
+
 
 # if you want to refer to the price of lettuce grown at greenhouse (sales per head), True, if you sell lettuce at open field farming price (sales per kg), False
 sellLettuceByGreenhouseRetailPrice = True
@@ -183,8 +184,8 @@ print("atmosphericTransmissivity:{}".format(atmosphericTransmissivity))
 kgpercwt = 45.3630
 
 # if this is true, then continue to grow plants during the Summer period. the default value is False in the object(instance)
-ifGrowForSummerPeriod = True
-# ifGrowForSummerPeriod = False
+# ifGrowForSummerPeriod = True
+ifGrowForSummerPeriod = False
 print("ifGrowForSummerPeriod:{}".format(ifGrowForSummerPeriod))
 ######################################
 ##########other constant end##########
@@ -280,6 +281,7 @@ greenhouseCultivationFloorArea = greenhouseFloorArea * 0.9
 print("greenhouseCultivationFloorArea[m^2]:{}".format(greenhouseCultivationFloorArea))
 # the type of roof direction
 roofDirectionNotation = "EastWestDirectionRoof"
+# roofDirectionNotation = "NorthSouthDirectionRoof"
 #side wall height of greenhouse (m)
 greenhouseHeightSideWall = 1.8288 # = 6[feet]
 # the total sidewall area
@@ -378,10 +380,10 @@ OPVAngle = greenhouseRoofAngle
 
 # the coverage ratio of OPV module on the greenhouse roof [-]
 # OPVAreaCoverageRatio = 0.20
-OPVAreaCoverageRatio = 0.58
+# OPVAreaCoverageRatio = 0.58
 # OPVAreaCoverageRatio = 0.5
-# OPVAreaCoverageRatio = 0.0
-print("OPVAreaCoverageRatio:{}".format(OPVAreaCoverageRatio))
+OPVAreaCoverageRatio = 0.009090909090909
+# print("OPVAreaCoverageRatio:{}".format(OPVAreaCoverageRatio))
 
 # the coverage ratio of OPV module on the greenhouse roof [-]. If you set this value same as OPVAreaCoverageRatio, it assumed that the OPV coverage ratio does not change during the whole period
 # OPVAreaCoverageRatioSummerPeriod = 1.0
@@ -543,15 +545,15 @@ closeCurtainString = "closeCurtain"
 # ShadingCurtainDeployEndMMFall = 1
 # ShadingCurtainDeployEndDDFall = 16
 
-# # optimzed period on greenhouse retail price, starting from middle values
-ShadingCurtainDeployStartMMSpring = 6
-ShadingCurtainDeployStartDDSpring = 19
-ShadingCurtainDeployEndMMSpring = 7
-ShadingCurtainDeployEndDDSpring = 5
-ShadingCurtainDeployStartMMFall = 7
-ShadingCurtainDeployStartDDFall = 14
-ShadingCurtainDeployEndMMFall = 7
-ShadingCurtainDeployEndDDFall = 15
+# # # optimzed period on greenhouse retail price, starting from middle values
+# ShadingCurtainDeployStartMMSpring = 6
+# ShadingCurtainDeployStartDDSpring = 19
+# ShadingCurtainDeployEndMMSpring = 7
+# ShadingCurtainDeployEndDDSpring = 5
+# ShadingCurtainDeployStartMMFall = 7
+# ShadingCurtainDeployStartDDFall = 14
+# ShadingCurtainDeployEndMMFall = 7
+# ShadingCurtainDeployEndDDFall = 15
 
 # # # optimzed period on greenhouse retail price, starting from max values
 # ShadingCurtainDeployStartMMSpring = 12
@@ -574,14 +576,14 @@ ShadingCurtainDeployEndDDFall = 15
 # ShadingCurtainDeployEndDDFall = 31
 
 # # # initial date s for optimization
-# ShadingCurtainDeployStartMMSpring = 7
-# ShadingCurtainDeployStartDDSpring = 1
-# ShadingCurtainDeployEndMMSpring = 7
-# ShadingCurtainDeployEndDDSpring = 1
-# ShadingCurtainDeployStartMMFall = 7
-# ShadingCurtainDeployStartDDFall = 2
-# ShadingCurtainDeployEndMMFall = 7
-# ShadingCurtainDeployEndDDFall = 2
+ShadingCurtainDeployStartMMSpring = 5
+ShadingCurtainDeployStartDDSpring = 17
+ShadingCurtainDeployEndMMSpring = 6
+ShadingCurtainDeployEndDDSpring = 12
+ShadingCurtainDeployStartMMFall = 6
+ShadingCurtainDeployStartDDFall = 23
+ShadingCurtainDeployEndMMFall = 7
+ShadingCurtainDeployEndDDFall = 2
 
 
 # Summer period. This should happend soon after ending the shading curtain deployment period.
