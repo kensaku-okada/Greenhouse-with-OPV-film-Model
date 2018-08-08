@@ -5,9 +5,18 @@ This simulation program was developed for my graduate reserach. The simulator es
 MIDACO solver (http://www.midaco-solver.com/) was adopted for the optimization. It solved mixed integer non-linear programming (MINLP) problem by combining an extended evolutionary Ant Colony Optimization (ACO) algorithm with the Oracle Penalty Method for constrained handling.
 
 # Big picture of the simulator:
-(https://github.com/kensaku-okada/Greenhouse-with-OPV-film-Model/edit/master/Fig 2.tif)
+(https://github.com/kensaku-okada/Greenhouse-with-OPV-film-Model/blob/master/Fig%202.tif)
 
 # How to run the simulator
-
+<ol>
+	<li>
+		<ul>
+			<li>Open SimulatorMain.py</li>
+			<li>If you want to run the model only with the manually defined values, let case = "OneCaseSimulation" at Line 22 </li>
+			<li>If you want to iterate the simulation only with different OPV coverage ratio, let case = "OptimizeOnlyOPVCoverageRatio" at Line 23 </li>
+			<li>If you want to optimize the parameters (OPV coverage ratio, Summer period start date, Summer period end date) with the model using MIDACO Solver, let case = "OptimizationByMINLPSolver" at Line 24 </li>
+		</ul>
+	</li>
+</ol>
 
 
