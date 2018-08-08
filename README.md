@@ -9,11 +9,8 @@ MIDACO solver (http://www.midaco-solver.com/) was adopted for the optimization. 
 
 # How to run the simulator
 
-		<ul>
-			<li>Open SimulatorMain.py</li>
-			<li>If you want to run the model only with the manually defined values, let case = "OneCaseSimulation" at Line 22 </li>
-			<li>If you want to iterate the simulation only with different OPV coverage ratio, let case = "OptimizeOnlyOPVCoverageRatio" at Line 23 </li>
-			<li>If you want to optimize the parameters (OPV coverage ratio, Summer period start date, Summer period end date) with the model using MIDACO Solver, let case = "OptimizationByMINLPSolver" at Line 24 </li>
-		</ul>
-
+<li>Open SimulatorMain.py</li>
+<li>If you want to run the model only with the manually defined values, let case = "OneCaseSimulation" at Line 22 </li>
+<li>If you want to iterate the simulation only with different OPV coverage ratio, let case = "OptimizeOnlyOPVCoverageRatio" at Line 23 </li>
+<li>If you want to optimize the parameters (OPV coverage ratio, Summer period start date, Summer period end date) with the model using MIDACO Solver, let case = "OptimizationByMINLPSolver" at Line 24 </li>
 
