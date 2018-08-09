@@ -14,3 +14,4 @@ MIDACO solver (http://www.midaco-solver.com/) was adopted for the optimization. 
 <li>If you want to iterate the simulation only with different OPV coverage ratio, let case = "OptimizeOnlyOPVCoverageRatio" at Line 23 </li>
 <li>If you want to optimize the parameters (OPV coverage ratio, Summer period start date, Summer period end date) with the model using MIDACO Solver, let case = "OptimizationByMINLPSolver" at Line 24 (This option needs MIDACO solver (http://www.midaco-solver.com/) paid license. Please purchase it at the website and crease a new folder called MIDACO having the dll file you gonna get). </li>
 
+Please claim issues if you face any problem in the program.
