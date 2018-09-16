@@ -5,7 +5,8 @@ This simulation program was developed for my graduate reserach. The simulator es
 MIDACO solver (http://www.midaco-solver.com/) was adopted for the optimization. It solved mixed integer non-linear programming (MINLP) problem by combining an extended evolutionary Ant Colony Optimization (ACO) algorithm with the Oracle Penalty Method for constrained handling.
 
 # Big picture of the simulator:
-![image](https://user-images.githubusercontent.com/Fig2.png)
+![fig 2](https://user-images.githubusercontent.com/6435299/45592781-d9d89580-b9b1-11e8-9433-6ff1bba15c25.png)
+
 
 # How to run the simulator
 
