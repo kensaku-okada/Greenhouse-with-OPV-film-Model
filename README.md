@@ -5,7 +5,7 @@ This simulation program was developed for my graduate reserach. The simulator es
 MIDACO solver (http://www.midaco-solver.com/) was adopted for the optimization. It solved mixed integer non-linear programming (MINLP) problem by combining an extended evolutionary Ant Colony Optimization (ACO) algorithm with the Oracle Penalty Method for constrained handling.
 
 # Big picture of the simulator:
-<img src="https://github.com/kensaku-okada/Greenhouse-with-OPV-film-Model/blob/master/Fig%202.png" alt="greenhouseModelBigPicture" title="greenhouseModelBigPicture">
+<img src="https://github.com/kensaku-okada/Greenhouse-with-OPV-film-Model/blob/master/Fig%202.tif" alt="greenhouseModelBigPicture" title="greenhouseModelBigPicture">
 
 # How to run the simulator
 
