@@ -8,6 +8,11 @@ MIDACO solver (http://www.midaco-solver.com/) was adopted for the optimization. 
 ![fig 2](https://user-images.githubusercontent.com/6435299/45592781-d9d89580-b9b1-11e8-9433-6ff1bba15c25.png)
 
 
+
+# Optimization model:
+![image](https://user-images.githubusercontent.com/6435299/49426796-f46a2000-f7e4-11e8-836a-3148a503497d.png)
+
+
 # How to run the simulator
 
 <li>Open SimulatorMain.py</li>
