@@ -23,5 +23,5 @@ MIDACO solver (http://www.midaco-solver.com/) was adopted for the optimization. 
 Please claim issues if you face any problem in the program.
 
 # Documents
-### Graduation Thesis using this model: 
-### Defense Presentation Slide:
+### Graduation Thesis using this model: https://github.com/kensaku-okada/Greenhouse-with-OPV-film-Model/blob/master/documents/graduatePaperKensakuOkada.pdf
+### Defense Presentation Slide: https://github.com/kensaku-okada/Greenhouse-with-OPV-film-Model/blob/master/documents/defensePresentationDraft2_Kensakul_Okada.pptx
