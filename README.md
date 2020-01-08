@@ -4,12 +4,12 @@ This simulation program was developed for my graduate reserach. The simulator es
 
 MIDACO solver (http://www.midaco-solver.com/) was adopted for the optimization. It solved mixed integer non-linear programming (MINLP) problem by combining an extended evolutionary Ant Colony Optimization (ACO) algorithm with the Oracle Penalty Method for constrained handling.
 
-# Big picture of the simulator:
+
+# Big picture of the simulator
 ![fig 2](https://user-images.githubusercontent.com/6435299/45592781-d9d89580-b9b1-11e8-9433-6ff1bba15c25.png)
 
 
-
-# Optimization model:
+# Optimization model
 ![image](https://user-images.githubusercontent.com/6435299/49426796-f46a2000-f7e4-11e8-836a-3148a503497d.png)
 
 
@@ -21,3 +21,7 @@ MIDACO solver (http://www.midaco-solver.com/) was adopted for the optimization. 
 <li>If you want to optimize the parameters (OPV coverage ratio, Summer period start date, Summer period end date) with the model using MIDACO Solver, let case = "OptimizationByMINLPSolver" at Line 24 (This option needs MIDACO solver (http://www.midaco-solver.com/) paid license. Please purchase it at the website and crease a new folder called MIDACO having the dll file you gonna get). </li>
 
 Please claim issues if you face any problem in the program.
+
+# Documents
+### Graduation Thesis using this model: 
+### Defense Presentation Slide:
